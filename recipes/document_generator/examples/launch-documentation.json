@@ -4,17 +4,17 @@
   "resources": [
     {
       "key": "product_specs",
-      "path": "product_specs.md",
+      "path": "recipes/document_generator/examples/resources/product_specs.md",
       "description": "Technical specifications, features, API details, and system requirements"
     },
     {
       "key": "market_research",
-      "path": "market_research.md",
+      "path": "recipes/document_generator/examples/resources/market_research.md",
       "description": "Competitive analysis, target customer profiles, and market opportunities"
     },
     {
       "key": "pricing_strategy",
-      "path": "pricing_strategy.md",
+      "path": "recipes/document_generator/examples/resources/pricing_strategy.md",
       "description": "Pricing tiers, packaging, and competitive positioning"
     }
   ],
