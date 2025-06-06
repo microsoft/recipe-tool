@@ -39,7 +39,7 @@
       "type": "set_context",
       "config": {
         "key": "existing_code_root",
-        "value": "{{ existing_code_root | default: 'recipe_executor' }}"
+        "value": "{{ existing_code_root | default: 'recipe-executor/recipe_executor' }}"
       }
     },
     {

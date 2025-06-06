@@ -2,7 +2,8 @@
 # Uses recursive.mk to run targets across all project subdirectories
 
 # Include the recursive system
-include tools/makefiles/recursive.mk
+this_dir = $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+include $(this_dir)/tools/makefiles/recursive.mk
 
 
 # Helper function to list available commands

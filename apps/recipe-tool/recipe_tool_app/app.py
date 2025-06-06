@@ -1,6 +1,7 @@
 """Recipe Tool Gradio app."""
 
 import argparse
+from typing import Any, Dict
 
 import gradio as gr
 import gradio.themes
@@ -11,6 +12,7 @@ from recipe_executor_app.core import RecipeExecutorCore
 from recipe_tool_app.config import settings
 from recipe_tool_app.core import RecipeToolCore
 from recipe_tool_app.ui import create_recipe_ui
+from recipe_tool_app.settings_sidebar import create_settings_sidebar
 
 # Set up logging
 logger = init_logger(settings.log_dir)
@@ -25,6 +27,18 @@ def create_app() -> gr.Blocks:
     with gr.Blocks(title=settings.app_title, theme=theme) as app:
         gr.Markdown("# Recipe Tool")
         gr.Markdown("A web interface for executing and creating recipes.")
+
+        # Settings sidebar
+        with gr.Sidebar(position="right"):
+            gr.Markdown("### ⚙️ Settings")
+
+            def on_settings_save(saved_settings: Dict[str, Any]) -> None:
+                """Handle settings updates."""
+                logger.info(
+                    f"Settings updated: model={saved_settings.get('model')}, max_tokens={saved_settings.get('max_tokens')}"
+                )
+
+            create_settings_sidebar(on_save=on_settings_save)
 
         with gr.Tabs():
             # Create Recipe Tab

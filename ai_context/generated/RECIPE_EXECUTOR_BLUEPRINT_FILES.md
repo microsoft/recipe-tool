@@ -5,8 +5,8 @@
 **Search:** ['blueprints/recipe_executor']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 12:47:25 PM
-**Files:** 49
+**Date:** 6/4/2025, 5:26:47 PM
+**Files:** 51
 
 === File: blueprints/recipe_executor/README.md ===
 # Recipe Executor Recipes
@@ -64,6 +64,11 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
 === File: blueprints/recipe_executor/components.json ===
 [
   {
+    "id": "config",
+    "deps": [],
+    "refs": []
+  },
+  {
     "id": "context",
     "deps": ["protocols"],
     "refs": []
@@ -80,7 +85,7 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
   },
   {
     "id": "main",
-    "deps": ["context", "executor", "logger", "protocols"],
+    "deps": ["config", "context", "executor", "logger", "protocols"],
     "refs": []
   },
   {
@@ -95,7 +100,7 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
   },
   {
     "id": "llm_utils.azure_openai",
-    "deps": ["logger"],
+    "deps": ["context", "logger", "protocols"],
     "refs": [
       "AZURE_IDENTITY_CLIENT_DOCS.md",
       "git_collector/PYDANTIC_AI_DOCS.md"
@@ -103,7 +108,7 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
   },
   {
     "id": "llm_utils.llm",
-    "deps": ["logger", "llm_utils.azure_openai", "llm_utils.mcp"],
+    "deps": ["context", "logger", "llm_utils.azure_openai", "llm_utils.mcp", "protocols"],
     "refs": ["git_collector/PYDANTIC_AI_DOCS.md"]
   },
   {
@@ -200,6 +205,249 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
   }
 ]
 
+
+=== File: blueprints/recipe_executor/components/config/config_docs.md ===
+# Config Component Usage
+
+## Importing
+
+```python
+from recipe_executor.config import load_configuration, RecipeExecutorConfig
+```
+
+## Interface (Public API)
+
+```python
+from typing import Dict, List, Optional, Any
+from pydantic_settings import BaseSettings
+from pydantic import Field
+
+
+class RecipeExecutorConfig(BaseSettings):
+    """Configuration for recipe executor API keys and credentials.
+
+    This class automatically loads values from environment variables
+    and .env files.
+    """
+
+    # Standard AI Provider API Keys (following PydanticAI patterns)
+    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    anthropic_api_key: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
+
+    # Azure OpenAI Credentials
+    azure_openai_api_key: Optional[str] = Field(default=None, env="AZURE_OPENAI_API_KEY")
+    azure_openai_base_url: Optional[str] = Field(default=None, env="AZURE_OPENAI_BASE_URL")
+    azure_openai_api_version: Optional[str] = Field(default="2025-03-01-preview", env="AZURE_OPENAI_API_VERSION")
+    azure_openai_deployment_name: Optional[str] = Field(default=None, env="AZURE_OPENAI_DEPLOYMENT_NAME")
+    azure_use_managed_identity: bool = Field(default=False, env="AZURE_USE_MANAGED_IDENTITY")
+    azure_client_id: Optional[str] = Field(default=None, env="AZURE_CLIENT_ID")
+
+    # Ollama Settings
+    ollama_base_url: str = Field(default="http://localhost:11434", env="OLLAMA_BASE_URL")
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        extra = "ignore"
+
+
+def load_configuration(recipe_env_vars: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Load configuration from environment variables.
+
+    Args:
+        recipe_env_vars: Optional list of additional environment variable names
+                        that the recipe requires. These will be loaded and added
+                        to the configuration with lowercase keys.
+
+    Returns:
+        Dictionary containing all configuration values, with None values excluded.
+    """
+```
+
+## Basic Usage
+
+```python
+# Load standard configuration
+config = load_configuration()
+
+# Access configuration values
+openai_key = config.get("openai_api_key")
+azure_base_url = config.get("azure_openai_base_url")
+```
+
+## With Recipe-Specific Variables
+
+```python
+# Recipe declares required environment variables
+recipe_env_vars = ["BRAVE_API_KEY", "CUSTOM_ENDPOINT"]
+
+# Load configuration including recipe-specific vars
+config = load_configuration(recipe_env_vars)
+
+# Access recipe-specific values (note: keys are lowercase)
+brave_key = config.get("brave_api_key")
+custom_endpoint = config.get("custom_endpoint")
+```
+
+## Integration with Context
+
+```python
+from recipe_executor.context import Context
+from recipe_executor.config import load_configuration
+
+# Load configuration
+config = load_configuration(recipe.env_vars if recipe else None)
+
+# Create context with configuration
+context = Context(
+    artifacts={},
+    config=config
+)
+
+# Components can access config through context
+api_key = context.get_config().get("openai_api_key")
+```
+
+## Standard Environment Variables
+
+The Config component automatically loads these environment variables:
+
+| Variable                       | Description                        | Default                  |
+| ------------------------------ | ---------------------------------- | ------------------------ |
+| `OPENAI_API_KEY`               | API key for OpenAI                 | None                     |
+| `ANTHROPIC_API_KEY`            | API key for Anthropic              | None                     |
+| `AZURE_OPENAI_API_KEY`         | API key for Azure OpenAI           | None                     |
+| `AZURE_OPENAI_BASE_URL`        | Base URL for Azure OpenAI endpoint | None                     |
+| `AZURE_OPENAI_API_VERSION`     | API version for Azure OpenAI       | "2025-03-01-preview"     |
+| `AZURE_OPENAI_DEPLOYMENT_NAME` | Deployment name for Azure OpenAI   | None                     |
+| `AZURE_USE_MANAGED_IDENTITY`   | Use Azure managed identity         | false                    |
+| `AZURE_CLIENT_ID`              | Client ID for managed identity     | None                     |
+| `OLLAMA_BASE_URL`              | Base URL for Ollama API            | "http://localhost:11434" |
+
+## Recipe-Specific Variables
+
+Recipes can declare additional required environment variables:
+
+```json
+{
+  "env_vars": ["BRAVE_API_KEY", "WEATHER_API_KEY"],
+  "steps": [...]
+}
+```
+
+These variables will be automatically loaded and made available with lowercase keys:
+
+- `BRAVE_API_KEY` → `brave_api_key`
+- `WEATHER_API_KEY` → `weather_api_key`
+
+## Configuration Access Patterns
+
+## In Step Implementations
+
+```python
+def execute(self, context: Context) -> Dict[str, Any]:
+    # Get API key from context config
+    api_key = context.get_config().get("openai_api_key")
+
+    # Use default if not set
+    model = context.get_config().get("llm_model", "gpt-4")
+```
+
+## In Templates
+
+Configuration values are accessible in Liquid templates through context:
+
+```liquid
+API Key: {{ openai_api_key }}
+Endpoint: {{ azure_openai_base_url | default: "https://api.openai.com" }}
+```
+
+## Important Notes
+
+- All configuration keys are converted to lowercase for consistency
+- Always check if optional configuration exists before using
+- Use sensible defaults for optional configuration
+- Clearly document which environment variables your recipe needs
+- Never hardcode API keys or secrets in recipe files
+- API keys and credentials are sensitive data - never log or print them
+- Use environment variables or .env files (not committed to version control)
+- The config component automatically excludes None values
+
+
+=== File: blueprints/recipe_executor/components/config/config_spec.md ===
+# Config Component Specification
+
+## Purpose
+
+The Config component provides centralized configuration management for the recipe executor, focusing on loading API keys and credentials from environment variables and making them available through the context.
+
+## Core Requirements
+
+- Load standard API keys and credentials from environment variables
+- Support loading custom environment variables declared by recipes
+- Provide configuration values to other components through context.config
+- Handle .env file loading and environment variable parsing
+- Use Pydantic BaseSettings for type-safe configuration
+- Convert environment variable names to lowercase keys for consistent access
+- Exclude None values from the returned configuration dictionary
+
+## Implementation Considerations
+
+- Use Pydantic BaseSettings to define configuration schema
+- Define fields for all standard API keys and credentials
+- Support .env file loading (though main component handles the actual loading)
+- Implement a `load_configuration` function that:
+  - Creates a RecipeExecutorConfig instance
+  - Converts the config to a dictionary excluding None values
+  - Loads any recipe-specific environment variables
+  - Returns the merged configuration dictionary
+- Convert recipe-specific env var names to lowercase for consistency
+- Use descriptive field names and include descriptions for each field
+
+## Component Dependencies
+
+### Internal Components
+
+None
+
+### External Libraries
+
+- **pydantic-settings** - Uses BaseSettings for automatic environment variable loading and validation
+- **typing** - Uses type annotations for function signatures and field definitions
+
+### Configuration Dependencies
+
+The component loads these environment variables:
+
+- **OPENAI_API_KEY** - (Optional) API key for OpenAI
+- **ANTHROPIC_API_KEY** - (Optional) API key for Anthropic
+- **AZURE_OPENAI_API_KEY** - (Optional) API key for Azure OpenAI
+- **AZURE_OPENAI_BASE_URL** - (Optional) Base URL for Azure OpenAI endpoint
+- **AZURE_OPENAI_API_VERSION** - (Optional) API version for Azure OpenAI, defaults to "2025-03-01-preview"
+- **AZURE_OPENAI_DEPLOYMENT_NAME** - (Optional) Deployment name for Azure OpenAI
+- **AZURE_USE_MANAGED_IDENTITY** - (Optional) Use Azure managed identity for authentication, defaults to False
+- **AZURE_CLIENT_ID** - (Optional) Client ID for Azure managed identity
+- **OLLAMA_BASE_URL** - (Optional) Base URL for Ollama API, defaults to "http://localhost:11434"
+
+## Output Files
+
+- `recipe_executor/config.py`
+
+## Logging
+
+None
+
+## Error Handling
+
+- Missing environment variables should not cause errors (return None)
+- Invalid values should be logged but not prevent execution
+- Recipe-specific env vars that don't exist are simply not included
+- No exceptions should be raised for missing configuration
+
+## Dependency Integration Considerations
+
+None
 
 === File: blueprints/recipe_executor/components/context/context_docs.md ===
 # Context Component Usage
@@ -301,6 +549,19 @@ new_context = context.clone()
 ```
 
 The `clone()` method creates a deep copy of the Context, including all artifacts and configuration. The returned object is a new `Context` instance that can be modified independently of the original. This is often used when running sub-recipes or parallel steps to ensure each execution has an isolated context state.
+
+### Configuration Management
+
+The Context class manages configuration values separately from artifacts. You can retrieve the entire configuration dictionary with `get_config()`, or set it with `set_config()`. This allows you to manage recipe-specific configuration values without cluttering the artifact namespace.
+
+```python
+# Get a configuration value
+config = context.get_config()
+api_key = config.get("api_key")
+
+# Set a configuration value
+context.set_config(config)
+```
 
 ## Important Notes
 
@@ -553,15 +814,17 @@ from recipe_executor.llm_utils.azure_openai import get_azure_openai_model
 def get_azure_openai_model(
     logger: logging.Logger,
     model_name: str,
-    deployment_name: Optional[str] = None,
-) -> pydantic_ia.models.openai.OpenAIModel:
+    deployment_name: Optional[str],
+    context: ContextProtocol,
+) -> pydantic_ai.models.openai.OpenAIModel:
     """
-    Create a PydanticAI OpenAIModel instance, configured from environment variables for Azure OpenAI.
+    Create a PydanticAI OpenAIModel instance, configured from context configuration for Azure OpenAI.
 
     Args:
         logger (logging.Logger): Logger for logging messages.
         model_name (str): Model name, such as "gpt-4o" or "o4-mini".
         deployment_name (Optional[str]): Deployment name for Azure OpenAI, defaults to model_name.
+        context (ContextProtocol): Context containing configuration values.
 
     Returns:
         OpenAIModel: A PydanticAI OpenAIModel instance created from AsyncAzureOpenAI client.
@@ -576,8 +839,10 @@ Usage example:
 ```python
 # Get an OpenAI model using Azure OpenAI
 openai_model = get_azure_openai_model(
-    model_name="o4-mini",
-    logger=logger
+    logger=logger,
+    model_name="gpt-4o",
+    deployment_name=None,
+    context=context
 )
 ```
 
@@ -585,43 +850,33 @@ openai_model = get_azure_openai_model(
 
 ```python
 openai_model = get_azure_openai_model(
+    logger=logger,
     model_name="o4-mini",
     deployment_name="my_deployment_name",
-    logger=logger
+    context=context
 )
 ```
 
-## Environment Variables
+## Configuration
 
-The component uses environment variables for authentication and configuration. Depending upon the authentication method, set the following environment variables:
+The component accesses configuration through context.get_config(). The configuration values are typically loaded from environment variables by the Config component.
 
-### Option 1: Managed Identity with Default Managed Identity
+### Required Environment Variables
 
-```bash
-AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
+Depending on your authentication method:
 
-### Option 2: Managed Identity with Custom Client ID
+#### Option 1: API Key Authentication
+- `AZURE_OPENAI_API_KEY` - API key for Azure OpenAI
+- `AZURE_OPENAI_BASE_URL` - Base URL for Azure OpenAI endpoint
+- `AZURE_OPENAI_API_VERSION` - (Optional) API version, defaults to "2025-03-01-preview"
+- `AZURE_OPENAI_DEPLOYMENT_NAME` - (Optional) Deployment name, defaults to model_name
 
-```bash
-AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
-AZURE_MANAGED_IDENTITY_CLIENT_ID= # Required
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
-
-### Option 3: API Key Authentication
-
-```bash
-AZURE_OPENAI_API_KEY= # Required
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
+#### Option 2: Managed Identity
+- `AZURE_USE_MANAGED_IDENTITY=true` - Enable managed identity authentication
+- `AZURE_OPENAI_BASE_URL` - Base URL for Azure OpenAI endpoint
+- `AZURE_OPENAI_API_VERSION` - (Optional) API version, defaults to "2025-03-01-preview"
+- `AZURE_OPENAI_DEPLOYMENT_NAME` - (Optional) Deployment name, defaults to model_name
+- `AZURE_CLIENT_ID` - (Optional) Specific managed identity client ID
 
 
 === File: blueprints/recipe_executor/components/llm_utils/azure_openai/azure_openai_spec.md ===
@@ -640,11 +895,12 @@ The Azure OpenAI component provides a PydanticAI wrapper for Azure OpenAI models
 
 ## Implementation Considerations
 
-- Load api keys and endpoints from environment variables, validating their presence
+- Load api keys and endpoints from context configuration instead of environment variables
+- The function `get_azure_openai_model` should accept a `context: ContextProtocol` parameter
+- Access configuration dictionary through `context.get_config()` method, returning a dictionary with all configuration values
 - If using Azure Identity:
   - AsyncAzureOpenAI client must be created with a token provider function
   - If using a custom client ID, use `ManagedIdentityCredential` with the specified client ID
-- Provide the function `get_azure_openai_model` to create the OpenAIModel instance
 - Create the async client using `openai.AsyncAzureOpenAI` with the provided token provider or API key
 - Create a `pydantic_ai.providers.openai.OpenAIProvider` with the Azure OpenAI client
 - Return a `pydantic_ai.models.openai.OpenAIModel` with the model name and provider
@@ -652,27 +908,42 @@ The Azure OpenAI component provides a PydanticAI wrapper for Azure OpenAI models
 ## Implementation Hints
 
 ```python
-# Option 1: Create AsyncAzureOpenAI client with API key
-azure_client = AsyncAzureOpenAI(
-    api_key=AZURE_OPENAI_API_KEY,
-    azure_endpoint=AZURE_OPENAI_BASE_URL,
-    api_version=AZURE_OPENAI_API_VERSION,
-    azure_deployment=AZURE_OPENAI_DEPLOYMENT_NAME,
-)
+def get_azure_openai_model(model_name: str, deployment_name: Optional[str], context: ContextProtocol) -> OpenAIModel:
+    # Get configuration from context
+    api_key = context.get_config().get('azure_openai_api_key')
+    base_url = context.get_config().get('azure_openai_base_url')
+    api_version = context.get_config().get('azure_openai_api_version', '2025-03-01-preview')
+    use_managed_identity = context.get_config().get('azure_use_managed_identity', False)
 
-# Option 2: Create AsyncAzureOpenAI client with Azure Identity
-azure_client = AsyncAzureOpenAI(
-    azure_ad_token_provider=token_provider,
-    azure_endpoint=AZURE_OPENAI_BASE_URL,
-    api_version=AZURE_OPENAI_API_VERSION,
-    azure_deployment=AZURE_OPENAI_DEPLOYMENT_NAME,
-)
+    # Use deployment name from config or parameter or default to model name
+    deployment = deployment_name or context.get_config().get('azure_openai_deployment_name', model_name)
 
-# Use the client to create the OpenAIProvider
-openai_model = OpenAIModel(
-    model_name,
-    provider=OpenAIProvider(openai_client=azure_client),
-)
+    # Option 1: Create AsyncAzureOpenAI client with API key
+    if not use_managed_identity and api_key:
+        azure_client = AsyncAzureOpenAI(
+            api_key=api_key,
+            azure_endpoint=base_url,
+            api_version=api_version,
+            azure_deployment=deployment,
+        )
+
+    # Option 2: Create AsyncAzureOpenAI client with Azure Identity
+    else:
+        client_id = context.get_config().get('azure_client_id')
+        # Create token provider using Azure Identity
+        azure_client = AsyncAzureOpenAI(
+            azure_ad_token_provider=token_provider,
+            azure_endpoint=base_url,
+            api_version=api_version,
+            azure_deployment=deployment,
+        )
+
+    # Use the client to create the OpenAIProvider
+    openai_model = OpenAIModel(
+        model_name,
+        provider=OpenAIProvider(openai_client=azure_client),
+    )
+    return openai_model
 ```
 
 ## Logging
@@ -694,12 +965,14 @@ openai_model = OpenAIModel(
 
 ### Configuration Dependencies
 
-- **AZURE_USE_MANAGED_IDENTITY**: (Optional) Boolean flag to use Azure Identity for authentication
-- **AZURE_OPENAI_API_KEY**: (Required for API key auth) API key for Azure OpenAI authentication
-- **AZURE_OPENAI_BASE_URL**: (Required) Endpoint URL for Azure OpenAI service
-- **AZURE_OPENAI_DEPLOYMENT_NAME**: (Required) Deployment name in Azure OpenAI
-- **AZURE_OPENAI_API_VERSION**: (Required) API version to use with Azure OpenAI, defaults to "2025-03-01-preview"
-- **AZURE_CLIENT_ID**: (Optional) Client ID for managed identity authentication
+All configuration is accessed through context.get_config():
+
+- **azure_use_managed_identity**: (Optional) Boolean flag to use Azure Identity for authentication
+- **azure_openai_api_key**: (Required for API key auth) API key for Azure OpenAI authentication
+- **azure_openai_base_url**: (Required) Endpoint URL for Azure OpenAI service
+- **azure_openai_deployment_name**: (Optional) Deployment name in Azure OpenAI (defaults to model name)
+- **azure_openai_api_version**: (Optional) API version to use with Azure OpenAI, defaults to "2025-03-01-preview"
+- **azure_client_id**: (Optional) Client ID for managed identity authentication
 
 ## Error Handling
 
@@ -730,6 +1003,7 @@ class LLM:
     def __init__(
             self,
             logger: logging.Logger,
+            context: ContextProtocol,
             model: str = "openai/gpt-4o",
             max_tokens: Optional[int] = None,
             mcp_servers: Optional[List[MCPServer]] = None,
@@ -738,6 +1012,7 @@ class LLM:
         Initialize the LLM component.
         Args:
             logger (logging.Logger): Logger for logging messages.
+            context (ContextProtocol): Context containing configuration values (API keys, endpoints).
             model (str): Model identifier in the format 'provider/model_name' (or 'provider/model_name/deployment_name').
             max_tokens (int): Maximum number of tokens for the LLM response.
             mcp_servers Optional[List[MCPServer]]: List of MCP servers for access to tools.
@@ -783,7 +1058,7 @@ Usage example:
 ```python
 from recipe_executor.llm_utils.mcp import get_mcp_server
 
-llm = LLM(logger=logger)
+llm = LLM(logger=logger, context=context)
 # With optional MCP integration:
 weather_mcp_server = get_mcp_server(
     logger=logger,
@@ -794,7 +1069,7 @@ weather_mcp_server = get_mcp_server(
         },
     }
 )
-llm_mcp = LLM(logger=logger, mcp_servers=[weather_mcp_server])
+llm_mcp = LLM(logger=logger, context=context, mcp_servers=[weather_mcp_server])
 
 # Call LLM with default model
 result = await llm.generate("What is the weather in Redmond, WA today?")
@@ -813,7 +1088,7 @@ class UserProfile(BaseModel):
 
 result = await llm.generate(
     prompt="Extract the user profile from the following text: {{text}}",
-    model="openai/o4-mini",
+    model="openai/gpt-4o",
     max_tokens=100,
     output_type=UserProfile
 )
@@ -832,10 +1107,10 @@ If no deployment name is provided, the model name is used as the deployment name
 
 ### Supported providers:
 
-- **openai**: OpenAI models (e.g., `gpt-4o`, `o3`, `o4-mini`, etc.)
-- **azure**: Azure OpenAI models (e.g., `gpt-4o`, `o3`, `o4-mini`, etc.)
+- **openai**: OpenAI models (e.g., `gpt-4o`, `gpt-4.1`, `o3`, `o4-mini`)
+- **azure**: Azure OpenAI models (e.g., `gpt-4o`, `gpt-4.1`, `o3`, `o4-mini`)
 - **azure**: Azure OpenAI models with custom deployment name (e.g., `gpt-4o/my_deployment_name`)
-- **anthropic**: Anthropic models (e.g., `claude-3-7-sonnet-latest`)
+- **anthropic**: Anthropic models (e.g., `claude-3-5-sonnet-latest`)
 - **ollama**: Ollama models (e.g., `phi4`, `llama3.2`, `qwen2.5-coder:14b`)
 
 ## Error Handling
@@ -857,6 +1132,7 @@ except Exception as e:
 ## Important Notes
 
 - The component logs full request details at debug level
+- API keys are read from context configuration, not directly from environment
 
 
 === File: blueprints/recipe_executor/components/llm_utils/llm/llm_spec.md ===
@@ -880,9 +1156,13 @@ The LLM component provides a unified interface for interacting with various larg
 ## Implementation Considerations
 
 - Use a clear `provider/model_name` identifier format
-- Do not need to pass api keys directly to model classes
-  - Exception: need to provide to AzureProvider)
-- Use PydanticAI's provider-specific model classes, passing only the model name
+- Configuration values are accessed through context.get_config() instead of directly from environment
+- For API key handling:
+  - OpenAI: Create OpenAIProvider with api_key from context, pass to OpenAIModel
+  - Anthropic: Create AnthropicProvider with api_key from context, pass to AnthropicModel
+  - Azure: Handled by get_azure_openai_model function
+  - Ollama: Create OpenAIProvider with base_url from context
+- Use PydanticAI's provider-specific model classes:
   - pydantic_ai.models.openai.OpenAIModel (used also for Azure OpenAI and Ollama)
   - pydantic_ai.models.anthropic.AnthropicModel
 - Create a PydanticAI Agent with the model, structured output type, and optional MCP servers
@@ -913,10 +1193,11 @@ The LLM component provides a unified interface for interacting with various larg
 
 ### Configuration Dependencies
 
-- **DEFAULT_MODEL**: (Optional) Environment variable specifying the default LLM model in format "provider/model_name"
-- **OPENAI_API_KEY**: (Required for OpenAI) API key for OpenAI access
-- **ANTHROPIC_API_KEY**: (Required for Anthropic) API key for Anthropic access
-- **OLLAMA_BASE_URL**: (Required for Ollama) Endpoint for Ollama models
+- **context.config** - All configuration is accessed through the context:
+  - `openai_api_key`: (Required for OpenAI) API key for OpenAI access
+  - `anthropic_api_key`: (Required for Anthropic) API key for Anthropic access
+  - `ollama_base_url`: (Required for Ollama) Endpoint for Ollama models
+  - `azure_*`: Azure OpenAI configuration values (handled by azure_openai component)
 
 ## Error Handling
 
@@ -935,7 +1216,7 @@ The LLM component provides a unified interface for interacting with various larg
 Create a PydanticAI model for the LLM provider and model name. This will be used to initialize the model and make requests.
 
 ```python
-def get_model(model_id: str) -> OpenAIModel | AnthropicModel:
+def get_model(model_id: str, context: ContextProtocol) -> OpenAIModel | AnthropicModel:
     """
     Initialize an LLM model based on a standardized model_id string.
     Expected format: 'provider/model_name' or 'provider/model_name/deployment_name'.
@@ -950,6 +1231,7 @@ def get_model(model_id: str) -> OpenAIModel | AnthropicModel:
         model_id (str): Model identifier in format 'provider/model_name'
             or 'provider/model_name/deployment_name'.
             If None, defaults to 'openai/gpt-4o'.
+        context (ContextProtocol): Context containing configuration values.
 
     Returns:
         The model instance for the specified provider and model.
@@ -959,22 +1241,23 @@ def get_model(model_id: str) -> OpenAIModel | AnthropicModel:
     """
 
     # If 'azure' is the model provider, use the `get_azure_openai_model` function
+    # Access configuration dictionary through context.get_config() and then retrieve the necessary values
 ```
 
 Usage example:
 
 ```python
 # Get an OpenAI model
-openai_model = get_model("openai/o4-mini")
-# Uses OpenAIModel('o4-mini')
+openai_model = get_model("openai/gpt-4o", context)
+# Uses OpenAIModel('gpt-4o') with API key from context.get_config().get('openai_api_key')
 
 # Get an Anthropic model
-anthropic_model = get_model("anthropic/claude-3-7-sonnet-latest")
-# Uses AnthropicModel('claude-3-7-sonnet-latest')
+anthropic_model = get_model("anthropic/claude-3-5-sonnet-latest", context)
+# Uses AnthropicModel('claude-3-5-sonnet-latest') with API key from context.get_config().get('anthropic_api_key')
 
 # Get an Ollama model
-ollama_model = get_model("ollama/phi4")
-# Uses OllamaModel('phi4')
+ollama_model = get_model("ollama/phi4", context)
+# Uses OllamaModel('phi4') with base URL from context.get_config().get('ollama_base_url')
 ```
 
 Getting an agent:
@@ -1003,17 +1286,13 @@ Then you can use the `OpenAIModel` class to create an instance of the model and 
 ```python
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers import OpenAIProvider
-import dotenv
-import os
 
-# Load environment variables from .env file
-dotenv.load_dotenv()
-OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+# inside the get_model function, context is passed as parameter
+ollama_base_url = context.get_config().get('ollama_base_url', 'http://localhost:11434')
 
-# inside the get_model function
 return OpenAIModel(
     model_name='qwen2.5-coder:7b',
-    provider=OpenAIProvider(base_url=f'{OLLAMA_BASE_URL}/v1'),
+    provider=OpenAIProvider(base_url=f'{ollama_base_url}/v1'),
 )
 ```
 
@@ -1382,12 +1661,43 @@ logger.error("An error occurred during recipe execution: ...")
 
 The stack trace for exceptions is output to stderr (via `traceback.format_exc()`) to aid in debugging issues directly from the console.
 
+## Configuration Loading
+
+The Main component uses a hierarchical approach to configuration:
+
+1. **Environment Variables**: Loaded from system environment and `.env` file
+2. **Recipe-Specific Variables**: If the recipe declares `env_vars`, those are loaded
+3. **CLI Overrides**: `--config` arguments override any environment-based configuration
+
+Example flow:
+```python
+# 1. Load .env file
+load_dotenv()
+
+# 2. Load recipe
+recipe = Recipe.model_validate_json(recipe_json)
+
+# 3. Load configuration from environment
+from recipe_executor.config import load_configuration
+env_config = load_configuration(recipe.env_vars)
+
+# 4. Parse CLI config arguments
+cli_config = parse_config(args.config)
+
+# 5. Merge configurations (CLI overrides environment)
+merged_config = {**env_config, **cli_config}
+
+# 6. Create context with merged configuration
+context = Context(artifacts=artifacts, config=merged_config)
+```
+
 ## Important Notes
 
 - The main entry point is designed to be simple and minimal. It delegates the heavy lifting to the `Context` and `Executor` components.
-- All steps in the executed recipe share the same context instance, which is created by Main from the provided context arguments.
+- All steps in the executed recipe share the same context instance, which is created by Main from the provided context arguments and configuration.
 - The Main component itself doesn't enforce any type of step ordering beyond what the recipe dictates; it simply invokes the Executor and waits for it to process the steps sequentially.
-- Environment variables (for example, API keys for LLM steps) can be set in a `.env` file. Main will load this file at startup via `load_dotenv()`, making those values available to components that need them.
+- Environment variables (for example, API keys for LLM steps) can be set in a `.env` file. Main will load this file at startup via `load_dotenv()`, making those values available through the Config component.
+- Configuration values are accessible to steps through `context.get_config()` method, allowing centralized access to all configuration.
 - Logging is configured at runtime when Main calls `init_logger`. The logs (including debug information and errors) are saved in the directory specified by `--log-dir`. Each run may append to these logs, so it's advisable to monitor or clean the log directory if running many recipes.
 
 
@@ -1413,7 +1723,10 @@ The Main component serves as the command-line entry point for the Recipe Executo
 - Use Python's built-in `argparse` for argument parsing.
 - Support multiple `--context` arguments by accumulating them into a list and parsing into a dictionary of artifacts.
 - Support multiple `--config` arguments by accumulating them into a list and parsing into a dictionary of configuration values.
-- Create a `Context` object using the parsed artifacts and configuration dictionaries (e.g., `Context(artifacts=artifacts, config=config)`).
+- After loading the recipe, use the Config component to load environment-based configuration:
+  - Call `load_configuration(recipe.env_vars)` to get environment variables including recipe-specific ones
+  - Merge CLI config overrides with the environment configuration (CLI takes precedence)
+- Create a `Context` object using the parsed artifacts and merged configuration dictionary (e.g., `Context(artifacts=artifacts, config=merged_config)`).
 - Use the `Executor` component to run the recipe, passing the context object to it.
 - Implement asynchronous execution:
   - Define an async `main_async` function that performs the core execution logic
@@ -1428,7 +1741,8 @@ The Main component serves as the command-line entry point for the Recipe Executo
 
 ### Internal Components
 
-- **Context**: Creates the Context object to hold initial artifacts parsed from CLI.
+- **Config**: Uses the Config component to load environment-based configuration.
+- **Context**: Creates the Context object to hold initial artifacts parsed from CLI and configuration from environment.
 - **Executor**: Uses the Executor to run the specified recipe
 - **Logger**: Uses the Logger component (via `init_logger`) to initialize logging for the execution.
 
@@ -1522,7 +1836,7 @@ class RecipeStep(BaseModel):
     """
 
     type: str
-    config: Dict
+    config: Dict[str, Any]
 ```
 
 ### Recipe
@@ -1534,10 +1848,12 @@ class Recipe(BaseModel):
     """A complete recipe with multiple steps.
 
     Attributes:
-        steps (List[RecipeStep]): A list containing the steps of the recipe.
+        steps: A list containing the steps of the recipe.
+        env_vars: Optional list of environment variable names this recipe requires.
     """
 
     steps: List[RecipeStep]
+    env_vars: Optional[List[str]] = None
 ```
 
 Usage example:
@@ -1556,7 +1872,7 @@ recipe = Recipe(
             type="llm_generate",
             config={
                 "prompt": "Generate code for: {{spec}}",
-                "model": "{{model|default:'openai/o4-mini'}}",
+                "model": "{{model|default:'openai/gpt-4o'}}",
                 "output_format": "files",
                 "output_key": "code_result"
             }
@@ -1564,6 +1880,27 @@ recipe = Recipe(
         RecipeStep(
             type="write_files",
             config={"files_key": "code_result", "root": "./output"}
+        )
+    ]
+)
+
+# Create a recipe that requires specific environment variables
+recipe_with_env = Recipe(
+    env_vars=["BRAVE_API_KEY", "CUSTOM_API_ENDPOINT"],
+    steps=[
+        RecipeStep(
+            type="llm_generate",
+            config={
+                "prompt": "Search for: {{query}}",
+                "model": "openai/gpt-4",
+                "mcp_servers": [{
+                    "command": "npx",
+                    "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+                    "env": {
+                        "BRAVE_API_KEY": "{{ brave_api_key }}"
+                    }
+                }]
+            }
         )
     ]
 )
@@ -1618,13 +1955,13 @@ valid_file = FileSpec(path="file.txt", content="File content")
 
 ## Purpose
 
-The Models component defines the core data structures used throughout the Recipe Executor system. It provides Pydantic models for validating and structuring data, including recipe steps, and files.
+The Models component defines the core data structures used throughout the Recipe Executor system. It provides Pydantic models for validating and structuring data, including recipe steps, files, and recipe configuration.
 
 ## Core Requirements
 
 - Define consistent data structures for files
 - Provide configuration models for various step types
-- Support recipe structure validation
+- Support recipe structure validation with optional environment variable declarations
 - Leverage Pydantic for schema validation and documentation
 - Include clear type hints and docstrings
 
@@ -1637,6 +1974,8 @@ The Models component defines the core data structures used throughout the Recipe
 - Provide sensible defaults where appropriate
 - Use descriptive field names and docstrings
 - Focus on essential fields without over-engineering
+- Support optional fields for forward compatibility
+
 
 ## Logging
 
@@ -3985,7 +4324,7 @@ The ReadFilesStep component reads one or more files from the filesystem and stor
 - For multiple files, provide a way to merge content (default: concatenate with newlines separating each file’s content)
 - Provide a clear content structure when reading multiple files (e.g. a dictionary with filenames as keys)
 - Keep the implementation simple and focused on a single responsibility
-- For backwards compatibility, preserve the behavior of the original single-file read step
+- Support both single-file and multi-file read operations
 
 ## Logging
 
@@ -4304,7 +4643,7 @@ After execution, the target keys (`document`, `section_md`) are available for an
 ## Important Notes
 
 - `value` strings are rendered with the same Liquid templating engine used throughout the toolchain, so you can interpolate any current context values before they are stored.
-- `if_exists` defaults to `"overwrite"` to preserve backward-compatible behaviour with existing recipes.
+- `if_exists` defaults to `"overwrite"` for consistent behavior.
 - Merging is intentionally **shallow** for dictionaries to keep the step lightweight; if you need deep-merge semantics, perform that in a custom step or LLM call.
 
 
@@ -4319,7 +4658,7 @@ The **SetContextStep** component provides a declarative way for recipes to creat
 
 - Accept a **key** (string) that identifies the artifact in `ContextProtocol`.
 - Accept a **value** that may be:
-  - Any JSON-serialisable literal, **or**
+  - Any JSON-serializable literal, **or**
   - A Liquid template string rendered against the current context before assignment.
 - If `nested_render` is true, recursively render the `value` using context data until all variables are resolved, ignoring any template variables that are wrapped in `{% raw %}` tags
 - Support an **if_exists** strategy with the following options:

@@ -29,7 +29,7 @@ The ReadFilesStep component reads one or more files from the filesystem and stor
 - For multiple files, provide a way to merge content (default: concatenate with newlines separating each file’s content)
 - Provide a clear content structure when reading multiple files (e.g. a dictionary with filenames as keys)
 - Keep the implementation simple and focused on a single responsibility
-- For backwards compatibility, preserve the behavior of the original single-file read step
+- Support both single-file and multi-file read operations
 
 ## Logging
 

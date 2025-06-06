@@ -58,7 +58,7 @@ class RecipeStep(BaseModel):
     """
 
     type: str
-    config: Dict
+    config: Dict[str, Any]
 ```
 
 ### Recipe
@@ -70,10 +70,12 @@ class Recipe(BaseModel):
     """A complete recipe with multiple steps.
 
     Attributes:
-        steps (List[RecipeStep]): A list containing the steps of the recipe.
+        steps: A list containing the steps of the recipe.
+        env_vars: Optional list of environment variable names this recipe requires.
     """
 
     steps: List[RecipeStep]
+    env_vars: Optional[List[str]] = None
 ```
 
 Usage example:
@@ -92,7 +94,7 @@ recipe = Recipe(
             type="llm_generate",
             config={
                 "prompt": "Generate code for: {{spec}}",
-                "model": "{{model|default:'openai/o4-mini'}}",
+                "model": "{{model|default:'openai/gpt-4o'}}",
                 "output_format": "files",
                 "output_key": "code_result"
             }
@@ -100,6 +102,27 @@ recipe = Recipe(
         RecipeStep(
             type="write_files",
             config={"files_key": "code_result", "root": "./output"}
+        )
+    ]
+)
+
+# Create a recipe that requires specific environment variables
+recipe_with_env = Recipe(
+    env_vars=["BRAVE_API_KEY", "CUSTOM_API_ENDPOINT"],
+    steps=[
+        RecipeStep(
+            type="llm_generate",
+            config={
+                "prompt": "Search for: {{query}}",
+                "model": "openai/gpt-4",
+                "mcp_servers": [{
+                    "command": "npx",
+                    "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+                    "env": {
+                        "BRAVE_API_KEY": "{{ brave_api_key }}"
+                    }
+                }]
+            }
         )
     ]
 )

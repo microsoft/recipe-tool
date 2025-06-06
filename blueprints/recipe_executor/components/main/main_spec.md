@@ -19,7 +19,10 @@ The Main component serves as the command-line entry point for the Recipe Executo
 - Use Python's built-in `argparse` for argument parsing.
 - Support multiple `--context` arguments by accumulating them into a list and parsing into a dictionary of artifacts.
 - Support multiple `--config` arguments by accumulating them into a list and parsing into a dictionary of configuration values.
-- Create a `Context` object using the parsed artifacts and configuration dictionaries (e.g., `Context(artifacts=artifacts, config=config)`).
+- After loading the recipe, use the Config component to load environment-based configuration:
+  - Call `load_configuration(recipe.env_vars)` to get environment variables including recipe-specific ones
+  - Merge CLI config overrides with the environment configuration (CLI takes precedence)
+- Create a `Context` object using the parsed artifacts and merged configuration dictionary (e.g., `Context(artifacts=artifacts, config=merged_config)`).
 - Use the `Executor` component to run the recipe, passing the context object to it.
 - Implement asynchronous execution:
   - Define an async `main_async` function that performs the core execution logic
@@ -34,7 +37,8 @@ The Main component serves as the command-line entry point for the Recipe Executo
 
 ### Internal Components
 
-- **Context**: Creates the Context object to hold initial artifacts parsed from CLI.
+- **Config**: Uses the Config component to load environment-based configuration.
+- **Context**: Creates the Context object to hold initial artifacts parsed from CLI and configuration from environment.
 - **Executor**: Uses the Executor to run the specified recipe
 - **Logger**: Uses the Logger component (via `init_logger`) to initialize logging for the execution.
 

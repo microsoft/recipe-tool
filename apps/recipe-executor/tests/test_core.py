@@ -143,26 +143,5 @@ class TestRecipeExecutorCore:
             assert "Test Recipe" in result["structure_preview"]
             assert "A test recipe" in result["structure_preview"]
 
-    # Let's skip testing the actual file system and mock the function instead
-    def test_find_examples(self, recipe_core):
-        """Test finding example recipes using mocks."""
-        # Setup
-        core, _ = recipe_core
-
-        # Create a simple mock implementation that returns a fixed result
-        examples = {
-            "Recipe 1 (./examples/recipe1.json)": "/path/to/examples/recipe1.json",
-            "Recipe 2 (./examples/recipe2.json)": "/path/to/examples/recipe2.json",
-        }
-
-        # Mock the actual implementation
-        with patch.object(core, "find_examples", return_value=examples):
-            # Call the method (it will return our mock value)
-            result = core.find_examples("/any/path")
-
-            # Verify the result matches our mock
-            assert result == examples
-
-            # Just for completeness, verify the specific examples are there
-            assert "Recipe 1 (./examples/recipe1.json)" in result
-            assert "Recipe 2 (./examples/recipe2.json)" in result
+    # Test removed - find_examples method no longer exists in RecipeExecutorCore
+    # Examples are now configured through settings.example_recipes

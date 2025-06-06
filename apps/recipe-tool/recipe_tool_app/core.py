@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from recipe_executor.context import Context
 from recipe_executor.executor import Executor
+from recipe_executor_app.settings_sidebar import get_model_string_from_env
 from recipe_executor_app.utils import (
     create_temp_file,
     parse_context_vars,
@@ -65,8 +66,24 @@ class RecipeToolCore:
             # Add input
             context_dict["input"] = idea_source
 
-            # Create context
-            context = Context(artifacts=context_dict)
+            # Add model configuration from environment
+            model_str = get_model_string_from_env()
+            context_dict["model"] = model_str
+
+            # Add max_tokens if set in environment
+            max_tokens = os.getenv("MAX_TOKENS")
+            if max_tokens:
+                try:
+                    context_dict["max_tokens"] = str(int(max_tokens))
+                except ValueError:
+                    pass
+
+            # Load configuration from environment
+            from recipe_executor.config import load_configuration
+            config = load_configuration()
+            
+            # Create context with both artifacts and config
+            context = Context(artifacts=context_dict, config=config)
 
             # Find recipe creator
             creator_path = find_recipe_creator()

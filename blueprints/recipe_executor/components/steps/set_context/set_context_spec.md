@@ -8,7 +8,7 @@ The **SetContextStep** component provides a declarative way for recipes to creat
 
 - Accept a **key** (string) that identifies the artifact in `ContextProtocol`.
 - Accept a **value** that may be:
-  - Any JSON-serialisable literal, **or**
+  - Any JSON-serializable literal, **or**
   - A Liquid template string rendered against the current context before assignment.
 - If `nested_render` is true, recursively render the `value` using context data until all variables are resolved, ignoring any template variables that are wrapped in `{% raw %}` tags
 - Support an **if_exists** strategy with the following options:

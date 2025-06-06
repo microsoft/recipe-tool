@@ -1,5 +1,10 @@
 [
   {
+    "id": "config",
+    "deps": [],
+    "refs": []
+  },
+  {
     "id": "context",
     "deps": ["protocols"],
     "refs": []
@@ -16,7 +21,7 @@
   },
   {
     "id": "main",
-    "deps": ["context", "executor", "logger", "protocols"],
+    "deps": ["config", "context", "executor", "logger", "protocols"],
     "refs": []
   },
   {
@@ -31,7 +36,7 @@
   },
   {
     "id": "llm_utils.azure_openai",
-    "deps": ["logger"],
+    "deps": ["context", "logger", "protocols"],
     "refs": [
       "AZURE_IDENTITY_CLIENT_DOCS.md",
       "git_collector/PYDANTIC_AI_DOCS.md"
@@ -39,7 +44,7 @@
   },
   {
     "id": "llm_utils.llm",
-    "deps": ["logger", "llm_utils.azure_openai", "llm_utils.mcp"],
+    "deps": ["context", "logger", "llm_utils.azure_openai", "llm_utils.mcp", "protocols"],
     "refs": ["git_collector/PYDANTIC_AI_DOCS.md"]
   },
   {

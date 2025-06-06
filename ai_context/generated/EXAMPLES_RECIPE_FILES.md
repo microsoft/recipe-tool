@@ -5,7 +5,7 @@
 **Search:** ['recipes/example_*']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 6:59:46 AM
+**Date:** 6/4/2025, 2:36:24 PM
 **Files:** 22
 
 === File: recipes/example_brave_search/README.md ===
@@ -665,7 +665,7 @@ West,Product C,720000,2880,246,Q2 2025
     {
       "type": "llm_generate",
       "config": {
-        "prompt": "Using the analysis in context and original data, generate a comprehensive markdown-formatted business report for {{ company_name }} for {{ quarter }}. Include an Executive Summary, Key Metrics table, Mermaid charts for trends and product performance using analysis.trends_chart and analysis.product_performance_chart, a Regional Performance Analysis section, and Strategic Recommendations. Reported generated on {{ 'now' | date: '%m-%d-%Y %H:%M' }}. Output the report in valid markdown.",
+        "prompt": "Using the analysis in context and original data, generate a comprehensive markdown-formatted business report for {{ company_name }} for {{ quarter }}. Include an Executive Summary, Key Metrics table, Mermaid charts for trends and product performance using {{ analysis.trends_chart }} and {{ analysis.product_performance_chart }}, a Regional Performance Analysis section, and Strategic Recommendations. Reported generated on {{ 'now' | date: '%m-%d-%Y %H:%M' }}. Output the report in valid markdown.",
         "model": "{{ model }}",
         "output_format": "text",
         "output_key": "report_md"

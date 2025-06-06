@@ -10,6 +10,7 @@ from recipe_executor.logger import init_logger
 from recipe_executor_app.config import settings
 from recipe_executor_app.core import RecipeExecutorCore
 from recipe_executor_app.ui import create_ui
+from recipe_executor_app.settings_sidebar import create_settings_sidebar
 
 # Set up logging
 logger = init_logger(settings.log_dir)
@@ -28,7 +29,18 @@ def create_executor_block(core: Optional[RecipeExecutorCore] = None, include_hea
             gr.Markdown("# Recipe Executor")
             gr.Markdown("A web interface for executing recipes.")
 
-        # Main UI (now includes examples)
+        # Settings sidebar
+        with gr.Sidebar(position="right"):
+            gr.Markdown("### ⚙️ Settings")
+
+            def on_settings_save(settings: Dict[str, Any]) -> None:
+                """Callback when settings are saved."""
+                core.current_settings = settings
+                logger.info(f"Settings updated: model={settings.get('model')}, max_tokens={settings.get('max_tokens')}")
+
+            create_settings_sidebar(on_save=on_settings_save)
+
+        # Main UI
         create_ui(core, include_header)
 
     return block

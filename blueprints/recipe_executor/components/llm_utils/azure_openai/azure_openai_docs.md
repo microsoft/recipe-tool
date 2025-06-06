@@ -12,15 +12,17 @@ from recipe_executor.llm_utils.azure_openai import get_azure_openai_model
 def get_azure_openai_model(
     logger: logging.Logger,
     model_name: str,
-    deployment_name: Optional[str] = None,
-) -> pydantic_ia.models.openai.OpenAIModel:
+    deployment_name: Optional[str],
+    context: ContextProtocol,
+) -> pydantic_ai.models.openai.OpenAIModel:
     """
-    Create a PydanticAI OpenAIModel instance, configured from environment variables for Azure OpenAI.
+    Create a PydanticAI OpenAIModel instance, configured from context configuration for Azure OpenAI.
 
     Args:
         logger (logging.Logger): Logger for logging messages.
         model_name (str): Model name, such as "gpt-4o" or "o4-mini".
         deployment_name (Optional[str]): Deployment name for Azure OpenAI, defaults to model_name.
+        context (ContextProtocol): Context containing configuration values.
 
     Returns:
         OpenAIModel: A PydanticAI OpenAIModel instance created from AsyncAzureOpenAI client.
@@ -35,8 +37,10 @@ Usage example:
 ```python
 # Get an OpenAI model using Azure OpenAI
 openai_model = get_azure_openai_model(
-    model_name="o4-mini",
-    logger=logger
+    logger=logger,
+    model_name="gpt-4o",
+    deployment_name=None,
+    context=context
 )
 ```
 
@@ -44,40 +48,30 @@ openai_model = get_azure_openai_model(
 
 ```python
 openai_model = get_azure_openai_model(
+    logger=logger,
     model_name="o4-mini",
     deployment_name="my_deployment_name",
-    logger=logger
+    context=context
 )
 ```
 
-## Environment Variables
+## Configuration
 
-The component uses environment variables for authentication and configuration. Depending upon the authentication method, set the following environment variables:
+The component accesses configuration through context.get_config(). The configuration values are typically loaded from environment variables by the Config component.
 
-### Option 1: Managed Identity with Default Managed Identity
+### Required Environment Variables
 
-```bash
-AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
+Depending on your authentication method:
 
-### Option 2: Managed Identity with Custom Client ID
+#### Option 1: API Key Authentication
+- `AZURE_OPENAI_API_KEY` - API key for Azure OpenAI
+- `AZURE_OPENAI_BASE_URL` - Base URL for Azure OpenAI endpoint
+- `AZURE_OPENAI_API_VERSION` - (Optional) API version, defaults to "2025-03-01-preview"
+- `AZURE_OPENAI_DEPLOYMENT_NAME` - (Optional) Deployment name, defaults to model_name
 
-```bash
-AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
-AZURE_MANAGED_IDENTITY_CLIENT_ID= # Required
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
-
-### Option 3: API Key Authentication
-
-```bash
-AZURE_OPENAI_API_KEY= # Required
-AZURE_OPENAI_BASE_URL= # Required
-AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
-```
+#### Option 2: Managed Identity
+- `AZURE_USE_MANAGED_IDENTITY=true` - Enable managed identity authentication
+- `AZURE_OPENAI_BASE_URL` - Base URL for Azure OpenAI endpoint
+- `AZURE_OPENAI_API_VERSION` - (Optional) API version, defaults to "2025-03-01-preview"
+- `AZURE_OPENAI_DEPLOYMENT_NAME` - (Optional) Deployment name, defaults to model_name
+- `AZURE_CLIENT_ID` - (Optional) Specific managed identity client ID
