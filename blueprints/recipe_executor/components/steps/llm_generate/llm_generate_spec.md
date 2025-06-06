@@ -9,16 +9,23 @@ The LLMGenerateStep component enables recipes to generate content using large la
 - Process prompt templates using context data
 - Support configurable model selection
 - Support MCP server configuration for tool access
+- Support OpenAI built-in tools (web search) for Responses API models via `openai_builtin_tools` config field
 - Support multiple output formats (text, files, object, list)
 - Call LLMs to generate content
 - Store generated results in the context with dynamic key support
 - Include appropriate logging for LLM operations
+- Configuration fields: `prompt`, `model`, `max_tokens`, `mcp_servers`, `openai_builtin_tools`, `output_format`, `output_key`
 
 ## Implementation Considerations
 
 - Use `render_template` for templating prompts, model identifiers, mcp server configs, and output key
 - Convert any MCP Server configurations to `MCPServer` instances (via `get_mcp_server`) to pass as `mcp_servers` to the LLM component
 - Accept a string for `max_tokens` and convert it to an integer to pass to the LLM component
+- Support `openai_builtin_tools` parameter with validation:
+  - Only allow for models with `openai_responses` or `azure_responses` providers
+  - Support tool types: `web_search_preview` only
+  - Validate tool configuration before making LLM calls
+  - Pass built-in tools to the LLM component for Responses API configuration
 - In order to support dyanmic output keys, set the result type to `Any` prior to determining the output format and then set the output key immediately after the LLM call
 - If `output_format` is an object (JSON schema) or list:
   - Use `json_object_to_pydantic_model` to create a dynamic Pydantic model from the JSON schema
@@ -53,7 +60,23 @@ The LLMGenerateStep component enables recipes to generate content using large la
   mcp_servers = [get_mcp_server(logger=self.logger, config=mcp_server_config) for mcp_server_config in mcp_server_configs]
   llm = LLM(logger, model=config.model, mcp_servers=mcp_servers)
   ```
-- Use `await llm.generate(prompt, output_type=...)` to perform the generation call
+- Use `await llm.generate(prompt, output_type=..., openai_builtin_tools=validated_tools)` to perform the generation call
+- Always pass `openai_builtin_tools` parameter to the LLM generate method (pass None if not provided)
+- Example LLM call with built-in tools:
+  ```python
+  # Validate built-in tools if provided
+  validated_tools = None
+  if self.config.openai_builtin_tools:
+      # Validation logic here
+      validated_tools = self.config.openai_builtin_tools
+  
+  # Call LLM with tools parameter
+  result = await llm.generate(
+      prompt, 
+      output_type=output_type,
+      openai_builtin_tools=validated_tools
+  )
+  ```
 
 ## Logging
 
@@ -87,6 +110,12 @@ None
 - Log LLM call failures with meaningful context
 - Ensure proper error propagation for debugging
 - Validate configuration before making LLM calls
+- Validate `openai_builtin_tools` parameter:
+  - Raise error if tools are specified with non-Responses API models
+  - Raise error for unsupported tool types (only `web_search_preview` allowed)
+  - Example error messages:
+    - "Built-in tools only supported with Responses API models (openai_responses/* or azure_responses/*)"
+    - "Unsupported tool type: {type}. Supported: web_search_preview"
 
 ## Output Files
 
