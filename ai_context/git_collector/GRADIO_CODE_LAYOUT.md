@@ -3,7 +3,7 @@
 [git-collector-data]
 
 **URL:** https://github.com/gradio-app/gradio/tree/main/gradio  
-**Date:** 6/3/2025, 3:45:41 PM  
+**Date:** 6/6/2025, 3:45:35 PM  
 **Files:** 11  
 
 === File: gradio/blocks.py ===
@@ -507,7 +507,13 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    pseudo_parent = expected_parent(render=False)
+                    key = None
+                    if child.key is not None:
+                        if isinstance(child.key, tuple):
+                            key = child.key + ("_parent",)
+                        else:
+                            key = (child.key, "_parent")
+                    pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
@@ -561,6 +567,7 @@ class BlockFunction:
         show_api: bool = True,
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
+        render_iteration: int | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
@@ -569,6 +576,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -603,6 +611,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.render_iteration = render_iteration
         self.page = page
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
@@ -615,6 +624,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.key = key
 
         self.spaces_auto_wrap()
 
@@ -780,6 +790,7 @@ class BlocksConfig:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -905,13 +916,24 @@ class BlocksConfig:
                 "Cannot create event: events with js=True cannot have inputs."
             )
 
+        reuse_id = False
+        fn_id = self.fn_id
+        render_iteration = rendered_in.render_iteration if rendered_in else None
+
+        if rendered_in and key is not None:
+            for existing_fn in self.fns.values():
+                if existing_fn.key == key:
+                    reuse_id = True
+                    fn_id = existing_fn._id
+                    break
+
         block_fn = BlockFunction(
             fn,
             inputs,
             outputs,
             preprocess,
             postprocess,
-            _id=self.fn_id,
+            _id=fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -933,6 +955,7 @@ class BlocksConfig:
             show_api=show_api,
             renderable=renderable,
             rendered_in=rendered_in,
+            render_iteration=render_iteration,
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
@@ -941,10 +964,12 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
+            key=key,
         )
 
-        self.fns[self.fn_id] = block_fn
-        self.fn_id += 1
+        self.fns[fn_id] = block_fn
+        if not reuse_id:
+            self.fn_id += 1
         return block_fn, block_fn._id
 
     @staticmethod
@@ -3145,7 +3170,7 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _ = utils.get_function_description(fn.fn)
+            description, _, _ = utils.get_function_description(fn.fn)
             if description:
                 dependency_info["description"] = description
             skip_endpoint = False
@@ -4568,6 +4593,7 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
+        preload_example: int | Literal[False] = False,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
@@ -4618,6 +4644,7 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
+            preload_example: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
@@ -4711,6 +4738,7 @@ class Interface(Blocks):
 
         self.cache_examples = cache_examples
         self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
+        self.preload_example = preload_example
 
         self.main_input_components = [
             get_component_instance(i, unrender=True) for i in inputs
@@ -5405,6 +5433,7 @@ class Interface(Blocks):
                 _api_mode=self.api_mode,
                 batch=self.batch,
                 example_labels=self.example_labels,
+                preload=self.preload_example,
             )
             if self.deep_link and self.examples_handler.cache_event:
                 self.examples_handler.cache_event.then(

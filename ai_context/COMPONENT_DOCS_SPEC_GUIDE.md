@@ -278,12 +278,12 @@ A well-structured component specification MUST include all of the following sect
 - **Component Title**: Clear, concise name that reflects the component's purpose
 - **Purpose Statement**: 2-3 sentences describing what the component does and why it exists
 - **Core Requirements**: Bulleted list of essential functionality
-- **Implementation Considerations**: Guidance on how to approach the implementation (may also be titled "Implementation Details" or "Implementation Hints" as appropriate)
+- **Implementation Considerations**: Guidance on how to approach the implementation
+- **Implementation Hints**: Integration guidance for complex dependencies (use "None" if no special integration instructions exist)
 - **Component Dependencies**: Other components this one interacts with
 - **Output Files**: List of files to be generated from this specification
 - **Logging**: Required messages for debugging and monitoring (use "None" if the component does not require logging)
 - **Error Handling**: Expected approach to failures and edge cases
-- **Dependency Integration Considerations**: Integration guidance for complex dependencies (use "None" if no special integration considerations exist)
 
 ## Implementation Section Naming
 
@@ -299,33 +299,6 @@ The implementation section may use one of three standard variations, based on th
    - Copy input dictionaries to prevent external modification
    - Provide clear error messages for missing keys
 ````
-
-- **Implementation Details** (Specific): Use when providing more precise implementation instructions, often including specific code examples or detailed algorithms.
-
-  Example:
-
-  ````markdown
-  ## Implementation Details
-
-  ```python
-  def main() -> None:
-      """
-      CLI entry point for the Recipe Executor Tool.
-
-      Parses command-line arguments, sets up logging, creates the context, and runs the recipe executor.
-      """
-      # Parse command-line arguments
-      parser = argparse.ArgumentParser(
-          description="Recipe Executor Tool - Executes a recipe with additional context information."
-      )
-      parser.add_argument("recipe_path", help="Path to the recipe file to execute.")
-      ...
-  ```
-  ````
-
-  ```
-
-  ```
 
 - **Implementation Hints** (Targeted): Use for brief, specific suggestions or tips that guide implementation without full code examples.
 
@@ -616,13 +589,11 @@ Would this information change if the implementation changed?
 - Maintain consistent naming conventions for methods, parameters, and classes
 - For implementation sections, use the appropriate variant based on content:
   - **Implementation Considerations**: General guidance on implementation approach
-  - **Implementation Details**: More specific implementation instructions with code examples
   - **Implementation Hints**: Brief suggestions or tips for implementation
 - Maintain section name consistency within component families (e.g., all step components should use the same section names and structure)
 - When a component belongs to a family (like steps), follow the patterns established by existing components in that family
 - For implementation sections, use the appropriate variant based on content:
   - **Implementation Considerations**: General guidance on implementation approach
-  - **Implementation Details**: More specific implementation instructions with code examples
   - **Implementation Hints**: Brief suggestions or tips for implementation
 
 ### Functional Coverage Alignment

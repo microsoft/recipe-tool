@@ -5,8 +5,8 @@
 **Search:** ['blueprints/recipe_executor']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 12:47:25 PM
-**Files:** 49
+**Date:** 6/6/2025, 3:45:22 PM
+**Files:** 53
 
 === File: blueprints/recipe_executor/README.md ===
 # Recipe Executor Recipes
@@ -103,13 +103,26 @@ See the [document_generator](../../recipes/document_generator/README.md) recipe 
   },
   {
     "id": "llm_utils.llm",
-    "deps": ["logger", "llm_utils.azure_openai", "llm_utils.mcp"],
+    "deps": ["logger", "llm_utils.azure_openai", "llm_utils.mcp", "llm_utils.responses", "llm_utils.azure_responses"],
     "refs": ["git_collector/PYDANTIC_AI_DOCS.md"]
   },
   {
     "id": "llm_utils.mcp",
     "deps": ["logger"],
     "refs": ["git_collector/PYDANTIC_AI_DOCS.md"]
+  },
+  {
+    "id": "llm_utils.responses",
+    "deps": [],
+    "refs": ["git_collector/PYDANTIC_AI_DOCS.md"]
+  },
+  {
+    "id": "llm_utils.azure_responses",
+    "deps": [],
+    "refs": [
+      "AZURE_IDENTITY_CLIENT_DOCS.md",
+      "git_collector/PYDANTIC_AI_DOCS.md"
+    ]
   },
   {
     "id": "steps.base",
@@ -711,6 +724,180 @@ openai_model = OpenAIModel(
 - `recipe_executor/llm_utils/azure_openai.py`
 
 
+=== File: blueprints/recipe_executor/components/llm_utils/azure_responses/azure_responses_docs.md ===
+# Azure Responses Component Documentation
+
+The Azure Responses component provides Azure OpenAI built-in tool integration for Recipe Executor.
+
+## Overview
+
+This component handles Azure OpenAI's Responses API built-in tools (web search, code execution) 
+by creating configured `OpenAIResponsesModel` instances with Azure authentication and appropriate tool settings.
+
+## Usage
+
+### Basic Usage (Phase 2)
+
+```python
+from recipe_executor.llm_utils.azure_responses import create_azure_responses_model
+
+# Create basic Azure responses model
+model = create_azure_responses_model("gpt-4o")
+
+# Use with PydanticAI Agent
+from pydantic_ai import Agent
+agent = Agent(model=model)
+result = await agent.run("Hello, what can you do with the Azure Responses API?")
+```
+
+### Phase 3 Features (Future)
+
+Built-in tools support (web search, code execution) will be added in Phase 3 via the `llm_generate` step, not in this component.
+
+## Integration with LLM Component
+
+The LLM component routes `azure_responses/*` model identifiers to this component:
+
+```python
+# In llm.py get_model() function:
+if provider == "azure_responses":
+    from recipe_executor.llm_utils.azure_responses import create_azure_responses_model
+    model_name = parts[1]
+    deployment_name = parts[2] if len(parts) > 2 else None
+    model = create_azure_responses_model(model_name, deployment_name)
+    return model
+```
+
+## Environment Variables
+
+The component uses environment variables for authentication and configuration. Depending upon the authentication method, set the following environment variables:
+
+### Option 1: Managed Identity with Default Managed Identity
+
+```bash
+AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
+AZURE_OPENAI_BASE_URL= # Required
+AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
+AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
+```
+
+### Option 2: Managed Identity with Custom Client ID
+
+```bash
+AZURE_USE_MANAGED_IDENTITY=true # Set to true to use managed identity
+AZURE_CLIENT_ID= # Required
+AZURE_OPENAI_BASE_URL= # Required
+AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
+AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
+```
+
+### Option 3: API Key Authentication
+
+```bash
+AZURE_OPENAI_API_KEY= # Required
+AZURE_OPENAI_BASE_URL= # Required
+AZURE_OPENAI_API_VERSION= # Optional, defaults to 2025-03-01-preview
+AZURE_OPENAI_DEPLOYMENT_NAME= # Optional, defaults to model_name
+```
+
+## Phase 2 Scope
+
+Provides full Azure OpenAI Responses API model creation with proper Azure authentication and endpoint configuration. Built-in tools (web search, code execution) will be added in Phase 3.
+
+## Error Handling
+
+- **Model initialization errors**: Clear error messages for Azure OpenAI model creation failures
+- **Authentication errors**: Detailed error messages for Azure Identity or API key issues
+- **Invalid model names**: Validation errors with helpful context
+
+=== File: blueprints/recipe_executor/components/llm_utils/azure_responses/azure_responses_spec.md ===
+# Azure Responses Component Specification
+
+## Purpose
+
+The Azure Responses component provides a PydanticAI wrapper for Azure OpenAI Responses API models for use with PydanticAI Agents. It handles model initialization, authentication, and built-in tools configuration.
+
+## Core Requirements
+
+- Provide a PydanticAI-compatible OpenAIResponsesModel instance for Azure OpenAI
+- Use proper Azure OpenAI authentication (API key or Azure Identity)
+- Support Azure OpenAI endpoints and deployments
+- Implement basic error handling and parameter validation  
+- Export `create_azure_responses_model` function
+- Follow same patterns as existing `azure_openai` component
+
+## Implementation Considerations
+
+- Use `OpenAIResponsesModel` with `provider='azure'` parameter
+- Create `AsyncAzureOpenAI` client following same patterns as `azure_openai` component  
+- Pass Azure client via `OpenAIProvider(openai_client=azure_client)`
+- Support both API key and Azure Identity authentication
+- Return a `pydantic_ai.models.openai.OpenAIResponsesModel` configured for Azure
+
+## Implementation Hints
+
+```python
+# Use sync credentials for token provider (important for Azure AD)
+if use_managed_identity:
+    credential = DefaultAzureCredential()  # sync, not async
+    token_provider = get_bearer_token_provider(credential, scope)
+    azure_client = AsyncAzureOpenAI(
+        azure_endpoint=AZURE_OPENAI_BASE_URL,
+        api_version=AZURE_OPENAI_API_VERSION,
+        azure_ad_token_provider=token_provider,
+    )
+else:
+    azure_client = AsyncAzureOpenAI(
+        azure_endpoint=AZURE_OPENAI_BASE_URL,
+        api_version=AZURE_OPENAI_API_VERSION,
+        api_key=AZURE_OPENAI_API_KEY,
+    )
+
+# Create Azure Responses model
+model = OpenAIResponsesModel(
+    model_name,
+    provider=OpenAIProvider(openai_client=azure_client),
+)
+```
+
+## Logging
+
+- Debug: Log the loaded environment variables (masking all but first/last character of api keys)
+- Info: Log the model name and auth method (api key or Azure Identity)
+
+## Component Dependencies
+
+### Internal Components
+
+None required for Phase 2.
+
+### External Libraries
+
+- **pydantic-ai**: Uses PydanticAI's `OpenAIResponsesModel` for model management
+- **azure-identity**: Uses `DefaultAzureCredential`, `ManagedIdentityCredential`, and `get_bearer_token_provider` for token provision
+
+### Configuration Dependencies
+
+- **AZURE_USE_MANAGED_IDENTITY**: (Optional) Boolean flag to use Azure Identity for authentication
+- **AZURE_OPENAI_API_KEY**: (Required for API key auth) API key for Azure OpenAI authentication
+- **AZURE_OPENAI_BASE_URL**: (Required) Endpoint URL for Azure OpenAI service
+- **AZURE_OPENAI_DEPLOYMENT_NAME**: (Required) Deployment name in Azure OpenAI
+- **AZURE_OPENAI_API_VERSION**: (Required) API version to use with Azure OpenAI, defaults to "2025-03-01-preview"
+- **AZURE_CLIENT_ID**: (Optional) Client ID for managed identity authentication
+
+## Error Handling
+
+- Debug: Log detailed error messages for failed authentication or model creation
+- Info: Log successful authentication and model creation
+
+## Output Files
+
+- `recipe_executor/llm_utils/azure_responses.py`
+
+## Dependency Integration Considerations
+
+None
+
 === File: blueprints/recipe_executor/components/llm_utils/llm/llm_docs.md ===
 # LLM Component Usage
 
@@ -868,7 +1055,7 @@ The LLM component provides a unified interface for interacting with various larg
 
 ## Core Requirements
 
-- Support multiple LLM providers (Azure OpenAI, OpenAI, Anthropic, Ollama)
+- Support multiple LLM providers (Azure OpenAI, OpenAI, Anthropic, Ollama, OpenAI Responses, Azure Responses)
 - Provide model initialization based on a standardized model identifier format
 - Encapsulate LLM API details behind a unified interface
 - Use PydanticAI's async interface for non-blocking LLM calls
@@ -877,7 +1064,7 @@ The LLM component provides a unified interface for interacting with various larg
 - Support optional structured output format
 - Accept an optional `mcp_servers: Optional[List[MCPServer]]` to enable remote MCP tool integration
 
-## Implementation Considerations
+## Implementation Hints
 
 - Use a clear `provider/model_name` identifier format
 - Do not need to pass api keys directly to model classes
@@ -885,13 +1072,130 @@ The LLM component provides a unified interface for interacting with various larg
 - Use PydanticAI's provider-specific model classes, passing only the model name
   - pydantic_ai.models.openai.OpenAIModel (used also for Azure OpenAI and Ollama)
   - pydantic_ai.models.anthropic.AnthropicModel
+- For `openai_responses` provider: call `create_openai_responses_model(model_name)` which returns the model directly
+- For `azure_responses` provider: call `create_azure_responses_model(model_name, deployment_name)` which returns the model directly
 - Create a PydanticAI Agent with the model, structured output type, and optional MCP servers
 - Support: `output_type: Type[Union[str, BaseModel]] = str`
+- Support: `openai_builtin_tools: Optional[List[Dict[str, Any]]] = None` parameter for built-in tools with Responses API models
+  - We only want to support `WebSearchToolParam` and `FileSearchToolParam` at this
 - Pass provided `mcp_servers` (or empty list) to the Agent constructor (e.g. `Agent(model, mcp_servers=mcp_servers, output_type=output_type)`)
-- Implement fully asynchronous execution:
-  - Make `generate` an async function (`async def generate`)
+- For Responses API models with built-in tools, configure the model with `OpenAIResponsesModelSettings` that includes properly typed tools
+- Convert raw dict tools to PydanticAI tool parameter types (e.g., `WebSearchToolParam`, which are TypedDict) before passing to `OpenAIResponsesModelSettings`
+- Import required tool parameter types from `pydantic_ai.models.openai` for type conversion
+- Implement fully asynchronous execution with the following signature:
+  ```python
+  async def generate(
+      self,
+      prompt: str,
+      model: Optional[str] = None,
+      max_tokens: Optional[int] = None,
+      output_type: Type[Union[str, BaseModel]] = str,
+      mcp_servers: Optional[List[MCPServer]] = None,
+      openai_builtin_tools: Optional[List[Dict[str, Any]]] = None,
+  ) -> Union[str, BaseModel]:
+  ```
   - Use `await agent.run(prompt)` method of the Agent to make requests
 - CRITICAL: make sure to return the `result.output` in the `generate` method to return only the structured output
+
+### PydanticAI Model Creation
+
+Create a PydanticAI model for the LLM provider and model name:
+
+```python
+def get_model(model_id: str) -> OpenAIModel | AnthropicModel:
+    """
+    Initialize an LLM model based on a standardized model_id string.
+    Expected format: 'provider/model_name' or 'provider/model_name/deployment_name'.
+
+    Supported providers:
+    - openai
+    - azure (for Azure OpenAI, use 'azure/model_name/deployment_name' or 'azure/model_name')
+    - anthropic
+    - ollama
+    - openai_responses (for OpenAI Responses API with built-in tools)
+    - azure_responses (for Azure Responses API with built-in tools)
+
+    Args:
+        model_id (str): Model identifier in format 'provider/model_name'
+            or 'provider/model_name/deployment_name'.
+            If None, defaults to 'openai/gpt-4o'.
+
+    Returns:
+        The model instance for the specified provider and model.
+
+    Raises:
+        ValueError: If model_id format is invalid or if the provider is unsupported.
+    """
+
+    # If 'azure' is the model provider, use the `get_azure_openai_model` function
+    # If 'openai_responses' is the model provider, use the `create_openai_responses_model` function from responses component
+    # If 'azure_responses' is the model provider, use the `create_azure_responses_model` function from azure_responses component
+```
+
+Usage example:
+
+```python
+# Get an OpenAI model
+openai_model = get_model("openai/o4-mini")
+# Uses OpenAIModel('o4-mini')
+
+# Get an Anthropic model
+anthropic_model = get_model("anthropic/claude-3-7-sonnet-latest")
+# Uses AnthropicModel('claude-3-7-sonnet-latest')
+
+# Get an Ollama model
+ollama_model = get_model("ollama/phi4")
+# Uses OllamaModel('phi4')
+
+# Get an OpenAI Responses model
+responses_model = get_model("openai_responses/gpt-4o")
+# Uses create_openai_responses_model('gpt-4o') from responses component
+
+# Get an Azure Responses model
+azure_responses_model = get_model("azure_responses/gpt-4o")
+# Uses create_azure_responses_model('gpt-4o', None) from azure_responses component
+
+# Get an Azure Responses model with deployment
+azure_responses_model = get_model("azure_responses/gpt-4o/my-deployment")
+# Uses create_azure_responses_model('gpt-4o', 'my-deployment') from azure_responses component
+```
+
+Getting an agent:
+
+```python
+from pydantic_ai import Agent
+
+# Create an agent with the model
+agent: Agent[None, Union[str, BaseModel]] = Agent(model=ollama_model, output_type=str, mcp_servers=mcp_servers)
+
+# Call the agent with a prompt
+async with agent.run_mcp_servers():
+  result = await agent.run("What is the capital of France?")
+
+# Process the result
+print(result.data)  # This will print the structured output
+```
+
+### Ollama Integration
+
+The Ollama model requires an endpoint to be specified:
+
+```python
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers import OpenAIProvider
+import dotenv
+import os
+
+# Load environment variables from .env file
+dotenv.load_dotenv()
+OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+
+# inside the get_model function
+return OpenAIModel(
+    model_name='qwen2.5-coder:7b',
+    provider=OpenAIProvider(base_url=f'{OLLAMA_BASE_URL}/v1'),
+)
+```
 
 ## Logging
 
@@ -903,6 +1207,8 @@ The LLM component provides a unified interface for interacting with various larg
 ### Internal Components
 
 - **Azure OpenAI**: Uses `get_azure_openai_model` for Azure OpenAI model initialization
+- **Responses**: Uses `create_openai_responses_model` for OpenAI Responses API model initialization
+- **Azure Responses**: Uses `create_azure_responses_model` for Azure Responses API model initialization
 - **Logger**: Uses the logger for logging LLM calls
 - **MCP**: Integrates remote MCP tools when `mcp_servers` are provided (uses `pydantic_ai.mcp`)
 
@@ -910,6 +1216,7 @@ The LLM component provides a unified interface for interacting with various larg
 
 - **pydantic-ai**: Uses PydanticAI for model initialization, Agent-based request handling, and structured-output processing
 - **pydantic-ai.mcp**: Provides `MCPServer`, `MCPServerHTTP` and `MCPServerStdio` classes for MCP server transports
+- **openai.types.responses**: Provides types for the responses API `WebSearchToolParam`, `FileSearchToolParam`
 
 ### Configuration Dependencies
 
@@ -930,91 +1237,7 @@ The LLM component provides a unified interface for interacting with various larg
 
 ## Dependency Integration Considerations
 
-### PydanticAI
-
-Create a PydanticAI model for the LLM provider and model name. This will be used to initialize the model and make requests.
-
-```python
-def get_model(model_id: str) -> OpenAIModel | AnthropicModel:
-    """
-    Initialize an LLM model based on a standardized model_id string.
-    Expected format: 'provider/model_name' or 'provider/model_name/deployment_name'.
-
-    Supported providers:
-    - openai
-    - azure (for Azure OpenAI, use 'azure/model_name/deployment_name' or 'azure/model_name')
-    - anthropic
-    - ollama
-
-    Args:
-        model_id (str): Model identifier in format 'provider/model_name'
-            or 'provider/model_name/deployment_name'.
-            If None, defaults to 'openai/gpt-4o'.
-
-    Returns:
-        The model instance for the specified provider and model.
-
-    Raises:
-        ValueError: If model_id format is invalid or if the provider is unsupported.
-    """
-
-    # If 'azure' is the model provider, use the `get_azure_openai_model` function
-```
-
-Usage example:
-
-```python
-# Get an OpenAI model
-openai_model = get_model("openai/o4-mini")
-# Uses OpenAIModel('o4-mini')
-
-# Get an Anthropic model
-anthropic_model = get_model("anthropic/claude-3-7-sonnet-latest")
-# Uses AnthropicModel('claude-3-7-sonnet-latest')
-
-# Get an Ollama model
-ollama_model = get_model("ollama/phi4")
-# Uses OllamaModel('phi4')
-```
-
-Getting an agent:
-
-```python
-from pydantic_ai import Agent
-
-# Create an agent with the model
-agent: Agent[None, Union[str, BaseModel]] = Agent(model=ollama_model, output_type=str, mcp_servers=mcp_servers)
-
-# Call the agent with a prompt
-async with agent.run_mcp_servers():
-  result = await agent.run("What is the capital of France?")
-
-# Process the result
-print(result.data)  # This will print the structured output
-```
-
-#### Ollama
-
-- The Ollama model requires an endpoint to be specified. This can be done by passing the `endpoint` parameter to the `get_model` function.
-- The endpoint should be in the format `http://<host>:<port>`, where `<host>` is the hostname or IP address of the Ollama server and `<port>` is the port number on which the server is running.
-
-Then you can use the `OpenAIModel` class to create an instance of the model and make requests to the Ollama server.
-
-```python
-from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.providers import OpenAIProvider
-import dotenv
-import os
-
-# Load environment variables from .env file
-dotenv.load_dotenv()
-OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
-
-# inside the get_model function
-return OpenAIModel(
-    model_name='qwen2.5-coder:7b',
-    provider=OpenAIProvider(base_url=f'{OLLAMA_BASE_URL}/v1'),
-)
+Implement a standardized `get_model` function that routes to appropriate provider-specific model creation functions based on the provider prefix in the model identifier. Use existing component functions for Azure OpenAI, Responses API, and Azure Responses API integration.
 ```
 
 
@@ -1153,6 +1376,108 @@ None
 
 - `recipe_executor/llm_utils/mcp.py`
 
+
+=== File: blueprints/recipe_executor/components/llm_utils/responses/responses_docs.md ===
+# Responses Component Documentation
+
+The Responses component provides OpenAI built-in tool integration for Recipe Executor.
+
+## Overview
+
+This component handles OpenAI's Responses API built-in tools (web search, code execution) 
+by creating configured `OpenAIResponsesModel` instances with appropriate tool settings.
+
+## Usage
+
+### Basic Usage (Phase 1)
+
+```python
+from recipe_executor.llm_utils.responses import create_openai_responses_model
+
+# Create basic responses model
+model = create_openai_responses_model("gpt-4o")
+
+# Use with PydanticAI Agent
+from pydantic_ai import Agent
+agent = Agent(model=model)
+result = await agent.run("Hello, what can you do with the Responses API?")
+```
+
+### Phase 3 Features (Future)
+
+Built-in tools support (web search, code execution) will be added in Phase 3 via the `llm_generate` step, not in this component.
+
+## Integration with LLM Component
+
+The LLM component routes `openai_responses/*` model identifiers to this component:
+
+```python
+# In llm.py get_model() function:
+if provider == "openai_responses":
+    from recipe_executor.llm_utils.responses import create_openai_responses_model
+    model_name = parts[1]
+    model = create_openai_responses_model(model_name)
+    return model
+```
+
+## Phase 1 Scope
+
+Currently provides basic OpenAI Responses API model creation. Built-in tools (web search, code execution) will be added in Phase 3.
+
+## Error Handling
+
+- **Model initialization errors**: Clear error messages for OpenAI model creation failures
+- **Invalid model names**: Validation errors with helpful context
+
+=== File: blueprints/recipe_executor/components/llm_utils/responses/responses_spec.md ===
+# Responses Component Specification
+
+## Purpose
+
+The Responses component provides OpenAI built-in tool integration using the PydanticAI Responses API.
+It enables recipes to request OpenAI's built-in capabilities (web search, code execution)
+via the `openai_responses` provider.
+
+## Provider Identifiers
+
+- `openai_responses` (OpenAI only - Azure handled by separate component)
+
+## Core Requirements
+
+- `create_openai_responses_model(model_name: str) -> OpenAIResponsesModel`
+
+## Component Dependencies
+
+- **LLM**: Invoked by `LLMGenerateStep` when model provider is `openai_responses`
+- **PydanticAI**: Uses `OpenAIResponsesModel` for basic OpenAI Responses API access
+
+## Implementation Considerations
+
+- Generate a function `create_openai_responses_model` that:
+  - Takes `model_name` (e.g., "gpt-4o") only
+  - For OpenAI responses, instantiate `OpenAIResponsesModel(model_name)` 
+  - Return the `OpenAIResponsesModel` instance directly
+  - Built-in tools functionality will be added in Phase 3 via `llm_generate` step
+
+## External Libraries
+
+- **pydantic-ai**: Uses PydanticAI's `OpenAIResponsesModel`
+
+## Error Handling
+
+- Handle model initialization errors gracefully with clear error messages
+
+## Output Files
+
+- `recipe_executor/llm_utils/responses.py`
+
+## Logging
+
+None
+
+## Dependency Integration Considerations
+
+None
 
 === File: blueprints/recipe_executor/components/logger/logger_docs.md ===
 # Logger Component Usage
@@ -2876,16 +3201,34 @@ The LLMGenerateStep component enables recipes to generate content using large la
 - Process prompt templates using context data
 - Support configurable model selection
 - Support MCP server configuration for tool access
+- Support OpenAI built-in tools (web search) for Responses API models via `openai_builtin_tools` config field
 - Support multiple output formats (text, files, object, list)
 - Call LLMs to generate content
 - Store generated results in the context with dynamic key support
 - Include appropriate logging for LLM operations
+
+## Configuration Schema
+
+The LLMGenerateConfig must include these fields:
+
+- `prompt: str` - The prompt template
+- `model: str` - Model identifier in provider/model format  
+- `max_tokens: Optional[Union[str, int]]` - Token limit
+- `mcp_servers: Optional[List[Dict[str, Any]]]` - MCP server configs
+- `openai_builtin_tools: Optional[List[Dict[str, Any]]]` - Built-in tools for Responses API models
+- `output_format: Union[str, Dict[str, Any], List[Dict[str, Any]]]` - Output format specification
+- `output_key: str` - Context key for storing results
 
 ## Implementation Considerations
 
 - Use `render_template` for templating prompts, model identifiers, mcp server configs, and output key
 - Convert any MCP Server configurations to `MCPServer` instances (via `get_mcp_server`) to pass as `mcp_servers` to the LLM component
 - Accept a string for `max_tokens` and convert it to an integer to pass to the LLM component
+- Support `openai_builtin_tools` parameter with validation:
+  - Only allow for models with `openai_responses` or `azure_responses` providers
+  - Support tool types: `web_search_preview` only
+  - Validate tool configuration before making LLM calls
+  - Pass built-in tools to the LLM component for Responses API configuration
 - In order to support dyanmic output keys, set the result type to `Any` prior to determining the output format and then set the output key immediately after the LLM call
 - If `output_format` is an object (JSON schema) or list:
   - Use `json_object_to_pydantic_model` to create a dynamic Pydantic model from the JSON schema
@@ -2920,7 +3263,23 @@ The LLMGenerateStep component enables recipes to generate content using large la
   mcp_servers = [get_mcp_server(logger=self.logger, config=mcp_server_config) for mcp_server_config in mcp_server_configs]
   llm = LLM(logger, model=config.model, mcp_servers=mcp_servers)
   ```
-- Use `await llm.generate(prompt, output_type=...)` to perform the generation call
+- Use `await llm.generate(prompt, output_type=..., openai_builtin_tools=validated_tools)` to perform the generation call
+- Always pass `openai_builtin_tools` parameter to the LLM generate method (pass None if not provided)
+- Example LLM call with built-in tools:
+  ```python
+  # Validate built-in tools if provided
+  validated_tools = None
+  if self.config.openai_builtin_tools:
+      # Validation logic here
+      validated_tools = self.config.openai_builtin_tools
+  
+  # Call LLM with tools parameter
+  result = await llm.generate(
+      prompt, 
+      output_type=output_type,
+      openai_builtin_tools=validated_tools
+  )
+  ```
 
 ## Logging
 
@@ -2954,6 +3313,12 @@ None
 - Log LLM call failures with meaningful context
 - Ensure proper error propagation for debugging
 - Validate configuration before making LLM calls
+- Validate `openai_builtin_tools` parameter:
+  - Raise error if tools are specified with non-Responses API models
+  - Raise error for unsupported tool types (only `web_search_preview` allowed)
+  - Example error messages:
+    - "Built-in tools only supported with Responses API models (openai_responses/* or azure_responses/*)"
+    - "Unsupported tool type: {type}. Supported: web_search_preview"
 
 ## Output Files
 
