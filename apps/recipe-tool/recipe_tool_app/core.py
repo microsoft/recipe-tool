@@ -21,9 +21,10 @@ logger = logging.getLogger(__name__)
 class RecipeToolCore:
     """Core functionality for Recipe Tool operations."""
 
-    def __init__(self, executor: Optional[Executor] = None):
+    def __init__(self, executor: Optional[Executor] = None, default_model: Optional[str] = None):
         """Initialize with the executor."""
         self.executor = executor if executor is not None else Executor(logger)
+        self.default_model = default_model
 
     async def create_recipe(
         self,
@@ -57,6 +58,10 @@ class RecipeToolCore:
             # Prepare context
             context_dict = parse_context_vars(context_vars)
             context_dict = prepare_context_paths(context_dict)
+
+            if self.default_model:
+                logger.info(f"Using default model: {self.default_model}")
+                context_dict["model"] = self.default_model
 
             # Add reference files
             if reference_files:

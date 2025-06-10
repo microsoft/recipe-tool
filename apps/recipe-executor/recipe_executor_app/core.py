@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 class RecipeExecutorCore:
     """Core functionality for Recipe Executor operations."""
 
-    def __init__(self, executor: Optional[Executor] = None):
+    def __init__(self, executor: Optional[Executor] = None, default_model: Optional[str] = None):
         """Initialize with the executor."""
         self.executor = executor if executor is not None else Executor(logger)
+        self.default_model = default_model
 
     async def execute_recipe(
         self, recipe_file: Optional[str], recipe_text: Optional[str], context_vars: Optional[str]
@@ -69,6 +70,10 @@ class RecipeExecutorCore:
 
             # Execute recipe
             start_time = os.times().elapsed
+            if self.default_model:
+                logger.info(f"Using default model: {self.default_model}")
+                context["model"] = self.default_model
+
             await self.executor.execute(recipe_source, context)
             execution_time = os.times().elapsed - start_time
 
