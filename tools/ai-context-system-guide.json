@@ -1,0 +1,63 @@
+{
+  "title": "AI Context System Implementation Guide",
+  "general_instruction": "Generate a comprehensive implementation guide for setting up an AI context generation system that collects codebase files into organized Markdown documents for AI development tools. This guide should be practical, actionable, and include real examples from the recipe-tool project. Write for developers who want to implement this system in their own projects. Include code snippets, configuration examples, and best practices. Keep explanations clear and concise, focusing on practical implementation details.",
+  "resources": [
+    {
+      "key": "implementation_files",
+      "path": "tools/collect_files.py, tools/build_ai_context_files.py, tools/build_git_collector_files.py",
+      "description": "Core implementation files that provide the AI context generation functionality. These are the main Python modules that developers need to copy and customize."
+    },
+    {
+      "key": "generated_examples",
+      "path": "ai_context/generated/README.md, ai_context/generated/RECIPE_EXECUTOR_CODE_FILES.md, ai_context/generated/DOCUMENT_GENERATOR_RECIPE_FILES.md",
+      "description": "Examples of generated AI context files showing the output format and structure that the system produces."
+    },
+    {
+      "key": "build_integration",
+      "path": "Makefile",
+      "description": "Makefile target for AI context generation (ai-context-files target only, not general development commands)."
+    },
+    {
+      "key": "philosophy_docs",
+      "path": "ai_context/IMPLEMENTATION_PHILOSOPHY.md, ai_context/MODULAR_DESIGN_PHILOSOPHY.md",
+      "description": "Design philosophy documents that guide how the AI context system should be structured and used."
+    },
+    {
+      "key": "project_structure",
+      "path": "ai_context/README.md",
+      "description": "AI context directory structure and organization patterns (excluding general development workflow)."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Overview",
+      "prompt": "Based ONLY on the provided resources, write a concise introduction explaining what an AI context generation system is, why it's valuable, and how the recipe-tool implementation works. Focus on AI context generation only, not general development workflow. DO NOT invent examples or file names - use only what exists in the resource files.",
+      "refs": ["project_structure", "philosophy_docs"]
+    },
+    {
+      "title": "What This System Does",
+      "prompt": "Using ONLY the implementation files and generated examples, explain what this system does and how it works. Show the core functionality with concrete examples from the actual generated files in the resources. Quote exact content and file names that exist.",
+      "refs": ["implementation_files", "generated_examples"]
+    },
+    {
+      "title": "Implementation Steps",
+      "prompt": "Using ONLY the patterns from the resource files, provide essential implementation steps: copy the core files, customize the tasks list, add AI context build integration, and test. Focus ONLY on AI context generation setup, not general development workflow. Include specific examples based ONLY on the actual configurations found in the resources.",
+      "refs": ["implementation_files", "build_integration", "project_structure"]
+    },
+    {
+      "title": "Configuration and Customization",
+      "prompt": "Using ONLY the resource files, show how to customize the system with the actual task configuration format and examples found in the implementation. Focus on essential customization patterns and include key performance considerations like splitting strategies and exclusion patterns from the actual code.",
+      "refs": ["implementation_files", "generated_examples", "philosophy_docs"]
+    },
+    {
+      "title": "Setup and Usage",
+      "prompt": "Using ONLY the build integration and implementation files, show how to integrate AI context generation into workflows and cover essential day-to-day usage. Focus on the ai-context-files Makefile target, basic commands, force regeneration, and maintenance tasks. Ignore general development workflow commands.",
+      "refs": ["build_integration", "implementation_files", "project_structure"]
+    },
+    {
+      "title": "Examples and Templates",
+      "prompt": "Using ONLY the actual task configurations from the implementation files, provide ready-to-use templates based on the real patterns and build integration examples found in the resources. Include essential troubleshooting tips and best practices for successful implementation.",
+      "refs": ["implementation_files", "generated_examples", "philosophy_docs"]
+    }
+  ]
+}
