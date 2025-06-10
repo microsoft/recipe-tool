@@ -1,7 +1,6 @@
 """Recipe Tool Gradio app."""
 
 import argparse
-from typing import Optional
 
 import gradio as gr
 import gradio.themes
@@ -18,9 +17,9 @@ logger = init_logger(settings.log_dir)
 logger.setLevel(settings.log_level.upper())
 
 
-def create_app(model: Optional[str] = None) -> gr.Blocks:
+def create_app() -> gr.Blocks:
     """Create the Recipe Tool app."""
-    recipe_core = RecipeToolCore(default_model=model)
+    recipe_core = RecipeToolCore()
     theme = gradio.themes.Soft() if settings.theme == "soft" else None  # type: ignore
 
     with gr.Blocks(title=settings.app_title, theme=theme) as app:
@@ -34,11 +33,8 @@ def create_app(model: Optional[str] = None) -> gr.Blocks:
 
             # Execute Recipe Tab (reuse from recipe-executor)
             with gr.TabItem("Execute Recipe"):
-                executor_core = RecipeExecutorCore(default_model=model)
-                create_executor_block(
-                    executor_core,
-                    include_header=False,
-                )
+                executor_core = RecipeExecutorCore()
+                create_executor_block(executor_core, include_header=False)
 
     return app
 
@@ -50,10 +46,9 @@ def main() -> None:
     parser.add_argument("--port", type=int, help="Port")
     parser.add_argument("--no-mcp", action="store_true", help="Disable MCP")
     parser.add_argument("--debug", action="store_true", help="Debug mode")
-    parser.add_argument("--model", type=str, help="Model name for recipe execution")
 
     args = parser.parse_args()
-    model: Optional[str] = None
+
     # Override settings
     if args.host:
         settings.host = args.host
@@ -63,11 +58,9 @@ def main() -> None:
         settings.mcp_server = False
     if args.debug:
         settings.debug = True
-    if args.model:
-        model = args.model
 
     # Launch app
-    app = create_app(model=model)
+    app = create_app()
     app.launch(**settings.to_launch_kwargs())
 
 

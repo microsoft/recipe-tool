@@ -1,6 +1,6 @@
 """Minimal tests for UI components."""
 
-from document_generator_app.ui import create_resource_editor, create_section_editor
+from document_generator_app.ui.components import create_resource_editor, create_section_editor
 
 
 def test_create_resource_editor():

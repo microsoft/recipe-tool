@@ -87,7 +87,7 @@ def remove_section_at_path(sections: List[Section], path: List[int]) -> None:
 # ============================================================================
 
 
-def create_resource_editor() -> Dict[str, Any]:
+def create_resource_editor() -> Dict[str, gr.components.Component]:
     """Create the resource editor form components."""
     with gr.Column(visible=False) as container:
         gr.Markdown("### Edit Resource")
@@ -112,7 +112,7 @@ def create_resource_editor() -> Dict[str, Any]:
     }
 
 
-def create_section_editor() -> Dict[str, Any]:
+def create_section_editor() -> Dict[str, gr.components.Component]:
     """Create the section editor form components."""
     with gr.Column(visible=False) as container:
         gr.Markdown("### Edit Section")
