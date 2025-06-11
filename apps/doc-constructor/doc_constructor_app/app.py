@@ -4,20 +4,151 @@ import uuid
 import json
 
 def initialize_blocks():
-    """Initialize with a single empty block"""
-    return [{
-        'id': str(uuid.uuid4()),
-        'header': '',
-        'content': '',
-        'position': 0
-    }]
+    """Initialize with one AI content block and one manual content block"""
+    return [
+        {
+            'id': str(uuid.uuid4()),
+            'type': 'ai-content-block',
+            'header': '',
+            'content': '',
+            'position': 0
+        },
+        {
+            'id': str(uuid.uuid4()),
+            'type': 'manual-content-block',
+            'header': '',
+            'content': '',
+            'position': 1
+        }
+    ]
 
 # CSS for styling
 custom_css = """
-.page-container {
-    max-width: 850px;
+.wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.main-layout {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 1400px;
+    padding: 20px;
+    position: relative;
+}
+
+.resources-panel {
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
     height: 700px;
-    margin: 20px auto;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Override Gradio's default column sizing */
+.resources-panel.col {
+    min-width: 240px !important;
+    flex: 0 0 240px !important;
+}
+
+/* Target the specific Gradio column container */
+.main-layout > .col:first-child {
+    min-width: 240px !important;
+    max-width: 240px !important;
+    flex: 0 0 240px !important;
+}
+
+/* Target the page container wrapper (component 15) */
+.main-layout > .col:last-child {
+    flex: 1 1 auto !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* Ensure the page container itself is properly aligned */
+.main-layout .page-container {
+    margin-left: 0 !important;
+}
+
+.resources-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.resources-panel h4 {
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #555;
+}
+
+.compact-file-upload {
+    font-size: 12px !important;
+}
+
+.compact-file-upload .wrap {
+    padding: 8px !important;
+    min-height: 110px !important;
+    height: 110px !important;
+}
+
+.compact-file-upload .wrap > div {
+    min-height: 110px !important;
+    height: 110px !important;
+}
+
+/* The main upload label */
+.compact-file-upload > label {
+    font-size: 12px !important;
+    font-weight: normal !important;
+}
+
+/* The drop zone text */
+.compact-file-upload .wrap span {
+    font-size: 10px !important;
+}
+
+/* Override the center text in upload area */
+.compact-file-upload .center {
+    font-size: 10px !important;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    margin-bottom: 4px;
+    background-color: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    font-size: 11px;
+    word-break: break-all;
+    gap: 4px;
+}
+
+.resource-item.image {
+    border-left: 3px solid #FFD670;  /* Soft yellow */
+}
+
+.resource-item.file {
+    border-left: 3px solid #FF8C42;  /* Tangerine orange */
+}
+
+.page-container {
+    max-width: 900px;
+    height: 700px;
+    margin: 0;
     background-color: white;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e5e5;
@@ -25,6 +156,7 @@ custom_css = """
     padding: 40px;
     overflow-y: auto;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Hide scrollbar while keeping scroll functionality */
@@ -48,12 +180,22 @@ custom_css = """
     border-radius: 8px;
     padding: 15px;
     padding-top: 15px;
-    margin-bottom: 12px;
+    margin-bottom: 3px;
     background-color: white;
     position: relative !important;
     height: 150px;  /* Fixed height instead of min-height */
     overflow: visible !important;
     cursor: move !important;
+}
+
+/* Visual distinction for AI content blocks */
+.block-container.ai-content-block {
+    border-left: 3px solid #5B9EBD;
+}
+
+/* Visual distinction for manual content blocks */
+.block-container.manual-content-block {
+    border-left: 3px solid #9EBD5B;
 }
 
 
@@ -100,14 +242,30 @@ custom_css = """
 .add-btn {
     position: absolute !important;
     bottom: 10px !important;
-    right: 10px !important;
     min-width: 20px !important;
-    width: 20px !important;
     height: 20px !important;
-    padding: 0 !important;
+    padding: 0 2px !important;
     border-radius: 4px !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     opacity: 1 !important;
+}
+
+.add-ai-btn {
+    right: 35px !important;  /* Position to the left of manual button */
+    width: 30px !important;  /* Slightly wider for "+AI" text */
+}
+
+.add-manual-btn {
+    width: 20px !important;  /* Keep manual button square */
+    right: 10px !important;  /* Right-most position */
+    background-color: #9EBD5B !important;
+    border-color: #9EBD5B !important;
+    color: white !important;
+}
+
+.add-manual-btn:hover {
+    background-color: #8CAB4A !important;
+    border-color: #8CAB4A !important;
 }
 
 .block-header {
@@ -472,62 +630,96 @@ def create_interface():
         # Initialize blocks
         initial_blocks = initialize_blocks()
         
-        # State to track blocks
+        # State to track blocks and resources
         blocks_state = gr.State(initial_blocks)
+        resources_state = gr.State([])
         
         # Hidden components for drag-drop communication
         with gr.Row(visible=False):
             reorder_indices = gr.Textbox(elem_id="reorder-indices", visible=False)
             reorder_trigger = gr.Button("Reorder", elem_id="reorder-trigger", visible=False)
         
-        # Create all block components (hidden by default)
-        block_components = []
-        
-        # Page container
-        with gr.Column(elem_classes="page-container"):
-            with gr.Column(elem_classes="main-container"):
-                for i in range(MAX_BLOCKS):
-                    with gr.Group(visible=(i == 0), elem_classes="block-container") as block_group:
-                        # Use a Column to ensure vertical stacking
-                        with gr.Column():
-                            # Header textbox
-                            header_input = gr.Textbox(
-                                value="",
-                                placeholder="Header (optional)",
-                                show_label=False,
-                                elem_classes="block-header",
-                                max_lines=1
-                            )
+        # Create wrapper for proper centering
+        with gr.Column(elem_classes="wrapper"):
+            # Main layout with resources panel and page container
+            with gr.Row(elem_classes="main-layout"):
+                # Resources panel
+                with gr.Column(elem_classes="resources-panel"):
+                    
+                    # File upload
+                    file_upload = gr.File(
+                        label="Upload Files/Images",
+                        file_count="multiple",
+                        file_types=["image", ".pdf", ".txt", ".md", ".doc", ".docx"],
+                        type="filepath",
+                        elem_classes="compact-file-upload"
+                    )
+                    
+                    # Resources display
+                    gr.Markdown("#### Uploaded Resources")
+                    resources_display = gr.HTML(
+                        value="<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
+                    )
+            
+                # Create all block components (hidden by default)
+                block_components = []
+                
+                # Page container
+                with gr.Column(elem_classes="page-container"):
+                    with gr.Column(elem_classes="main-container"):
+                        for i in range(MAX_BLOCKS):
+                            # Set initial visibility and class for first two blocks
+                            initial_visible = i < 2
+                            initial_class = "block-container"
+                            if i == 0:
+                                initial_class += " ai-content-block"
+                            elif i == 1:
+                                initial_class += " manual-content-block"
                             
-                            # Content text area
-                            text_area = gr.Textbox(
-                                value="",
-                                placeholder="Type your content here...",
-                                lines=3,
-                                max_lines=10,
-                                show_label=False,
-                                elem_classes="block-content"
-                            )
-                        
-                        # Then the buttons
-                        delete_btn = gr.Button(
-                            "x", 
-                            size="sm", 
-                            elem_classes="delete-btn",
-                            interactive=(i != 0),
-                            visible=(i == 0)
-                        )
-                        
-                        add_btn = gr.Button("+", size="sm", elem_classes="add-btn", variant="primary")
-                        
-                        block_components.append({
-                            'group': block_group,
-                            'header': header_input,
-                            'text': text_area,
-                            'add': add_btn,
-                            'delete': delete_btn,
-                            'index': i
-                        })
+                            with gr.Group(visible=initial_visible, elem_classes=initial_class) as block_group:
+                                # Use a Column to ensure vertical stacking
+                                with gr.Column():
+                                    # Header textbox - placeholder will be set dynamically
+                                    header_input = gr.Textbox(
+                                        value="",
+                                        placeholder="Header (optional)",
+                                        show_label=False,
+                                        elem_classes="block-header",
+                                        max_lines=1
+                                    )
+                                    
+                                    # Content text area - placeholder will be set dynamically
+                                    text_area = gr.Textbox(
+                                        value="",
+                                        placeholder="Type your content here...",
+                                        lines=3,
+                                        max_lines=10,
+                                        show_label=False,
+                                        elem_classes="block-content"
+                                    )
+                                
+                                # Then the buttons
+                                delete_btn = gr.Button(
+                                    "x", 
+                                    size="sm", 
+                                    elem_classes="delete-btn",
+                                    interactive=(i != 0),
+                                    visible=(i == 0)
+                                )
+                                
+                                # Add buttons for both types
+                                add_ai_btn = gr.Button("+AI", size="sm", elem_classes="add-btn add-ai-btn", variant="primary")
+                                add_manual_btn = gr.Button("+", size="sm", elem_classes="add-btn add-manual-btn")
+                            
+                            block_components.append({
+                                'group': block_group,
+                                'header': header_input,
+                                'text': text_area,
+                                'add_ai': add_ai_btn,
+                                'add_manual': add_manual_btn,
+                                'delete': delete_btn,
+                                'index': i
+                            })
         
         def update_ui_visibility(blocks):
             """Update which blocks are visible"""
@@ -536,11 +728,18 @@ def create_interface():
             for i, comp in enumerate(block_components):
                 if i < len(blocks):
                     # This block should be visible
+                    # Set placeholders and CSS class based on block type
+                    block_type = blocks[i].get('type', 'ai-content-block')
+                    header_placeholder = "Instruction for heading (optional)" if block_type == 'ai-content-block' else "Heading (optional)"
+                    content_placeholder = "Type your instruction for content here..." if block_type == 'ai-content-block' else "Type your content here..."
+                    elem_classes = f"block-container {block_type}"
+                    
                     updates.extend([
-                        gr.update(visible=True),  # group
-                        gr.update(value=blocks[i].get('header', '')),  # header
-                        gr.update(value=blocks[i]['content']),  # text
-                        gr.update(visible=True),  # add button
+                        gr.update(visible=True, elem_classes=elem_classes),  # group
+                        gr.update(value=blocks[i].get('header', ''), placeholder=header_placeholder),  # header
+                        gr.update(value=blocks[i]['content'], placeholder=content_placeholder),  # text
+                        gr.update(visible=True),  # add ai button
+                        gr.update(visible=True),  # add manual button
                         gr.update(visible=(len(blocks) > 1), interactive=(len(blocks) > 1))  # delete button
                     ])
                 else:
@@ -549,17 +748,19 @@ def create_interface():
                         gr.update(visible=False),  # group
                         gr.update(value=""),  # header
                         gr.update(value=""),  # text
-                        gr.update(),  # add button
+                        gr.update(),  # add ai button
+                        gr.update(),  # add manual button
                         gr.update()  # delete button
                     ])
             
             return updates
         
-        def add_block_after(blocks, index):
+        def add_block_after(blocks, index, block_type):
             """Add a new block after the specified index"""
             if len(blocks) < MAX_BLOCKS:
                 new_block = {
                     'id': str(uuid.uuid4()),
+                    'type': block_type,
                     'header': '',
                     'content': '',
                     'position': index + 1
@@ -615,7 +816,7 @@ def create_interface():
         # Collect all outputs for visibility updates
         all_outputs = []
         for comp in block_components:
-            all_outputs.extend([comp['group'], comp['header'], comp['text'], comp['add'], comp['delete']])
+            all_outputs.extend([comp['group'], comp['header'], comp['text'], comp['add_ai'], comp['add_manual'], comp['delete']])
         
         # Wire up event handlers for each block
         for i, comp in enumerate(block_components):
@@ -633,9 +834,20 @@ def create_interface():
                 outputs=[blocks_state]
             )
             
-            # Add button handler
-            comp['add'].click(
-                lambda blocks, idx=i: add_block_after(blocks, idx),
+            # Add AI button handler
+            comp['add_ai'].click(
+                lambda blocks, idx=i: add_block_after(blocks, idx, 'ai-content-block'),
+                inputs=[blocks_state],
+                outputs=[blocks_state]
+            ).then(
+                update_ui_visibility,
+                inputs=[blocks_state],
+                outputs=all_outputs
+            )
+            
+            # Add Manual button handler
+            comp['add_manual'].click(
+                lambda blocks, idx=i: add_block_after(blocks, idx, 'manual-content-block'),
                 inputs=[blocks_state],
                 outputs=[blocks_state]
             ).then(
@@ -713,6 +925,52 @@ def create_interface():
                 inputs=[blocks_state],
                 outputs=[debug_output]
             )
+        
+        # File upload handler
+        def handle_file_upload(files, current_resources):
+            """Handle file uploads and update resources state."""
+            if not files:
+                return current_resources, gr.update(), None
+            
+            # Add new files to resources
+            new_resources = current_resources.copy() if current_resources else []
+            
+            for file_path in files:
+                if file_path and file_path not in [r['path'] for r in new_resources]:
+                    import os
+                    file_name = os.path.basename(file_path)
+                    file_ext = os.path.splitext(file_name)[1].lower()
+                    
+                    # Determine if it's an image
+                    is_image = file_ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
+                    
+                    new_resources.append({
+                        'path': file_path,
+                        'name': file_name,
+                        'type': 'image' if is_image else 'file'
+                    })
+            
+            # Generate HTML for resources display
+            if new_resources:
+                html_items = []
+                for resource in new_resources:
+                    icon = "🖼️" if resource['type'] == 'image' else "📄"
+                    css_class = f"resource-item {resource['type']}"
+                    html_items.append(
+                        f'<div class="{css_class}">{icon} {resource["name"]}</div>'
+                    )
+                resources_html = '\n'.join(html_items)
+            else:
+                resources_html = "<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
+            
+            return new_resources, gr.update(value=resources_html), None  # Return None to clear file upload
+        
+        # Wire up file upload
+        file_upload.change(
+            handle_file_upload,
+            inputs=[file_upload, resources_state],
+            outputs=[resources_state, resources_display, file_upload]
+        )
         
     return app
 
