@@ -9,8 +9,8 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "doc-constructor-app",
     "docs-mcp-server",
-    "document-generator",
     "python-code-tools",
     "recipe-executor",
     "recipe-executor-app",
@@ -458,6 +458,17 @@ wheels = [
 ]
 
 [[package]]
+name = "doc-constructor-app"
+version = "0.1.0"
+source = { editable = "apps/doc-constructor" }
+dependencies = [
+    { name = "gradio" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gradio", specifier = ">=4.0.0" }]
+
+[[package]]
 name = "docs-mcp-server"
 version = "0.1.0"
 source = { editable = "mcp-servers/docs-server" }
@@ -488,51 +499,6 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.1.0" },
 ]
 provides-extras = ["dev"]
-
-[[package]]
-name = "document-generator"
-version = "0.1.0"
-source = { editable = "apps/document-generator" }
-dependencies = [
-    { name = "gradio" },
-    { name = "jsonschema" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "recipe-tool" },
-    { name = "typer" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "build" },
-    { name = "debugpy" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "gradio", specifier = ">=5.30.0" },
-    { name = "jsonschema", specifier = ">=4.0.0" },
-    { name = "pydantic", specifier = ">=1.10.0" },
-    { name = "python-dotenv", specifier = ">=0.20.0" },
-    { name = "recipe-tool", editable = "recipe-tool" },
-    { name = "typer", specifier = ">=0.7.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "build", specifier = ">=1.2.2.post1" },
-    { name = "debugpy", specifier = ">=1.8.14" },
-    { name = "pyright", specifier = ">=1.1.400" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-asyncio", specifier = ">=0.26.0" },
-    { name = "pytest-cov", specifier = ">=6.1.1" },
-    { name = "ruff", specifier = ">=0.11.10" },
-]
 
 [[package]]
 name = "docutils"

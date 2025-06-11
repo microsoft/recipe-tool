@@ -2,7 +2,7 @@
 members = [
     "recipe-tool",
     "recipe-executor",
-    "apps/document-generator",
+    "apps/doc-constructor",
     "apps/recipe-executor",
     "apps/recipe-tool",
     "mcp-servers/docs-server",
@@ -15,7 +15,7 @@ members = [
 recipe-executor = { workspace = true }
 recipe-tool = { workspace = true }
 # Apps
-document-generator-app = { workspace = true }
+doc-constructor-app = { workspace = true }
 recipe-executor-app = { workspace = true }
 recipe-tool-app = { workspace = true }
 # MCP servers

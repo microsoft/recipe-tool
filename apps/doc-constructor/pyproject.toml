@@ -1,0 +1,23 @@
+[project]
+name = "doc_constructor_app"
+version = "0.1.0"
+description = "A Gradio interface for creating documents with draggable text blocks"
+authors = [{ name = "MADE:Explorations Team" }]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["gradio>=4.0.0"]
+
+[project.scripts]
+doc-constructor-app = "doc_constructor_app.app:main"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["doc_constructor_app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
