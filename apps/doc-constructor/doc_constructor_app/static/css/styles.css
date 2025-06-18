@@ -1,0 +1,765 @@
+.wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Center content wrapper */
+.center-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Action buttons row above panels */
+.action-buttons-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Upload Resources button in action row */
+.upload-resources-btn {
+    height: 30px !important;
+    max-width: 188px !important;
+    min-width: 188px !important;
+    width: 188px !important;
+    gap: 12px;
+    margin-bottom: -10px;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+    font-weight: normal !important;
+}
+
+/* Resources display column */
+.resources-display-column {
+    max-width: 200px !important;
+    min-width: 200px !important;
+    width: 200px !important;
+    flex-shrink: 0;
+    background-color: transparent !important;
+    /* White background to match panels */
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    /* Floating effect */
+    /* border: 1px solid #e5e5e5;
+    /* Light border */
+    border-radius: 4px !important;
+}
+
+/* Resources display area */
+.resources-display-area {
+    height: 700px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+
+
+/* Remove padding from any HTML container within resources display */
+.resources-display-area .html-container {
+    padding-left: 0 !important;
+}
+
+.resources-display-area p {
+    padding-right: 15px;
+    padding-left: 5px;
+}
+
+/* Hide scrollbar for resources display area */
+.resources-display-area::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Top header with title and buttons */
+.top-header {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 12px;
+    align-items: flex-start;
+}
+
+.top-header .markdown {
+    margin: 0;
+}
+
+/* Top right buttons container */
+.top-right-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20px;
+}
+
+.top-right-buttons button {
+    height: 30px !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+}
+
+/* Save Builder button - darker grey */
+.save-builder-btn {
+    background-color: #6b6b6b !important;
+    border-color: #6b6b6b !important;
+    color: white !important;
+}
+
+.save-builder-btn:hover {
+    background-color: #5a5a5a !important;
+    border-color: #5a5a5a !important;
+}
+
+/* Generate button styling */
+.generate-btn {
+    max-width: 170px;
+    height: 30px !important;
+    margin-bottom: -10px;
+    font-size: 12px !important;
+    font-style: normal;
+    font-weight: 700;
+    padding: 0 16px !important;
+}
+
+.save-doc-btn {
+    max-width: 170px;
+    height: 30px !important;
+    margin-bottom: -10px;
+    font-size: 12px !important;
+    font-style: normal;
+    font-weight: normal !important;
+    padding: 0 16px !important;
+}
+/* Panels row */
+.panels-row {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.header-section {
+    width: 100%;
+    max-width: 1800px;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 0px;
+}
+
+.header-section .form {
+    border: 1px solid #ffffff;
+    border-right: 1px solid #ffffff;
+}
+
+.title-input {
+    flex: 1;
+    max-width: 25%;
+}
+
+.instruction-input {
+    flex: 1;
+    max-width: 75%;
+}
+
+
+.title-input textarea {
+    font-weight: bold !important;
+    font-size: 14px !important;
+    padding-bottom: 9px;
+}
+
+.instruction-input textarea {
+    padding-bottom: 9px;
+    height: 39px;
+}
+
+.title-input textarea:focus,
+.instruction-input textarea:focus {
+    border-color: #5B9EBD !important;
+    outline: none !important;
+}
+
+.main-layout {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 1800px;
+    position: relative;
+}
+
+
+
+
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    margin-bottom: 4px;
+    background-color: white;
+    border: 1px solid;
+    border-color: #4a9d9e !important;
+    border-radius: 4px;
+    font-size: 11px;
+    word-break: break-all;
+    gap: 4px;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.resource-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.resource-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.page-panel {
+    max-width: 700px;  /* Increased by 100px */
+    width: 700px;
+    height: 700px;
+    margin: 0;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;  /* Less rounded corners */
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    position: relative !important; /* Ensure positioning context for absolute children */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.generated-panel {
+    height: 700px;
+    margin: 0;
+    background-color: white;  /* Changed to white */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;  /* Less rounded corners */
+    padding: 20px;  /* Reduced padding */
+    padding-top: 15px;  /* Even less top padding */
+    overflow-y: auto;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+    position: relative !important;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.page-panel::-webkit-scrollbar,
+.generated-panel::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+
+.page-panel,
+.generated-panel {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.main-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 20px;
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar for main-container */
+.main-container::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Add buttons block at bottom of page panel */
+.add-buttons-block {
+    position: relative;
+    gap: 5px;
+    background-color: transparent;
+    z-index: 20;
+    display: flex;
+    justify-content: flex-end;  /* Align buttons to the right */
+}
+
+
+
+/* Add content buttons styling */
+.add-content-btn {
+    width: 30px !important;  /* Fixed square width */
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;  /* No padding for square shape */
+    border-radius: 4px !important;  /* Square with rounded corners */
+    font-size: 12px !important;  /* Slightly smaller font */
+    white-space: nowrap !important;  /* Prevent text wrapping */
+    flex-grow: 0;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+
+.block-container {
+    border: none !important;  /* No border */
+    border-radius: 0 !important;  /* No rounded corners */
+    margin: 0 !important;  /* No margins at all */
+    background-color: white;
+    position: relative !important;
+    height: 240px;  /* Default height - can be overridden by JS */
+    min-height: 240px;  /* Minimum height to prevent text cutoff */
+    overflow: visible !important;
+    cursor: move !important;
+    flex-shrink: 0;  /* Prevent blocks from shrinking */
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, height 0.2s ease, margin-left 0.2s ease;
+}
+
+/* Add spacing to Gradio Group wrappers around blocks */
+.main-container > .gradio-group,
+.main-container > div {
+    margin: 0 !important;
+    margin-bottom: 8px !important;  /* Space between block wrappers */
+    padding: 0 !important;
+}
+
+/* Remove the margin from the last block */
+.main-container > .gradio-group:last-child,
+.main-container > div:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Set gap for the main container */
+.main-container {
+    gap: 5px !important;  /* Space between blocks */
+}
+
+
+/* Visual distinction for AI content blocks */
+.block-container.ai-content-block {
+    border-left: 3px solid #4a9d9e !important;  /* Blue-green/teal */
+}
+
+/* Visual distinction for heading blocks */
+.block-container.heading-block {
+    border-left: 2px solid #d0d0d0 !important;  /* Light grey, thinner border */
+    height: 40px !important;  /* Fixed height for heading blocks - increased for proper text display */
+    min-height: 40px;
+}
+
+/* Style for heading block text */
+.block-container.heading-block .block-text textarea {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    height: 40px !important;  /* Fixed height for single line - increased to fit text properly */
+    line-height: 30px !important;  /* Center text vertically */
+    overflow: hidden !important;  /* Hide overflow */
+    white-space: nowrap !important;  /* Prevent wrapping */
+    resize: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Hide resources area for heading blocks */
+.block-container.heading-block .block-resources {
+    display: none !important;
+}
+
+/* Visual distinction for manual content blocks */
+.block-container.content-block {
+    border-left: 2px solid #d0d0d0 !important;  /* Light grey, thinner border */
+}
+
+.block-container.content-block .block-text textarea {
+    border-left: 2px solid #d0d0d0 !important;
+    /* Light grey, thinner border */
+}
+
+.block-container.content-block .input-container {
+    margin: 5px;;
+}
+/* Hide resources area for content blocks */
+.block-container.content-block .block-resources {
+    display: none !important;
+}
+
+/* Visual distinction for document title block */
+.block-container.document-title-block {
+    /* No border */
+    height: 55px !important;
+}
+
+/* Style for document title block text */
+.block-container.document-title-block .block-text textarea {
+    font-size: 20px !important;
+    font-weight: bold !important;
+}
+
+/* Visual distinction for general instruction block */
+.block-container.general-instruction-block {
+    /* No border */
+}
+
+
+/* Block text areas */
+.block-text textarea {
+    resize: none !important;  /* Prevent manual resizing */
+    overflow-y: auto !important;  /* Show scrollbar when content exceeds height */
+}
+
+/* Dragula styles */
+.gu-mirror {
+    position: fixed !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+    opacity: 0.8;
+    transform: rotate(3deg);
+}
+
+.gu-hide {
+    display: none !important;
+}
+
+.gu-unselectable {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+.gu-transit {
+    opacity: 0.2;
+}
+
+.delete-btn {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    z-index: 10 !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    opacity: 0 !important;  /* Hidden by default */
+    transition: opacity 0.2s ease;  /* Smooth transition */
+}
+
+/* Show delete button on hover or focus */
+.block-container:hover .delete-btn,
+.block-container:focus-within .delete-btn {
+    opacity: 1 !important;
+}
+
+
+/* Button container and rows */
+.button-container {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 10px;
+    gap: 8px;
+}
+
+.button-row {
+    margin: 0;
+    gap: 5px;
+    width: 100%;
+}
+
+.button-row button {
+    height: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0 8px;
+}
+
+/* Add content buttons in resources panel */
+.add-content-buttons {
+    margin-bottom: 5px;
+    gap: 5px;
+}
+
+.add-content-btn {
+    height: 30px;
+    margin-bottom: -10px;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    padding: 0 8px;
+}
+
+/* Removed hover animation for add-content buttons */
+
+.green-btn {
+    background-color: white !important;  /* White background */
+    border: 1px solid #d0d0d0 !important;  /* Light grey border */
+    color: #333 !important;  /* Dark text */
+    margin-left: -4px;
+}
+
+.green-btn:hover {
+    background-color: #f5f5f5 !important;  /* Light grey on hover */
+    border-color: #b0b0b0 !important;  /* Darker grey border on hover */
+}
+
+.blue-btn {
+    background-color: #4a9d9e !important;  /* Blue-green/teal */
+    border: 1px solid #3a8d8e !important;  /* Darker blue-green border */
+    color: white !important;
+    margin-left: 12px;
+    margin-right: 2px;
+}
+
+.blue-btn:hover {
+    background-color: #3a8d8e !important;  /* Darker blue-green on hover */
+    border-color: #2a7d7e !important;  /* Even darker border on hover */
+}
+
+/* Generated content styling */
+.generated-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    background-color: white !important;
+    padding: 0;  /* Remove padding to align with top */
+    margin: 0;  /* Remove any margin */
+    border-radius: 4px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-x: hidden !important;
+    max-width: 100%;
+}
+
+/* Target the markdown container inside generated-content */
+.generated-content > div:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Target any paragraphs or elements that might have top margin */
+.generated-content > *:first-child {
+    margin-top: 0 !important;
+}
+
+/* Target all direct children to remove top margins */
+.generated-content > * {
+    margin-top: 0 !important;
+}
+
+/* Target any div wrappers that might be added */
+.generated-content div {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Specifically target code blocks and their containers */
+.generated-content .code-wrap,
+.generated-content .codehilite,
+.generated-content .highlight {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.generated-content .md{
+    background-color: white !important;
+}
+
+.generated-content pre {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;  /* Hide horizontal scrollbar */
+    overflow-y: hidden !important;  /* Hide vertical scrollbar */
+    background-color: transparent !important;  /* Transparent background */
+    padding: 0 !important;  /* Remove all padding */
+    margin: 0 !important;  /* Remove all margin */
+    border-radius: 4px;
+    border: none !important;
+}
+
+.generated-content code {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    background-color: transparent !important;
+}
+
+/* Target markdown code blocks specifically */
+.generated-content .language-json,
+.generated-content .codehilite {
+    background-color: transparent !important;
+    overflow: hidden !important;
+}
+
+.generated-content h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.generated-content p {
+    margin-bottom: 15px;
+}
+
+
+/* Aggressively remove ALL borders and backgrounds EXCEPT buttons and resources drop zone */
+.block-container *:not(button):not(.delete-btn):not(.add-btn):not(.resources-drop-zone),
+.block-container div:not(.resources-drop-zone),
+.block-container .gradio-container,
+.block-container .gradio-textbox,
+.block-container .gradio-column,
+.block-container .gradio-row,
+.block-container .wrap,
+.block-container .form {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.input-container {
+    padding: none !important;
+}
+
+/* Only make non-button elements transparent */
+.block-container *:not(button):not(.delete-btn):not(.add-btn):not(.resources-drop-zone) {
+    background: transparent !important;
+}
+
+.block-resources {
+    display: block !important;
+    width: 100% !important;
+    min-height: 40px;
+    margin-top: -5px;  /* Move the resources box up */
+}
+
+/* Ensure the drop zone is visible */
+.block-resources .resources-drop-zone {
+    border: 1px dashed #bdbdbd !important;
+    box-sizing: border-box;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999999;
+    font-size: 11px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    transition: all 0.3s ease;
+    background-color: #f8f8f8;
+}
+
+.resources-drop-zone.drag-over {
+    border-color: #5B9EBD;
+    border-width: 2px;
+    background-color: #f0f8ff;
+    color: #5B9EBD;
+}
+
+.dropped-resource {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    margin: 2px;
+    background-color: #f5f5f5;
+    border: 1px solid #4a9d9e;  /* Blue-green border to match AI button */
+    border-radius: 4px;
+    font-size: 11px;
+    gap: 4px;
+}
+
+/* Change primary button colors to blue-green */
+.gradio-button.primary,
+.gr-button.primary,
+button.primary,
+[variant="primary"] {
+    background-color: #4a9d9e !important;  /* Blue-green/teal */
+    border-color: #4a9d9e !important;
+    color: white !important;
+}
+
+.gradio-button.primary:hover,
+.gr-button.primary:hover,
+button.primary:hover,
+[variant="primary"]:hover {
+    background-color: #3a8d8e !important;  /* Darker blue-green on hover */
+    border-color: #3a8d8e !important;
+}
+
+
+/* Set light grey background for the entire page */
+body {
+    background-color: #f8f8f8 !important;  /* Lighter grey */
+}
+
+/* Ensure Gradio container also has grey background */
+.gradio-container {
+    background-color: #f8f8f8 !important;  /* Lighter grey */
+    padding-left: 10px !important;  /* Reduce side padding */
+    padding-right: 10px !important;  /* Reduce side padding */
+    max-width: 100% !important;  /* Use full width */
+}
+
+.gradio-container .fillable {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Override Gradio's default container padding */
+.gradio-container .contain {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+/* Target the main app container */
+.gradio-container > div:first-child {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+
+/* Indentation button styling */
+[class*="indent-left-"], [class*="indent-right-"] {
+    min-width: 30px !important;
+    max-width: 30px !important;
+    width: 30px !important;
+    height: 25px !important;
+    padding: 2px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    background-color: white !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #333 !important;
+}
+
+[class*="indent-left-"]:hover, [class*="indent-right-"]:hover {
+    background-color: #f0f0f0 !important;
+    border-color: #999 !important;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
