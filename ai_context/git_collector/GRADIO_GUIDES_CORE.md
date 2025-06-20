@@ -3,7 +3,7 @@
 [git-collector-data]
 
 **URL:** https://github.com/gradio-app/gradio/tree/main/guides  
-**Date:** 6/3/2025, 3:33:38 PM  
+**Date:** 6/18/2025, 12:11:17 PM  
 **Files:** 34  
 
 === File: guides/01_getting-started/01_quickstart.md ===
@@ -535,7 +535,9 @@ with gr.Blocks() as demo:
 
 Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
 
-Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
+**Note:** if your event listener has a single output component, you should **not** return it as a single-item list. This will not work, since Gradio does not know whether to interpret that outer list as part of your return value. You should instead just return that value directly.
+
+Now, let's see option (2). Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
 
 ```python
 with gr.Blocks() as demo:
@@ -967,6 +969,8 @@ $code_render_preserve_key
 $demo_render_preserve_key
 
 You'll see in this example, when you change the `number_of_boxes` slider, there's a new re-render to update the number of box rows. If you click the "Change Label" buttons, they change the `label` and `info` properties of the corresponding textbox. You can also enter text in any textbox to change its value. If you change number of boxes after this, the re-renders "reset" the `info`, but the `label` and any entered `value` is still preserved.
+
+Note you can also key any event listener, e.g. `button.click(key=...)` if the same listener is being recreated with the same inputs and outputs across renders. This gives performance benefits, and also prevents errors from occuring if an event was triggered in a previous render, then a re-render occurs, and then the previous event finishes processing. By keying your listener, Gradio knows where to send the data properly. 
 
 ## Putting it Together
 
@@ -2673,7 +2677,7 @@ Note: setting an `api_name=False` also means that downstream apps will not be ab
 
 You can also add new API routes to your Gradio application that do not correspond to events in your UI.
 
-For example, in this Gradio applicaiton, we add a new route that adds numbers and slices a list:
+For example, in this Gradio application, we add a new route that adds numbers and slices a list:
 
 ```py
 import gradio as gr
@@ -3337,15 +3341,44 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 }
 ```
 
+## Authentication and Credentials
+
+You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users. 
+
+Gradio allows you to access the underlying `starlette.Request` that has made the tool call, which means that you can access headers, originating IP address, or any other information that is part of the network request. To do this, simply add a parameter in your function of the type `gr.Request`, and Gradio will automatically inject the request object as the parameter.
+
+Here's an example:
+
+```py
+import gradio as gr
+
+def echo_headers(x, request: gr.Request):
+    return str(dict(request.headers))
+
+gr.Interface(echo_headers, "textbox", "textbox").launch(mcp_server=True)
+```
+
+This MCP server will simply ignore the user's input and echo back all of the headers from a user's request. One can build more complex apps using the same idea. See the [docs on `gr.Request`](https://www.gradio.app/main/docs/gradio/request) for more information (note that only the core Starlette attributes of the `gr.Request` object will be present, attributes such as Gradio's `.session_hash` will not be present).
+
+## Adding MCP-Only Tools
+
+So far, all of our MCP tools have corresponded to event listeners in the UI. This works well for functions that directly update the UI, but may not work if you wish to expose a "pure logic" function that should return raw data (e.g., a JSON object) without directly causing a UI update.
+
+In order to expose such an MCP tool, you can create a pure Gradio API endpoint using `gr.api` (see [full docs here](https://www.gradio.app/main/docs/gradio/api)). Here's an example of creating an MCP tool that slices a list:
+
+$code_mcp_tool_only
+
+Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
+
 ## Limitations
 
 The approach outlined above provides an easy way to use any Gradio app as an MCP server. But there are a few limitations to keep in mind:
 
-1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value. Similarly, you cannot obtain user-specific information with `gr.Request`.
+1. There is no way to identify specific users within the MCP tool call. This means that you cannot store user state between calls within the Gradio app. If you use a `gr.State` component in your app, it will always be passed in with its original, default value.
 
 2. You cannot select specific endpoints in your Gradio expose as your tools (all endpoints with `show_api=True` are treated as tools), or  change the descriptions of your tools unless you change the docstrings of your functions.
 
-If you need to overcome these limitations, you'll need to create a custom MCP server to call your Gradio application, as we describe next.
+If you need to overcome these limitations, you'll need to create **a custom MCP server** to call your Gradio application, which we describe next.
 
 
 ## Custom MCP Servers

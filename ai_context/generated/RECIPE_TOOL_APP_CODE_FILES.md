@@ -5,8 +5,8 @@
 **Search:** ['apps/recipe-tool/recipe_tool_app']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 12:47:25 PM
-**Files:** 7
+**Date:** 6/18/2025, 3:22:46 PM
+**Files:** 8
 
 === File: apps/recipe-tool/recipe_tool_app/__init__.py ===
 """Gradio web app for the Recipe Tool."""
@@ -18,6 +18,7 @@ __version__ = "0.1.0"
 """Recipe Tool Gradio app."""
 
 import argparse
+from typing import Any, Dict
 
 import gradio as gr
 import gradio.themes
@@ -28,6 +29,7 @@ from recipe_executor_app.core import RecipeExecutorCore
 from recipe_tool_app.config import settings
 from recipe_tool_app.core import RecipeToolCore
 from recipe_tool_app.ui import create_recipe_ui
+from recipe_tool_app.settings_sidebar import create_settings_sidebar
 
 # Set up logging
 logger = init_logger(settings.log_dir)
@@ -43,6 +45,18 @@ def create_app() -> gr.Blocks:
         gr.Markdown("# Recipe Tool")
         gr.Markdown("A web interface for executing and creating recipes.")
 
+        # Settings sidebar
+        with gr.Sidebar(position="right"):
+            gr.Markdown("### ⚙️ Settings")
+
+            def on_settings_save(saved_settings: Dict[str, Any]) -> None:
+                """Handle settings updates."""
+                logger.info(
+                    f"Settings updated: model={saved_settings.get('model')}, max_tokens={saved_settings.get('max_tokens')}"
+                )
+
+            create_settings_sidebar(on_save=on_settings_save)
+
         with gr.Tabs():
             # Create Recipe Tab
             with gr.TabItem("Create Recipe"):
@@ -51,7 +65,7 @@ def create_app() -> gr.Blocks:
             # Execute Recipe Tab (reuse from recipe-executor)
             with gr.TabItem("Execute Recipe"):
                 executor_core = RecipeExecutorCore()
-                create_executor_block(executor_core, include_header=False)
+                create_executor_block(executor_core, include_header=False, include_settings=False)
 
     return app
 
@@ -189,6 +203,9 @@ from recipe_executor_app.utils import (
     parse_context_vars,
 )
 
+# Import the new config-based function
+from recipe_tool_app.settings_sidebar import get_model_string
+
 from .path_resolver import find_recipe_creator, prepare_context_paths
 from .recipe_processor import find_recipe_output, process_recipe_output
 
@@ -243,8 +260,27 @@ class RecipeToolCore:
             # Add input
             context_dict["input"] = idea_source
 
-            # Create context
-            context = Context(artifacts=context_dict)
+            # Add model configuration from config/environment
+            model_str = get_model_string()
+            context_dict["model"] = model_str
+
+            # Add max_tokens if set in config/environment
+            from recipe_tool_app.settings_sidebar import get_setting
+
+            max_tokens = get_setting("MAX_TOKENS")
+            if max_tokens:
+                try:
+                    context_dict["max_tokens"] = str(int(max_tokens))
+                except ValueError:
+                    pass
+
+            # Load configuration from environment
+            from recipe_executor.config import load_configuration
+
+            config = load_configuration()
+
+            # Create context with both artifacts and config
+            context = Context(artifacts=context_dict, config=config)
 
             # Find recipe creator
             creator_path = find_recipe_creator()
@@ -495,6 +531,32 @@ def process_recipe_output(output_recipe: str, execution_time: float, context_dic
             "structure_preview": f"### Recipe Created\n\n**Time**: {execution_time:.2f}s\n\nWarning: Invalid JSON",
             "debug_context": context_dict,
         }
+
+
+=== File: apps/recipe-tool/recipe_tool_app/settings_sidebar.py ===
+"""Import settings sidebar from shared components."""
+
+from gradio_components.settings_sidebar import SettingsConfig, create_settings_sidebar, get_model_string_from_env
+from gradio_components.config_manager import (
+    get_model_string,
+    get_setting,
+    load_settings,
+    save_settings,
+    get_env_or_default,
+    is_override,
+)
+
+__all__ = [
+    "SettingsConfig",
+    "create_settings_sidebar",
+    "get_model_string_from_env",
+    "get_model_string",
+    "get_setting",
+    "load_settings",
+    "save_settings",
+    "get_env_or_default",
+    "is_override",
+]
 
 
 === File: apps/recipe-tool/recipe_tool_app/ui.py ===

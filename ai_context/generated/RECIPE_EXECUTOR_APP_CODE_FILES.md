@@ -5,8 +5,8 @@
 **Search:** ['apps/recipe-executor/recipe_executor_app']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 8:40:53 AM
-**Files:** 6
+**Date:** 6/18/2025, 3:22:46 PM
+**Files:** 7
 
 === File: apps/recipe-executor/recipe_executor_app/__init__.py ===
 """Recipe Executor Gradio App package."""
@@ -27,13 +27,16 @@ from recipe_executor.logger import init_logger
 from recipe_executor_app.config import settings
 from recipe_executor_app.core import RecipeExecutorCore
 from recipe_executor_app.ui import create_ui
+from recipe_executor_app.settings_sidebar import create_settings_sidebar
 
 # Set up logging
 logger = init_logger(settings.log_dir)
 logger.setLevel(settings.log_level.upper())
 
 
-def create_executor_block(core: Optional[RecipeExecutorCore] = None, include_header: bool = True) -> gr.Blocks:
+def create_executor_block(
+    core: Optional[RecipeExecutorCore] = None, include_header: bool = True, include_settings: bool = True
+) -> gr.Blocks:
     """Create a reusable Recipe Executor block."""
     if core is None:
         core = RecipeExecutorCore()
@@ -45,7 +48,21 @@ def create_executor_block(core: Optional[RecipeExecutorCore] = None, include_hea
             gr.Markdown("# Recipe Executor")
             gr.Markdown("A web interface for executing recipes.")
 
-        # Main UI (now includes examples)
+        # Settings sidebar
+        if include_settings:
+            with gr.Sidebar(position="right"):
+                gr.Markdown("### ⚙️ Settings")
+
+                def on_settings_save(settings: Dict[str, Any]) -> None:
+                    """Callback when settings are saved."""
+                    core.current_settings = settings
+                    logger.info(
+                        f"Settings updated: model={settings.get('model')}, max_tokens={settings.get('max_tokens')}"
+                    )
+
+                create_settings_sidebar(on_save=on_settings_save)
+
+        # Main UI
         create_ui(core, include_header)
 
     return block
@@ -202,6 +219,7 @@ from recipe_executor_app.utils import (
     read_file,
     safe_json_dumps,
 )
+from recipe_executor_app.settings_sidebar import get_model_string, get_setting
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +230,7 @@ class RecipeExecutorCore:
     def __init__(self, executor: Optional[Executor] = None):
         """Initialize with the executor."""
         self.executor = executor if executor is not None else Executor(logger)
+        self.current_settings = {}
 
     async def execute_recipe(
         self, recipe_file: Optional[str], recipe_text: Optional[str], context_vars: Optional[str]
@@ -237,7 +256,25 @@ class RecipeExecutorCore:
             if "output_root" in context_dict:
                 os.makedirs(context_dict["output_root"], exist_ok=True)
 
-            context = Context(artifacts=context_dict)
+            # Add model configuration from config/environment
+            model_str = get_model_string()
+            context_dict["model"] = model_str
+
+            # Add max_tokens if set in config/environment
+            max_tokens = get_setting("MAX_TOKENS")
+            if max_tokens:
+                try:
+                    context_dict["max_tokens"] = int(max_tokens)
+                except ValueError:
+                    pass
+
+            # Load configuration from environment
+            from recipe_executor.config import load_configuration
+
+            config = load_configuration()
+
+            # Create context with both artifacts and config
+            context = Context(artifacts=context_dict, config=config)
 
             # Determine recipe source
             if recipe_file:
@@ -336,6 +373,32 @@ class RecipeExecutorCore:
                 "recipe_content": "",
                 "structure_preview": f"### Error\n{str(e)}",
             }
+
+
+=== File: apps/recipe-executor/recipe_executor_app/settings_sidebar.py ===
+"""Import settings sidebar from shared components."""
+
+from gradio_components.settings_sidebar import SettingsConfig, create_settings_sidebar, get_model_string_from_env
+from gradio_components.config_manager import (
+    get_model_string,
+    get_setting,
+    load_settings,
+    save_settings,
+    get_env_or_default,
+    is_override,
+)
+
+__all__ = [
+    "SettingsConfig",
+    "create_settings_sidebar",
+    "get_model_string_from_env",
+    "get_model_string",
+    "get_setting",
+    "load_settings",
+    "save_settings",
+    "get_env_or_default",
+    "is_override",
+]
 
 
 === File: apps/recipe-executor/recipe_executor_app/ui.py ===

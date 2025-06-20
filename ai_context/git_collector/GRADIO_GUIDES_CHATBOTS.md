@@ -3,7 +3,7 @@
 [git-collector-data]
 
 **URL:** https://github.com/gradio-app/gradio/tree/main/guides  
-**Date:** 6/3/2025, 3:28:49 PM  
+**Date:** 6/6/2025, 3:45:37 PM  
 **Files:** 8  
 
 === File: guides/05_chatbots/01_creating-a-chatbot-fast.md ===
@@ -426,7 +426,7 @@ Now that you've learned about the `gr.ChatInterface` class and how it can be use
 
 * [Our next Guide](../guides/chatinterface-examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
 * If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](../guides/creating-a-custom-chatbot-with-blocks).
-* Once you've deployed your Gradio Chat Interface, its easy to use it other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](../guides/creating-a-discord-bot-from-a-gradio-app).
+* Once you've deployed your Gradio Chat Interface, its easy to use in other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](../guides/creating-a-discord-bot-from-a-gradio-app).
 
 
 

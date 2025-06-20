@@ -98,6 +98,19 @@ new_context = context.clone()
 
 The `clone()` method creates a deep copy of the Context, including all artifacts and configuration. The returned object is a new `Context` instance that can be modified independently of the original. This is often used when running sub-recipes or parallel steps to ensure each execution has an isolated context state.
 
+### Configuration Management
+
+The Context class manages configuration values separately from artifacts. You can retrieve the entire configuration dictionary with `get_config()`, or set it with `set_config()`. This allows you to manage recipe-specific configuration values without cluttering the artifact namespace.
+
+```python
+# Get a configuration value
+config = context.get_config()
+api_key = config.get("api_key")
+
+# Set a configuration value
+context.set_config(config)
+```
+
 ## Important Notes
 
 - **Shared State**: The Context is shared across all steps in a recipe execution. Any step that writes to the context (e.g., `context["x"] = value`) is making that data available to subsequent steps. This is how data flows through a recipe.

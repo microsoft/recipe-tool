@@ -1,0 +1,19 @@
+[project]
+name = "gradio-components"
+version = "0.1.0"
+description = "Shared Gradio components for Recipe Tool projects"
+authors = [{ name = "MADE:Explorations Team" }]
+license = "MIT"
+readme = "../README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["gradio_components"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

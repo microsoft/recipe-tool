@@ -3,14 +3,13 @@
 [git-collector-data]
 
 **URL:** https://github.com/gradio-app/gradio/tree/main/gradio  
-**Date:** 6/3/2025, 3:45:41 PM  
-**Files:** 11  
+**Date:** 6/18/2025, 12:11:09 PM  
+**Files:** 10  
 
 === File: gradio/blocks.py ===
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import copy
 import dataclasses
 import hashlib
@@ -113,6 +112,7 @@ except Exception:
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
+    from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
@@ -507,7 +507,13 @@ class BlockContext(Block):
                 ):
                     pseudo_parent.add_child(child)
                 else:
-                    pseudo_parent = expected_parent(render=False)
+                    key = None
+                    if child.key is not None:
+                        if isinstance(child.key, tuple):
+                            key = child.key + ("_parent",)
+                        else:
+                            key = (child.key, "_parent")
+                    pseudo_parent = expected_parent(render=False, key=key)
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
@@ -561,6 +567,7 @@ class BlockFunction:
         show_api: bool = True,
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
+        render_iteration: int | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
@@ -569,6 +576,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -603,6 +611,7 @@ class BlockFunction:
         ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
+        self.render_iteration = render_iteration
         self.page = page
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
@@ -615,6 +624,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.key = key
 
         self.spaces_auto_wrap()
 
@@ -780,6 +790,7 @@ class BlocksConfig:
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
+        key: str | int | tuple[int | str, ...] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -905,13 +916,24 @@ class BlocksConfig:
                 "Cannot create event: events with js=True cannot have inputs."
             )
 
+        reuse_id = False
+        fn_id = self.fn_id
+        render_iteration = rendered_in.render_iteration if rendered_in else None
+
+        if rendered_in and key is not None:
+            for existing_fn in self.fns.values():
+                if existing_fn.key == key:
+                    reuse_id = True
+                    fn_id = existing_fn._id
+                    break
+
         block_fn = BlockFunction(
             fn,
             inputs,
             outputs,
             preprocess,
             postprocess,
-            _id=self.fn_id,
+            _id=fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -933,6 +955,7 @@ class BlocksConfig:
             show_api=show_api,
             renderable=renderable,
             rendered_in=rendered_in,
+            render_iteration=render_iteration,
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
@@ -941,10 +964,12 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
+            key=key,
         )
 
-        self.fns[self.fn_id] = block_fn
-        self.fn_id += 1
+        self.fns[fn_id] = block_fn
+        if not reuse_id:
+            self.fn_id += 1
         return block_fn, block_fn._id
 
     @staticmethod
@@ -1174,6 +1199,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme_hash = theme_hasher.hexdigest()
 
         self.encrypt = False
+        self.mcp_server_obj: None | GradioMCPServer = None
+        self.mcp_error: None | str = None
         self.share = False
         self.enable_queue = True
         self.max_threads = 40
@@ -2680,52 +2707,16 @@ Received inputs:
         if app_kwargs is None:
             app_kwargs = {}
 
-        mcp_subpath = API_PREFIX + "/mcp"
-        if mcp_server is None:
-            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
-        if mcp_server:
-            try:
-                import gradio.mcp
-            except ImportError as e:
-                raise ImportError(
-                    "In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install gradio[mcp]`"
-                ) from e
-            try:
-                self.mcp_server_obj = gradio.mcp.GradioMCPServer(self, self.root_path)
-                self.mcp_server = True
-                user_lifespan = None
-                if "lifespan" in app_kwargs:
-                    user_lifespan = app_kwargs["lifespan"]
-
-                @contextlib.asynccontextmanager
-                async def _lifespan(app: App):
-                    async with contextlib.AsyncExitStack() as stack:
-                        if self.mcp_server_obj:
-                            await stack.enter_async_context(
-                                self.mcp_server_obj.lifespan(app)
-                            )
-                        if user_lifespan is not None:
-                            await stack.enter_async_context(user_lifespan(app))
-                        yield
-
-                app_kwargs["lifespan"] = _lifespan
-            except Exception as e:
-                self.mcp_server = False
-                if not quiet:
-                    print(f"Error launching MCP server: {e}")
-
         self.server_app = self.app = App.create_app(
             self,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
+            mcp_server=mcp_server,
         )
-
-        if self.mcp_server_obj:
-            self.mcp_server_obj.launch_mcp_on_sse(
-                self.server_app, mcp_subpath, self.root_path
-            )
+        if self.mcp_server and not quiet:
+            print(self.mcp_error)
 
         self.config = self.get_config_file()
 
@@ -2821,7 +2812,7 @@ Received inputs:
             if self.is_colab or self.is_hosted_notebook:
                 if not quiet:
                     print(
-                        "It looks like you are running Gradio on a hosted a Jupyter notebook. For the Gradio app to work, sharing must be enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             else:
@@ -2917,6 +2908,7 @@ Received inputs:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
+        mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
             print(
                 f"\n🔨 MCP server (using SSE) running at: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
@@ -3145,7 +3137,7 @@ Received inputs:
                 "show_api": fn.show_api,
             }
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
-            description, _ = utils.get_function_description(fn.fn)
+            description, _, _ = utils.get_function_description(fn.fn)
             if description:
                 dependency_info["description"] = description
             skip_endpoint = False
@@ -3449,7 +3441,7 @@ class ChatInterface(Blocks):
             examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
-            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "eager", all examples are cached at app launch. If "lazy", examples are cached for all users after the first use by any user of the app. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             run_examples_on_click: if True, clicking on an example will run the example through the chatbot fn and the response will be displayed in the chatbot. If False, clicking on an example will only populate the chatbot input with the example message. Has no effect if `cache_examples` is True
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
@@ -4568,6 +4560,7 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
+        preload_example: int | Literal[False] = False,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
@@ -4615,9 +4608,10 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
+            preload_example: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
@@ -4711,6 +4705,7 @@ class Interface(Blocks):
 
         self.cache_examples = cache_examples
         self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
+        self.preload_example = preload_example
 
         self.main_input_components = [
             get_component_instance(i, unrender=True) for i in inputs
@@ -5405,6 +5400,7 @@ class Interface(Blocks):
                 _api_mode=self.api_mode,
                 batch=self.batch,
                 example_labels=self.example_labels,
+                preload=self.preload_example,
             )
             if self.deep_link and self.examples_handler.cache_event:
                 self.examples_handler.cache_event.then(
@@ -5493,28 +5489,6 @@ class TabbedInterface(Blocks):
 def close_all(verbose: bool = True) -> None:
     for io in Interface.get_instances():
         io.close(verbose)
-
-
-=== File: gradio/layouts/__init__.py ===
-from .accordion import Accordion
-from .column import Column
-from .form import Form
-from .group import Group
-from .row import Row
-from .sidebar import Sidebar
-from .tabs import Tab, TabItem, Tabs
-
-__all__ = [
-    "Accordion",
-    "Column",
-    "Form",
-    "Row",
-    "Group",
-    "Tabs",
-    "Tab",
-    "TabItem",
-    "Sidebar",
-]
 
 
 === File: gradio/layouts/accordion.py ===

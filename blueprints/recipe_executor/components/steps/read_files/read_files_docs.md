@@ -77,6 +77,23 @@ You can read multiple files by providing a comma-separated string of paths:
   ]
 }
 ```
+You can also read multiple files by providing a glob pattern that will be expanded with the matching entities.
+A glob is a term used to define patterns for matching file and directory names based on wildcards. Globbing is the act of defining one or more glob patterns, and yielding files from either inclusive or exclusive matches :
+
+```json
+{
+  "steps": [
+    {
+      "type": "read_files",
+      "config": {
+        "path": "specs/*_spec.md",
+        "content_key": "component_specs",
+        "merge_mode": "concat"
+      }
+    }
+  ]
+}
+```
 
 You can also read multiple files by providing a list of path strings:
 

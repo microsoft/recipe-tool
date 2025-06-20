@@ -12,7 +12,7 @@ def test_default_settings():
     assert settings.doc_paths == [Path(".")]
     assert settings.include_patterns == ["*.md", "*.txt", "*.rst"]
     assert settings.exclude_patterns == [".*", "__pycache__", "*.pyc"]
-    assert settings.max_file_size == 1024 * 1024
+    assert settings.max_file_size == 2 * 1024 * 1024
     assert settings.host == "localhost"
     assert settings.port == 3003
     assert settings.enable_cache is True

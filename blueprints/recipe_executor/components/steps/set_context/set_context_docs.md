@@ -137,5 +137,5 @@ After execution, the target keys (`document`, `section_md`) are available for an
 ## Important Notes
 
 - `value` strings are rendered with the same Liquid templating engine used throughout the toolchain, so you can interpolate any current context values before they are stored.
-- `if_exists` defaults to `"overwrite"` to preserve backward-compatible behaviour with existing recipes.
+- `if_exists` defaults to `"overwrite"` for consistent behavior.
 - Merging is intentionally **shallow** for dictionaries to keep the step lightweight; if you need deep-merge semantics, perform that in a custom step or LLM call.

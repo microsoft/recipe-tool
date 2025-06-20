@@ -3,7 +3,7 @@
 [git-collector-data]
 
 **URL:** https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/docs  
-**Date:** 6/3/2025, 12:16:52 PM  
+**Date:** 6/18/2025, 12:11:19 PM  
 **Files:** 10  
 
 === File: docs/docs/concepts/architecture.mdx ===
@@ -47,6 +47,7 @@ The protocol layer handles message framing, request/response linking, and high-l
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     class Protocol<Request, Notification, Result> {
         // Handle incoming requests
@@ -62,8 +63,10 @@ The protocol layer handles message framing, request/response linking, and high-l
         notification(notification: Notification): Promise<void>
     }
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     class Session(BaseSession[RequestT, NotificationT, ResultT]):
         async def send_request(
@@ -95,25 +98,27 @@ The protocol layer handles message framing, request/response linking, and high-l
             """Handle incoming notification from other side."""
             # Notification handling implementation
     ```
+
   </Tab>
 </Tabs>
 
 Key classes include:
 
-* `Protocol`
-* `Client`
-* `Server`
+- `Protocol`
+- `Client`
+- `Server`
 
 ### Transport layer
 
 The transport layer handles the actual communication between clients and servers. MCP supports multiple transport mechanisms:
 
 1. **Stdio transport**
+
    - Uses standard input/output for communication
    - Ideal for local processes
 
-2. **HTTP with SSE transport**
-   - Uses Server-Sent Events for server-to-client messages
+2. **Streamable HTTP transport**
+   - Uses HTTP with optional Server-Sent Events for streaming
    - HTTP POST for client-to-server messages
 
 All transports use [JSON-RPC](https://www.jsonrpc.org/) 2.0 to exchange messages. See the [specification](/specification/) for detailed information about the Model Context Protocol message format.
@@ -123,36 +128,39 @@ All transports use [JSON-RPC](https://www.jsonrpc.org/) 2.0 to exchange messages
 MCP has these main types of messages:
 
 1. **Requests** expect a response from the other side:
-    ```typescript
-    interface Request {
-      method: string;
-      params?: { ... };
-    }
-    ```
+
+   ```typescript
+   interface Request {
+     method: string;
+     params?: { ... };
+   }
+   ```
 
 2. **Results** are successful responses to requests:
-    ```typescript
-    interface Result {
-      [key: string]: unknown;
-    }
-    ```
+
+   ```typescript
+   interface Result {
+     [key: string]: unknown;
+   }
+   ```
 
 3. **Errors** indicate that a request failed:
-    ```typescript
-    interface Error {
-      code: number;
-      message: string;
-      data?: unknown;
-    }
-    ```
+
+   ```typescript
+   interface Error {
+     code: number;
+     message: string;
+     data?: unknown;
+   }
+   ```
 
 4. **Notifications** are one-way messages that don't expect a response:
-    ```typescript
-    interface Notification {
-      method: string;
-      params?: { ... };
-    }
-    ```
+   ```typescript
+   interface Notification {
+     method: string;
+     params?: { ... };
+   }
+   ```
 
 ## Connection lifecycle
 
@@ -185,6 +193,7 @@ After initialization, the following patterns are supported:
 ### 3. Termination
 
 Either party can terminate the connection:
+
 - Clean shutdown via `close()`
 - Transport disconnection
 - Error conditions
@@ -200,13 +209,14 @@ enum ErrorCode {
   InvalidRequest = -32600,
   MethodNotFound = -32601,
   InvalidParams = -32602,
-  InternalError = -32603
+  InternalError = -32603,
 }
 ```
 
 SDKs and applications can define their own error codes above -32000.
 
 Errors are propagated through:
+
 - Error responses to requests
 - Error events on transports
 - Protocol-level error handlers
@@ -217,6 +227,7 @@ Here's a basic example of implementing an MCP server:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     import { Server } from "@modelcontextprotocol/sdk/server/index.js";
     import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -246,8 +257,10 @@ Here's a basic example of implementing an MCP server:
     const transport = new StdioServerTransport();
     await server.connect(transport);
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     import asyncio
     import mcp.types as types
@@ -276,6 +289,7 @@ Here's a basic example of implementing an MCP server:
     if __name__ == "__main__":
         asyncio.run(main())
     ```
+
   </Tab>
 </Tabs>
 
@@ -284,23 +298,26 @@ Here's a basic example of implementing an MCP server:
 ### Transport selection
 
 1. **Local communication**
+
    - Use stdio transport for local processes
    - Efficient for same-machine communication
    - Simple process management
 
 2. **Remote communication**
-   - Use SSE for scenarios requiring HTTP compatibility
+   - Use Streamable HTTP for scenarios requiring HTTP compatibility
    - Consider security implications including authentication and authorization
 
 ### Message handling
 
 1. **Request processing**
+
    - Validate inputs thoroughly
    - Use type-safe schemas
    - Handle errors gracefully
    - Implement timeouts
 
 2. **Progress reporting**
+
    - Use progress tokens for long operations
    - Report progress incrementally
    - Include total progress when known
@@ -313,17 +330,20 @@ Here's a basic example of implementing an MCP server:
 ## Security considerations
 
 1. **Transport security**
+
    - Use TLS for remote connections
    - Validate connection origins
    - Implement authentication when needed
 
 2. **Message validation**
+
    - Validate all incoming messages
    - Sanitize inputs
    - Check message size limits
    - Verify JSON-RPC format
 
 3. **Resource protection**
+
    - Implement access controls
    - Validate resource paths
    - Monitor resource usage
@@ -338,12 +358,14 @@ Here's a basic example of implementing an MCP server:
 ## Debugging and monitoring
 
 1. **Logging**
+
    - Log protocol events
    - Track message flow
    - Monitor performance
    - Record errors
 
 2. **Diagnostics**
+
    - Implement health checks
    - Monitor connection state
    - Track resource usage
@@ -365,12 +387,15 @@ description: "Create reusable prompt templates and workflows"
 Prompts enable servers to define reusable prompt templates and workflows that clients can easily surface to users and LLMs. They provide a powerful way to standardize and share common LLM interactions.
 
 <Note>
-  Prompts are designed to be **user-controlled**, meaning they are exposed from servers to clients with the intention of the user being able to explicitly select them for use.
+
+Prompts are designed to be **user-controlled**, meaning they are exposed from servers to clients with the intention of the user being able to explicitly select them for use.
+
 </Note>
 
 ## Overview
 
 Prompts in MCP are predefined templates that can:
+
 - Accept dynamic arguments
 - Include context from resources
 - Chain multiple interactions
@@ -397,12 +422,12 @@ Each prompt is defined with:
 
 ## Discovering prompts
 
-Clients can discover available prompts through the `prompts/list` endpoint:
+Clients can discover available prompts by sending a `prompts/list` request:
 
 ```typescript
 // Request
 {
-  method: "prompts/list"
+  method: "prompts/list";
 }
 
 // Response
@@ -415,11 +440,11 @@ Clients can discover available prompts through the `prompts/list` endpoint:
         {
           name: "language",
           description: "Programming language",
-          required: true
-        }
-      ]
-    }
-  ]
+          required: true,
+        },
+      ],
+    },
+  ];
 }
 ```
 
@@ -427,7 +452,7 @@ Clients can discover available prompts through the `prompts/list` endpoint:
 
 To use a prompt, clients make a `prompts/get` request:
 
-```typescript
+````typescript
 // Request
 {
   method: "prompts/get",
@@ -452,7 +477,7 @@ To use a prompt, clients make a `prompts/get` request:
     }
   ]
 }
-```
+````
 
 ## Dynamic prompts
 
@@ -528,25 +553,25 @@ const debugWorkflow = {
         role: "user",
         content: {
           type: "text",
-          text: `Here's an error I'm seeing: ${error}`
-        }
+          text: `Here's an error I'm seeing: ${error}`,
+        },
       },
       {
         role: "assistant",
         content: {
           type: "text",
-          text: "I'll help analyze this error. What have you tried so far?"
-        }
+          text: "I'll help analyze this error. What have you tried so far?",
+        },
       },
       {
         role: "user",
         content: {
           type: "text",
-          text: "I've tried restarting the service, but the error persists."
-        }
-      }
+          text: "I've tried restarting the service, but the error persists.",
+        },
+      },
     ];
-  }
+  },
 };
 ```
 
@@ -556,6 +581,7 @@ Here's a complete example of implementing prompts in an MCP server:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     import { Server } from "@modelcontextprotocol/sdk/server";
     import {
@@ -648,8 +674,10 @@ Here's a complete example of implementing prompts in an MCP server:
       throw new Error("Prompt implementation not found");
     });
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     from mcp.server import Server
     import mcp.types as types
@@ -731,6 +759,7 @@ Here's a complete example of implementing prompts in an MCP server:
 
         raise ValueError("Prompt implementation not found")
     ```
+
   </Tab>
 </Tabs>
 
@@ -793,13 +822,16 @@ description: "Expose data and content from your servers to LLMs"
 Resources are a core primitive in the Model Context Protocol (MCP) that allow servers to expose data and content that can be read by clients and used as context for LLM interactions.
 
 <Note>
-  Resources are designed to be **application-controlled**, meaning that the client application can decide how and when they should be used.
-  Different MCP clients may handle resources differently. For example:
-  - Claude Desktop currently requires users to explicitly select resources before they can be used
-  - Other clients might automatically select resources based on heuristics
-  - Some implementations may even allow the AI model itself to determine which resources to use
 
-  Server authors should be prepared to handle any of these interaction patterns when implementing resource support. In order to expose data to models automatically, server authors should use a **model-controlled** primitive such as [Tools](./tools).
+Resources are designed to be **application-controlled**, meaning that the client application can decide how and when they should be used.
+Different MCP clients may handle resources differently. For example:
+
+- Claude Desktop currently requires users to explicitly select resources before they can be used
+- Other clients might automatically select resources based on heuristics
+- Some implementations may even allow the AI model itself to determine which resources to use
+
+Server authors should be prepared to handle any of these interaction patterns when implementing resource support. In order to expose data to models automatically, server authors should use a **model-controlled** primitive such as [Tools](./tools).
+
 </Note>
 
 ## Overview
@@ -825,6 +857,7 @@ Resources are identified using URIs that follow this format:
 ```
 
 For example:
+
 - `file:///home/user/documents/report.pdf`
 - `postgres://database/customers/schema`
 - `screen://localhost/display1`
@@ -838,6 +871,7 @@ Resources can contain two types of content:
 ### Text resources
 
 Text resources contain UTF-8 encoded text data. These are suitable for:
+
 - Source code
 - Configuration files
 - Log files
@@ -847,6 +881,7 @@ Text resources contain UTF-8 encoded text data. These are suitable for:
 ### Binary resources
 
 Binary resources contain raw binary data encoded in base64. These are suitable for:
+
 - Images
 - PDFs
 - Audio files
@@ -859,7 +894,7 @@ Clients can discover available resources through two main methods:
 
 ### Direct resources
 
-Servers expose a list of concrete resources via the `resources/list` endpoint. Each resource includes:
+Servers expose a list of resources via the `resources/list` request. Each resource includes:
 
 ```typescript
 {
@@ -906,7 +941,9 @@ The server responds with a list of resource contents:
 ```
 
 <Tip>
-  Servers may return multiple resources in response to one `resources/read` request. This could be used, for example, to return a list of files inside a directory when the directory is read.
+
+Servers may return multiple resources in response to one `resources/read` request. This could be used, for example, to return a list of files inside a directory when the directory is read.
+
 </Tip>
 
 ## Resource updates
@@ -932,6 +969,7 @@ Here's a simple example of implementing resource support in an MCP server:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     const server = new Server({
       name: "example-server",
@@ -975,8 +1013,10 @@ Here's a simple example of implementing resource support in an MCP server:
       throw new Error("Resource not found");
     });
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     app = Server("example-server")
 
@@ -1006,6 +1046,7 @@ Here's a simple example of implementing resource support in an MCP server:
             app.create_initialization_options()
         )
     ```
+
   </Tab>
 </Tabs>
 
@@ -1121,6 +1162,7 @@ Here's how a typical MCP client might expose roots:
 
 This configuration suggests the server focus on both a local repository and an API endpoint while keeping them logically separated.
 
+
 === File: docs/docs/concepts/sampling.mdx ===
 ---
 title: "Sampling"
@@ -1130,7 +1172,9 @@ description: "Let your servers request completions from LLMs"
 Sampling is a powerful MCP feature that allows servers to request LLM completions through the client, enabling sophisticated agentic behaviors while maintaining security and privacy.
 
 <Info>
-  This feature of MCP is not yet supported in the Claude Desktop client.
+
+This feature of MCP is not yet supported in the Claude Desktop client.
+
 </Info>
 
 ## How sampling works
@@ -1199,6 +1243,7 @@ The `messages` array contains the conversation history to send to the LLM. Each 
 The `modelPreferences` object allows servers to specify their model selection preferences:
 
 - `hints`: Array of model name suggestions that clients can use to select an appropriate model:
+
   - `name`: String that can match full or partial model names (e.g. "claude-3", "sonnet")
   - Clients may map hints to equivalent models from different providers
   - Multiple hints are evaluated in preference order
@@ -1254,6 +1299,7 @@ The client returns a completion result:
 ## Example request
 
 Here's an example of requesting sampling from a client:
+
 ```json
 {
   "method": "sampling/createMessage",
@@ -1378,15 +1424,17 @@ description: "Enable LLMs to perform actions through your server"
 Tools are a powerful primitive in the Model Context Protocol (MCP) that enable servers to expose executable functionality to clients. Through tools, LLMs can interact with external systems, perform computations, and take actions in the real world.
 
 <Note>
-  Tools are designed to be **model-controlled**, meaning that tools are exposed from servers to clients with the intention of the AI model being able to automatically invoke them (with a human in the loop to grant approval).
+
+Tools are designed to be **model-controlled**, meaning that tools are exposed from servers to clients with the intention of the AI model being able to automatically invoke them (with a human in the loop to grant approval).
+
 </Note>
 
 ## Overview
 
 Tools in MCP allow servers to expose executable functions that can be invoked by clients and used by LLMs to perform actions. Key aspects of tools include:
 
-- **Discovery**: Clients can list available tools through the `tools/list` endpoint
-- **Invocation**: Tools are called using the `tools/call` endpoint, where servers perform the requested operation and return results
+- **Discovery**: Clients can obtain a list of available tools by sending a `tools/list` request
+- **Invocation**: Tools are called using the `tools/call` request, where servers perform the requested operation and return results
 - **Flexibility**: Tools can range from simple calculations to complex API interactions
 
 Like [resources](/docs/concepts/resources), tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
@@ -1419,6 +1467,7 @@ Here's an example of implementing a basic tool in an MCP server:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     const server = new Server({
       name: "example-server",
@@ -1463,8 +1512,10 @@ Here's an example of implementing a basic tool in an MCP server:
       throw new Error("Tool not found");
     });
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     app = Server("example-server")
 
@@ -1497,6 +1548,7 @@ Here's an example of implementing a basic tool in an MCP server:
             return [types.TextContent(type="text", text=str(result))]
         raise ValueError(f"Tool not found: {name}")
     ```
+
   </Tab>
 </Tabs>
 
@@ -1627,6 +1679,7 @@ Here's an example of proper error handling for tools:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     try {
       // Tool operation
@@ -1651,8 +1704,10 @@ Here's an example of proper error handling for tools:
       };
     }
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     try:
         # Tool operation
@@ -1676,6 +1731,7 @@ Here's an example of proper error handling for tools:
             ]
         )
     ```
+
   </Tab>
 </Tabs>
 
@@ -1698,13 +1754,13 @@ Tool annotations serve several key purposes:
 
 The MCP specification defines the following annotations for tools:
 
-| Annotation | Type | Default | Description |
-|------------|------|---------|-------------|
-| `title` | string | - | A human-readable title for the tool, useful for UI display |
-| `readOnlyHint` | boolean | false | If true, indicates the tool does not modify its environment |
-| `destructiveHint` | boolean | true | If true, the tool may perform destructive updates (only meaningful when `readOnlyHint` is false) |
-| `idempotentHint` | boolean | false | If true, calling the tool repeatedly with the same arguments has no additional effect (only meaningful when `readOnlyHint` is false) |
-| `openWorldHint` | boolean | true | If true, the tool may interact with an "open world" of external entities |
+| Annotation        | Type    | Default | Description                                                                                                                          |
+| ----------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `title`           | string  | -       | A human-readable title for the tool, useful for UI display                                                                           |
+| `readOnlyHint`    | boolean | false   | If true, indicates the tool does not modify its environment                                                                          |
+| `destructiveHint` | boolean | true    | If true, the tool may perform destructive updates (only meaningful when `readOnlyHint` is false)                                     |
+| `idempotentHint`  | boolean | false   | If true, calling the tool repeatedly with the same arguments has no additional effect (only meaningful when `readOnlyHint` is false) |
+| `openWorldHint`   | boolean | true    | If true, the tool may interact with an "open world" of external entities                                                             |
 
 ### Example usage
 
@@ -1775,6 +1831,7 @@ Here's how to define tools with annotations for different scenarios:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
@@ -1798,13 +1855,15 @@ Here's how to define tools with annotations for different scenarios:
       };
     });
     ```
+
   </Tab>
   <Tab title="Python">
+
     ```python
     from mcp.server.fastmcp import FastMCP
-    
+
     mcp = FastMCP("example-server")
-    
+
     @mcp.tool(
         annotations={
             "title": "Calculate Sum",
@@ -1814,7 +1873,7 @@ Here's how to define tools with annotations for different scenarios:
     )
     async def calculate_sum(a: float, b: float) -> str:
         """Add two numbers together.
-        
+
         Args:
             a: First number to add
             b: Second number to add
@@ -1822,6 +1881,7 @@ Here's how to define tools with annotations for different scenarios:
         result = a + b
         return str(result)
     ```
+
   </Tab>
 </Tabs>
 
@@ -1863,6 +1923,7 @@ MCP uses [JSON-RPC](https://www.jsonrpc.org/) 2.0 as its wire format. The transp
 There are three types of JSON-RPC messages used:
 
 ### Requests
+
 ```typescript
 {
   jsonrpc: "2.0",
@@ -1873,6 +1934,7 @@ There are three types of JSON-RPC messages used:
 ```
 
 ### Responses
+
 ```typescript
 {
   jsonrpc: "2.0",
@@ -1887,6 +1949,7 @@ There are three types of JSON-RPC messages used:
 ```
 
 ### Notifications
+
 ```typescript
 {
   jsonrpc: "2.0",
@@ -1897,13 +1960,14 @@ There are three types of JSON-RPC messages used:
 
 ## Built-in Transport Types
 
-MCP includes two standard transport implementations:
+MCP currently defines two standard transport mechanisms:
 
 ### Standard Input/Output (stdio)
 
 The stdio transport enables communication through standard input and output streams. This is particularly useful for local integrations and command-line tools.
 
 Use stdio when:
+
 - Building command-line tools
 - Implementing local integrations
 - Needing simple process communication
@@ -1911,6 +1975,7 @@ Use stdio when:
 
 <Tabs>
   <Tab title="TypeScript (Server)">
+
     ```typescript
     const server = new Server({
       name: "example-server",
@@ -1922,8 +1987,10 @@ Use stdio when:
     const transport = new StdioServerTransport();
     await server.connect(transport);
     ```
+
   </Tab>
   <Tab title="TypeScript (Client)">
+
     ```typescript
     const client = new Client({
       name: "example-client",
@@ -1938,8 +2005,10 @@ Use stdio when:
     });
     await client.connect(transport);
     ```
+
   </Tab>
   <Tab title="Python (Server)">
+
     ```python
     app = Server("example-server")
 
@@ -1950,8 +2019,10 @@ Use stdio when:
             app.create_initialization_options()
         )
     ```
+
   </Tab>
   <Tab title="Python (Client)">
+
     ```python
     params = StdioServerParameters(
         command="./server",
@@ -1962,42 +2033,224 @@ Use stdio when:
         async with ClientSession(streams[0], streams[1]) as session:
             await session.initialize()
     ```
+
   </Tab>
+
 </Tabs>
 
-### Server-Sent Events (SSE)
+### Streamable HTTP
 
-SSE transport enables server-to-client streaming with HTTP POST requests for client-to-server communication.
+The Streamable HTTP transport uses HTTP POST requests for client-to-server communication and optional Server-Sent Events (SSE) streams for server-to-client communication.
 
-Use SSE when:
-- Only server-to-client streaming is needed
-- Working with restricted networks
-- Implementing simple updates
+Use Streamable HTTP when:
 
-#### Security Warning: DNS Rebinding Attacks
+- Building web-based integrations
+- Needing client-server communication over HTTP
+- Requiring stateful sessions
+- Supporting multiple concurrent clients
+- Implementing resumable connections
 
-SSE transports can be vulnerable to DNS rebinding attacks if not properly secured. To prevent this:
+#### How it Works
 
-1. **Always validate Origin headers** on incoming SSE connections to ensure they come from expected sources
-2. **Avoid binding servers to all network interfaces** (0.0.0.0) when running locally - bind only to localhost (127.0.0.1) instead
-3. **Implement proper authentication** for all SSE connections
-
-Without these protections, attackers could use DNS rebinding to interact with local MCP servers from remote websites.
+1. **Client-to-Server Communication**: Every JSON-RPC message from client to server is sent as a new HTTP POST request to the MCP endpoint
+2. **Server Responses**: The server can respond either with:
+   - A single JSON response (`Content-Type: application/json`)
+   - An SSE stream (`Content-Type: text/event-stream`) for multiple messages
+3. **Server-to-Client Communication**: Servers can send requests/notifications to clients via:
+   - SSE streams initiated by client requests
+   - SSE streams from HTTP GET requests to the MCP endpoint
 
 <Tabs>
   <Tab title="TypeScript (Server)">
+
     ```typescript
     import express from "express";
-    
+
     const app = express();
-    
+
     const server = new Server({
       name: "example-server",
       version: "1.0.0"
     }, {
       capabilities: {}
     });
-    
+
+    // MCP endpoint handles both POST and GET
+    app.post("/mcp", async (req, res) => {
+      // Handle JSON-RPC request
+      const response = await server.handleRequest(req.body);
+
+      // Return single response or SSE stream
+      if (needsStreaming) {
+        res.setHeader("Content-Type", "text/event-stream");
+        // Send SSE events...
+      } else {
+        res.json(response);
+      }
+    });
+
+    app.get("/mcp", (req, res) => {
+      // Optional: Support server-initiated SSE streams
+      res.setHeader("Content-Type", "text/event-stream");
+      // Send server notifications/requests...
+    });
+
+    app.listen(3000);
+    ```
+
+  </Tab>
+  <Tab title="TypeScript (Client)">
+
+    ```typescript
+    const client = new Client({
+      name: "example-client",
+      version: "1.0.0"
+    }, {
+      capabilities: {}
+    });
+
+    const transport = new HttpClientTransport(
+      new URL("http://localhost:3000/mcp")
+    );
+    await client.connect(transport);
+    ```
+
+  </Tab>
+  <Tab title="Python (Server)">
+
+    ```python
+    from mcp.server.http import HttpServerTransport
+    from starlette.applications import Starlette
+    from starlette.routing import Route
+
+    app = Server("example-server")
+
+    async def handle_mcp(scope, receive, send):
+        if scope["method"] == "POST":
+            # Handle JSON-RPC request
+            response = await app.handle_request(request_body)
+
+            if needs_streaming:
+                # Return SSE stream
+                await send_sse_response(send, response)
+            else:
+                # Return JSON response
+                await send_json_response(send, response)
+
+        elif scope["method"] == "GET":
+            # Optional: Support server-initiated SSE streams
+            await send_sse_stream(send)
+
+    starlette_app = Starlette(
+        routes=[
+            Route("/mcp", endpoint=handle_mcp, methods=["POST", "GET"]),
+        ]
+    )
+    ```
+
+  </Tab>
+  <Tab title="Python (Client)">
+
+    ```python
+    async with http_client("http://localhost:8000/mcp") as transport:
+        async with ClientSession(transport[0], transport[1]) as session:
+            await session.initialize()
+    ```
+
+  </Tab>
+
+</Tabs>
+
+#### Session Management
+
+Streamable HTTP supports stateful sessions to maintain context across multiple requests:
+
+1. **Session Initialization**: Servers may assign a session ID during initialization by including it in an `Mcp-Session-Id` header
+2. **Session Persistence**: Clients must include the session ID in all subsequent requests using the `Mcp-Session-Id` header
+3. **Session Termination**: Sessions can be explicitly terminated by sending an HTTP DELETE request with the session ID
+
+Example session flow:
+
+```typescript
+// Server assigns session ID during initialization
+app.post("/mcp", (req, res) => {
+  if (req.body.method === "initialize") {
+    const sessionId = generateSecureId();
+    res.setHeader("Mcp-Session-Id", sessionId);
+    // Store session state...
+  }
+  // Handle request...
+});
+
+// Client includes session ID in subsequent requests
+fetch("/mcp", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Mcp-Session-Id": sessionId,
+  },
+  body: JSON.stringify(request),
+});
+```
+
+#### Resumability and Redelivery
+
+To support resuming broken connections, Streamable HTTP provides:
+
+1. **Event IDs**: Servers can attach unique IDs to SSE events for tracking
+2. **Resume from Last Event**: Clients can resume by sending the `Last-Event-ID` header
+3. **Message Replay**: Servers can replay missed messages from the disconnection point
+
+This ensures reliable message delivery even with unstable network connections.
+
+#### Security Considerations
+
+When implementing Streamable HTTP transport, follow these security best practices:
+
+1. **Validate Origin Headers**: Always validate the `Origin` header on all incoming connections to prevent DNS rebinding attacks
+2. **Bind to Localhost**: When running locally, bind only to localhost (127.0.0.1) rather than all network interfaces (0.0.0.0)
+3. **Implement Authentication**: Use proper authentication for all connections
+4. **Use HTTPS**: Always use TLS/HTTPS for production deployments
+5. **Validate Session IDs**: Ensure session IDs are cryptographically secure and properly validated
+
+Without these protections, attackers could use DNS rebinding to interact with local MCP servers from remote websites.
+
+### Server-Sent Events (SSE) - Deprecated
+
+<Note>
+  SSE as a standalone transport is deprecated as of protocol version 2024-11-05.
+  It has been replaced by Streamable HTTP, which incorporates SSE as an optional
+  streaming mechanism. For backwards compatibility information, see the
+  [backwards compatibility](#backwards-compatibility) section below.
+</Note>
+
+The legacy SSE transport enabled server-to-client streaming with HTTP POST requests for client-to-server communication.
+
+Previously used when:
+
+- Only server-to-client streaming is needed
+- Working with restricted networks
+- Implementing simple updates
+
+#### Legacy Security Considerations
+
+The deprecated SSE transport had similar security considerations to Streamable HTTP, particularly regarding DNS rebinding attacks. These same protections should be applied when using SSE streams within the Streamable HTTP transport.
+
+<Tabs>
+  <Tab title="TypeScript (Server)">
+
+    ```typescript
+    import express from "express";
+
+    const app = express();
+
+    const server = new Server({
+      name: "example-server",
+      version: "1.0.0"
+    }, {
+      capabilities: {}
+    });
+
     let transport: SSEServerTransport | null = null;
 
     app.get("/sse", (req, res) => {
@@ -2013,8 +2266,10 @@ Without these protections, attackers could use DNS rebinding to interact with lo
 
     app.listen(3000);
     ```
+
   </Tab>
   <Tab title="TypeScript (Client)">
+
     ```typescript
     const client = new Client({
       name: "example-client",
@@ -2028,8 +2283,10 @@ Without these protections, attackers could use DNS rebinding to interact with lo
     );
     await client.connect(transport);
     ```
+
   </Tab>
   <Tab title="Python (Server)">
+
     ```python
     from mcp.server.sse import SseServerTransport
     from starlette.applications import Starlette
@@ -2052,14 +2309,18 @@ Without these protections, attackers could use DNS rebinding to interact with lo
         ]
     )
     ```
+
   </Tab>
   <Tab title="Python (Client)">
+
     ```python
     async with sse_client("http://localhost:8000/sse") as streams:
         async with ClientSession(streams[0], streams[1]) as session:
             await session.initialize()
     ```
+
   </Tab>
+
 </Tabs>
 
 ## Custom Transports
@@ -2067,6 +2328,7 @@ Without these protections, attackers could use DNS rebinding to interact with lo
 MCP makes it easy to implement custom transports for specific needs. Any transport implementation just needs to conform to the Transport interface:
 
 You can implement custom transports for:
+
 - Custom network protocols
 - Specialized communication channels
 - Integration with existing systems
@@ -2074,6 +2336,7 @@ You can implement custom transports for:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     interface Transport {
       // Start processing messages
@@ -2091,8 +2354,10 @@ You can implement custom transports for:
       onmessage?: (message: JSONRPCMessage) => void;
     }
     ```
+
   </Tab>
   <Tab title="Python">
+
     Note that while MCP Servers are often implemented with asyncio, we recommend
     implementing low-level interfaces like transports with `anyio` for wider compatibility.
     ```python
@@ -2126,7 +2391,9 @@ You can implement custom transports for:
                 await write_stream.aclose()
                 await read_stream.aclose()
     ```
+
   </Tab>
+
 </Tabs>
 
 ## Error Handling
@@ -2143,6 +2410,7 @@ Example error handling:
 
 <Tabs>
   <Tab title="TypeScript">
+
     ```typescript
     class ExampleTransport implements Transport {
       async start() {
@@ -2164,10 +2432,13 @@ Example error handling:
       }
     }
     ```
+
   </Tab>
   <Tab title="Python">
-  Note that while MCP Servers are often implemented with asyncio, we recommend
-  implementing low-level interfaces like transports with `anyio` for wider compatibility.
+
+Note that while MCP Servers are often implemented with asyncio, we recommend
+implementing low-level interfaces like transports with `anyio` for wider compatibility.
+
     ```python
     @contextmanager
     async def example_transport(scope: Scope, receive: Receive, send: Send):
@@ -2201,7 +2472,9 @@ Example error handling:
             logger.error(f"Failed to initialize transport: {exc}")
             raise exc
     ```
+
   </Tab>
+
 </Tabs>
 
 ## Best Practices
@@ -2224,12 +2497,14 @@ When implementing or using MCP transport:
 When implementing transport:
 
 ### Authentication and Authorization
+
 - Implement proper authentication mechanisms
 - Validate client credentials
 - Use secure token handling
 - Implement authorization checks
 
 ### Data Security
+
 - Use TLS for network transport
 - Encrypt sensitive data
 - Validate message integrity
@@ -2237,13 +2512,14 @@ When implementing transport:
 - Sanitize input data
 
 ### Network Security
+
 - Implement rate limiting
 - Use appropriate timeouts
 - Handle denial of service scenarios
 - Monitor for unusual patterns
 - Implement proper firewall rules
-- For SSE transports, validate Origin headers to prevent DNS rebinding attacks
-- For local SSE servers, bind only to localhost (127.0.0.1) instead of all interfaces (0.0.0.0)
+- For HTTP-based transports (including Streamable HTTP), validate Origin headers to prevent DNS rebinding attacks
+- For local servers, bind only to localhost (127.0.0.1) instead of all interfaces (0.0.0.0)
 
 ## Debugging Transport
 
@@ -2260,6 +2536,68 @@ Tips for debugging transport issues:
 9. Test edge cases
 10. Use proper error tracking
 
+## Backwards Compatibility
+
+To maintain compatibility between different protocol versions:
+
+### For Servers Supporting Older Clients
+
+Servers wanting to support clients using the deprecated HTTP+SSE transport should:
+
+1. Host both the old SSE and POST endpoints alongside the new MCP endpoint
+2. Handle initialization requests on both endpoints
+3. Maintain separate handling logic for each transport type
+
+### For Clients Supporting Older Servers
+
+Clients wanting to support servers using the deprecated transport should:
+
+1. Accept server URLs that may use either transport
+2. Attempt to POST an `InitializeRequest` with proper `Accept` headers:
+   - If successful, use Streamable HTTP transport
+   - If it fails with 4xx status, fall back to legacy SSE transport
+3. Issue a GET request expecting an SSE stream with `endpoint` event for legacy servers
+
+Example compatibility detection:
+
+```typescript
+async function detectTransport(serverUrl: string): Promise<TransportType> {
+  try {
+    // Try Streamable HTTP first
+    const response = await fetch(serverUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "initialize",
+        params: {
+          /* ... */
+        },
+      }),
+    });
+
+    if (response.ok) {
+      return "streamable-http";
+    }
+  } catch (error) {
+    // Fall back to legacy SSE
+    const sseResponse = await fetch(serverUrl, {
+      method: "GET",
+      headers: { Accept: "text/event-stream" },
+    });
+
+    if (sseResponse.ok) {
+      return "legacy-sse";
+    }
+  }
+
+  throw new Error("Unsupported transport");
+}
+```
+
 
 === File: docs/docs/tools/debugging.mdx ===
 ---
@@ -2270,7 +2608,9 @@ description: A comprehensive guide to debugging Model Context Protocol (MCP) int
 Effective debugging is essential when developing MCP servers or integrating them with applications. This guide covers the debugging tools and approaches available in the MCP ecosystem.
 
 <Info>
-  This guide is for macOS. Guides for other platforms are coming soon.
+
+This guide is for macOS. Guides for other platforms are coming soon.
+
 </Info>
 
 ## Debugging tools overview
@@ -2278,11 +2618,13 @@ Effective debugging is essential when developing MCP servers or integrating them
 MCP provides several tools for debugging at different levels:
 
 1. **MCP Inspector**
+
    - Interactive debugging interface
    - Direct server testing
    - See the [Inspector guide](/docs/tools/inspector) for details
 
 2. **Claude Desktop Developer Tools**
+
    - Integration testing
    - Log collection
    - Chrome DevTools integration
@@ -2299,6 +2641,7 @@ MCP provides several tools for debugging at different levels:
 The Claude.app interface provides basic server status information:
 
 1. Click the <img src="/images/claude-desktop-mcp-plug-icon.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> icon to view:
+
    - Connected servers
    - Available prompts and resources
 
@@ -2315,6 +2658,7 @@ tail -n 20 -F ~/Library/Logs/Claude/mcp*.log
 ```
 
 The logs capture:
+
 - Server connection events
 - Configuration issues
 - Runtime errors
@@ -2333,12 +2677,14 @@ echo '{"allowDevTools": true}' > ~/Library/Application\ Support/Claude/developer
 2. Open DevTools: `Command-Option-Shift-i`
 
 Note: You'll see two DevTools windows:
+
 - Main content window
 - App title bar window
 
 Use the Console panel to inspect client-side errors.
 
 Use the Network panel to inspect:
+
 - Message payloads
 - Connection timing
 
@@ -2353,12 +2699,18 @@ When using MCP servers with Claude Desktop:
 - For testing servers directly via command line, the working directory will be where you run the command
 
 For example in `claude_desktop_config.json`, use:
+
 ```json
 {
   "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/username/data"]
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "/Users/username/data"
+  ]
 }
 ```
+
 Instead of relative paths like `./data`
 
 ### Environment variables
@@ -2372,7 +2724,7 @@ To override the default variables or provide your own, you can specify an `env` 
   "myserver": {
     "command": "mcp-server-myapp",
     "env": {
-      "MYAPP_API_KEY": "some_key",
+      "MYAPP_API_KEY": "some_key"
     }
   }
 }
@@ -2383,12 +2735,14 @@ To override the default variables or provide your own, you can specify an `env` 
 Common initialization problems:
 
 1. **Path Issues**
+
    - Incorrect server executable path
    - Missing required files
    - Permission problems
    - Try using an absolute path for `command`
 
 2. **Configuration Errors**
+
    - Invalid JSON syntax
    - Missing required fields
    - Type mismatches
@@ -2414,31 +2768,38 @@ When servers fail to connect:
 When building a server that uses the local stdio [transport](/docs/concepts/transports), all messages logged to stderr (standard error) will be captured by the host application (e.g., Claude Desktop) automatically.
 
 <Warning>
-  Local MCP servers should not log messages to stdout (standard out), as this will interfere with protocol operation.
+
+Local MCP servers should not log messages to stdout (standard out), as this will interfere with protocol operation.
+
 </Warning>
 
 For all [transports](/docs/concepts/transports), you can also provide logging to the client by sending a log message notification:
 
 <Tabs>
   <Tab title="Python">
+
     ```python
     server.request_context.session.send_log_message(
       level="info",
       data="Server started successfully",
     )
     ```
+
   </Tab>
   <Tab title="TypeScript">
+
     ```typescript
     server.sendLoggingMessage({
       level: "info",
       data: "Server started successfully",
     });
     ```
+
   </Tab>
 </Tabs>
 
 Important events to log:
+
 - Initialization steps
 - Resource access
 - Tool execution
@@ -2459,6 +2820,7 @@ In client applications:
 ### Development cycle
 
 1. Initial Development
+
    - Use [Inspector](/docs/tools/inspector) for basic testing
    - Implement core functionality
    - Add logging points
@@ -2481,12 +2843,14 @@ To test changes efficiently:
 ### Logging strategy
 
 1. **Structured Logging**
+
    - Use consistent formats
    - Include context
    - Add timestamps
    - Track request IDs
 
 2. **Error Handling**
+
    - Log stack traces
    - Include error context
    - Track error patterns
@@ -2503,6 +2867,7 @@ To test changes efficiently:
 When debugging:
 
 1. **Sensitive Data**
+
    - Sanitize logs
    - Protect credentials
    - Mask personal information
@@ -2517,12 +2882,14 @@ When debugging:
 When encountering issues:
 
 1. **First Steps**
+
    - Check server logs
    - Test with [Inspector](/docs/tools/inspector)
    - Review configuration
    - Verify environment
 
 2. **Support Channels**
+
    - GitHub issues
    - GitHub discussions
 
@@ -2559,7 +2926,6 @@ The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is an int
 
 The Inspector runs directly through `npx` without requiring installation:
 
-
 ```bash
 npx @modelcontextprotocol/inspector <command>
 ```
@@ -2575,19 +2941,23 @@ A common way to start server packages from [NPM](https://npmjs.com) or [PyPi](ht
 <Tabs>
 
   <Tab title="NPM package">
-  ```bash
-  npx -y @modelcontextprotocol/inspector npx <package-name> <args>
-  # For example
-  npx -y @modelcontextprotocol/inspector npx server-postgres postgres://127.0.0.1/testdb
-  ```
+
+```bash
+npx -y @modelcontextprotocol/inspector npx <package-name> <args>
+# For example
+npx -y @modelcontextprotocol/inspector npx @modelcontextprotocol/server-filesystem /Users/username/Desktop
+```
+
   </Tab>
 
   <Tab title="PyPi package">
-  ```bash
-  npx @modelcontextprotocol/inspector uvx <package-name> <args>
-  # For example
-  npx @modelcontextprotocol/inspector uvx mcp-server-git --repository ~/code/mcp/servers.git
-  ```
+
+```bash
+npx @modelcontextprotocol/inspector uvx <package-name> <args>
+# For example
+npx @modelcontextprotocol/inspector uvx mcp-server-git --repository ~/code/mcp/servers.git
+```
+
   </Tab>
 </Tabs>
 
@@ -2598,19 +2968,23 @@ way is:
 
 <Tabs>
   <Tab title="TypeScript">
-  ```bash
-  npx @modelcontextprotocol/inspector node path/to/server/index.js args...
-  ```
+
+```bash
+npx @modelcontextprotocol/inspector node path/to/server/index.js args...
+```
+
   </Tab>
   <Tab title="Python">
-  ```bash
-  npx @modelcontextprotocol/inspector \
-    uv \
-    --directory path/to/server \
-    run \
-    package-name \
-    args...
-  ```
+
+```bash
+npx @modelcontextprotocol/inspector \
+  uv \
+  --directory path/to/server \
+  run \
+  package-name \
+  args...
+```
+
   </Tab>
 </Tabs>
 
@@ -2625,28 +2999,33 @@ Please carefully read any attached README for the most accurate instructions.
 The Inspector provides several features for interacting with your MCP server:
 
 ### Server connection pane
+
 - Allows selecting the [transport](/docs/concepts/transports) for connecting to the server
 - For local servers, supports customizing the command-line arguments and environment
 
 ### Resources tab
+
 - Lists all available resources
 - Shows resource metadata (MIME types, descriptions)
 - Allows resource content inspection
 - Supports subscription testing
 
 ### Prompts tab
+
 - Displays available prompt templates
 - Shows prompt arguments and descriptions
 - Enables prompt testing with custom arguments
 - Previews generated messages
 
 ### Tools tab
+
 - Lists available tools
 - Shows tool schemas and descriptions
 - Enables tool testing with custom inputs
 - Displays tool execution results
 
 ### Notifications pane
+
 - Presents all logs recorded from the server
 - Shows notifications received from the server
 
@@ -2655,11 +3034,13 @@ The Inspector provides several features for interacting with your MCP server:
 ### Development workflow
 
 1. Start Development
+
    - Launch Inspector with your server
    - Verify basic connectivity
    - Check capability negotiation
 
 2. Iterative testing
+
    - Make server changes
    - Rebuild the server
    - Reconnect the Inspector
@@ -2690,13 +3071,14 @@ The Inspector provides several features for interacting with your MCP server:
     >
         Learn about broader debugging strategies
     </Card>
+
 </CardGroup>
 
 
 === File: docs/introduction.mdx ===
 ---
 title: Introduction
-description: 'Get started with the Model Context Protocol (MCP)'
+description: "Get started with the Model Context Protocol (MCP)"
 ---
 
 MCP is an open protocol that standardizes how applications provide context to LLMs. Think of MCP like a USB-C port for AI applications. Just as USB-C provides a standardized way to connect your devices to various peripherals and accessories, MCP provides a standardized way to connect AI models to different data sources and tools.
@@ -2704,6 +3086,7 @@ MCP is an open protocol that standardizes how applications provide context to LL
 ## Why MCP?
 
 MCP helps you build agents and complex workflows on top of LLMs. LLMs frequently need to integrate with data and tools, and MCP provides:
+
 - A growing list of pre-built integrations that your LLM can directly plug into
 - The flexibility to switch between LLM providers and vendors
 - Best practices for securing your data within your infrastructure
@@ -2740,45 +3123,28 @@ flowchart LR
 
 Choose the path that best fits your needs:
 
-#### Quick Starts
+### Quick Starts
+
 <CardGroup cols={2}>
-  <Card
-    title="For Server Developers"
-    icon="bolt"
-    href="/quickstart/server"
-  >
-    Get started building your own server to use in Claude for Desktop and other clients
+  <Card title="For Server Developers" icon="bolt" href="/quickstart/server">
+    Get started building your own server to use in Claude for Desktop and other
+    clients
   </Card>
-  <Card
-    title="For Client Developers"
-    icon="bolt"
-    href="/quickstart/client"
-  >
+  <Card title="For Client Developers" icon="bolt" href="/quickstart/client">
     Get started building your own client that can integrate with all MCP servers
   </Card>
-  <Card
-    title="For Claude Desktop Users"
-    icon="bolt"
-    href="/quickstart/user"
-  >
+  <Card title="For Claude Desktop Users" icon="bolt" href="/quickstart/user">
     Get started using pre-built servers in Claude for Desktop
   </Card>
 </CardGroup>
 
-#### Examples
+### Examples
+
 <CardGroup cols={2}>
-  <Card
-    title="Example Servers"
-    icon="grid"
-    href="/examples"
-  >
+  <Card title="Example Servers" icon="grid" href="/examples">
     Check out our gallery of official MCP servers and implementations
   </Card>
-  <Card
-    title="Example Clients"
-    icon="cubes"
-    href="/clients"
-  >
+  <Card title="Example Clients" icon="cubes" href="/clients">
     View the list of clients that support MCP integrations
   </Card>
 </CardGroup>
@@ -2793,10 +3159,7 @@ Choose the path that best fits your needs:
   >
     Learn how to use LLMs like Claude to speed up your MCP development
   </Card>
-  <Card
-  title="Debugging Guide"
-  icon="bug"
-  href="/docs/tools/debugging">
+  <Card title="Debugging Guide" icon="bug" href="/docs/tools/debugging">
     Learn how to effectively debug MCP servers and integrations
   </Card>
   <Card
@@ -2827,32 +3190,16 @@ Dive deeper into MCP's core concepts and capabilities:
   >
     Understand how MCP connects clients, servers, and LLMs
   </Card>
-  <Card
-    title="Resources"
-    icon="database"
-    href="/docs/concepts/resources"
-  >
+  <Card title="Resources" icon="database" href="/docs/concepts/resources">
     Expose data and content from your servers to LLMs
   </Card>
-  <Card
-    title="Prompts"
-    icon="message"
-    href="/docs/concepts/prompts"
-  >
+  <Card title="Prompts" icon="message" href="/docs/concepts/prompts">
     Create reusable prompt templates and workflows
   </Card>
-  <Card
-    title="Tools"
-    icon="wrench"
-    href="/docs/concepts/tools"
-  >
+  <Card title="Tools" icon="wrench" href="/docs/concepts/tools">
     Enable LLMs to perform actions through your server
   </Card>
-  <Card
-    title="Sampling"
-    icon="robot"
-    href="/docs/concepts/sampling"
-  >
+  <Card title="Sampling" icon="robot" href="/docs/concepts/sampling">
     Let your servers request completions from LLMs
   </Card>
   <Card

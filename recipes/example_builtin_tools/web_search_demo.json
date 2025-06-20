@@ -1,0 +1,26 @@
+{
+  "steps": [
+    {
+      "type": "llm_generate",
+      "config": {
+        "model": "{{ model | default: 'openai_responses/gpt-4o' }}",
+        "openai_builtin_tools": [{ "type": "web_search_preview" }],
+        "prompt": "Search the web for 'latest Python 3.13 features' and provide a comprehensive summary of the new features and improvements introduced in Python 3.13. Focus on the most significant changes that developers should know about.",
+        "output_format": "text",
+        "output_key": "features_summary"
+      }
+    },
+    {
+      "type": "write_files",
+      "config": {
+        "files": [
+          {
+            "path": "features_summary.md",
+            "content_key": "features_summary"
+          }
+        ],
+        "root": "{{ output_root | default: 'output' }}"
+      }
+    }
+  ]
+}

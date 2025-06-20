@@ -3,6 +3,8 @@ members = [
     "recipe-tool",
     "recipe-executor",
     "apps/doc-constructor",
+    "shared/gradio-components",
+    "apps/document-generator",
     "apps/recipe-executor",
     "apps/recipe-tool",
     "mcp-servers/docs-server",
@@ -14,6 +16,7 @@ members = [
 # Core libraries
 recipe-executor = { workspace = true }
 recipe-tool = { workspace = true }
+gradio-components = { workspace = true }
 # Apps
 doc-constructor-app = { workspace = true }
 recipe-executor-app = { workspace = true }

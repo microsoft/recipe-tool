@@ -5,8 +5,8 @@
 **Search:** ['recipes/example_*']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/28/2025, 6:59:46 AM
-**Files:** 22
+**Date:** 6/18/2025, 12:10:57 PM
+**Files:** 24
 
 === File: recipes/example_brave_search/README.md ===
 # Brave Search Recipe
@@ -67,6 +67,86 @@ recipe-tool --execute recipes/example_brave_search/search.json \
           {
             "path": "search_results.md",
             "content_key": "search_results"
+          }
+        ],
+        "root": "{{ output_root | default: 'output' }}"
+      }
+    }
+  ]
+}
+
+
+=== File: recipes/example_builtin_tools/README.md ===
+# Built-in Tools Examples
+
+This directory contains example recipes demonstrating the use of OpenAI's built-in tools with the Recipe Tool.
+
+## What are Built-in Tools?
+
+Built-in tools are OpenAI's Responses API features that provide models with access to:
+- **Web Search** (`web_search_preview`) - Search the web for current information
+
+## Model Support
+
+Built-in tools are only supported with Responses API models:
+- `openai_responses/*` - OpenAI Responses API models
+- `azure_responses/*` - Azure OpenAI Responses API models
+
+## Examples
+
+### Web Search Demo (`web_search_demo.json`)
+Demonstrates using the web search tool to find current information about Python 3.13 features.
+
+**Usage:**
+```bash
+# With OpenAI
+recipe-tool --execute recipes/example_builtin_tools/web_search_demo.json model=openai_responses/gpt-4o
+
+# With Azure OpenAI  
+recipe-tool --execute recipes/example_builtin_tools/web_search_demo.json model=azure_responses/gpt-4o
+```
+
+
+## Recipe Structure
+
+Built-in tools are specified using the `openai_builtin_tools` parameter in `llm_generate` steps:
+
+```json
+{
+  "step_type": "llm_generate",
+  "model": "openai_responses/gpt-4o",
+  "openai_builtin_tools": [
+    {"type": "web_search_preview"}
+  ]
+}
+```
+
+## Error Handling
+
+- Built-in tools only work with `*_responses` models
+- Only `web_search_preview` tool type is currently supported
+- Clear error messages will be shown for invalid configurations
+
+=== File: recipes/example_builtin_tools/web_search_demo.json ===
+{
+  "steps": [
+    {
+      "type": "llm_generate",
+      "config": {
+        "model": "{{ model | default: 'openai_responses/gpt-4o' }}",
+        "openai_builtin_tools": [{ "type": "web_search_preview" }],
+        "prompt": "Search the web for 'latest Python 3.13 features' and provide a comprehensive summary of the new features and improvements introduced in Python 3.13. Focus on the most significant changes that developers should know about.",
+        "output_format": "text",
+        "output_key": "features_summary"
+      }
+    },
+    {
+      "type": "write_files",
+      "config": {
+        "files": [
+          {
+            "path": "features_summary.md",
+            "content_key": "features_summary"
           }
         ],
         "root": "{{ output_root | default: 'output' }}"
@@ -665,7 +745,7 @@ West,Product C,720000,2880,246,Q2 2025
     {
       "type": "llm_generate",
       "config": {
-        "prompt": "Using the analysis in context and original data, generate a comprehensive markdown-formatted business report for {{ company_name }} for {{ quarter }}. Include an Executive Summary, Key Metrics table, Mermaid charts for trends and product performance using analysis.trends_chart and analysis.product_performance_chart, a Regional Performance Analysis section, and Strategic Recommendations. Reported generated on {{ 'now' | date: '%m-%d-%Y %H:%M' }}. Output the report in valid markdown.",
+        "prompt": "Using the analysis in context and original data, generate a comprehensive markdown-formatted business report for {{ company_name }} for {{ quarter }}. Include an Executive Summary, Key Metrics table, Mermaid charts for trends and product performance using {{ analysis.trends_chart }} and {{ analysis.product_performance_chart }}, a Regional Performance Analysis section, and Strategic Recommendations. Reported generated on {{ 'now' | date: '%m-%d-%Y %H:%M' }}. Output the report in valid markdown.",
         "model": "{{ model }}",
         "output_format": "text",
         "output_key": "report_md"

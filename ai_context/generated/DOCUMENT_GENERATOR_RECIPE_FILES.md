@@ -5,7 +5,7 @@
 **Search:** ['recipes/document_generator']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 6/3/2025, 12:16:48 PM
+**Date:** 6/18/2025, 12:10:57 PM
 **Files:** 15
 
 === File: recipes/document_generator/README.md ===
@@ -175,17 +175,17 @@ end
   "resources": [
     {
       "key": "product_specs",
-      "path": "product_specs.md",
+      "path": "recipes/document_generator/examples/resources/product_specs.md",
       "description": "Technical specifications, features, API details, and system requirements"
     },
     {
       "key": "market_research",
-      "path": "market_research.md",
+      "path": "recipes/document_generator/examples/resources/market_research.md",
       "description": "Competitive analysis, target customer profiles, and market opportunities"
     },
     {
       "key": "pricing_strategy",
-      "path": "pricing_strategy.md",
+      "path": "recipes/document_generator/examples/resources/pricing_strategy.md",
       "description": "Pricing tiers, packaging, and competitive positioning"
     }
   ],

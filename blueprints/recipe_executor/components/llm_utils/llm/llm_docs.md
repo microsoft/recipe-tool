@@ -16,6 +16,7 @@ class LLM:
     def __init__(
             self,
             logger: logging.Logger,
+            context: ContextProtocol,
             model: str = "openai/gpt-4o",
             max_tokens: Optional[int] = None,
             mcp_servers: Optional[List[MCPServer]] = None,
@@ -24,6 +25,7 @@ class LLM:
         Initialize the LLM component.
         Args:
             logger (logging.Logger): Logger for logging messages.
+            context (ContextProtocol): Context containing configuration values (API keys, endpoints).
             model (str): Model identifier in the format 'provider/model_name' (or 'provider/model_name/deployment_name').
             max_tokens (int): Maximum number of tokens for the LLM response.
             mcp_servers Optional[List[MCPServer]]: List of MCP servers for access to tools.
@@ -69,7 +71,7 @@ Usage example:
 ```python
 from recipe_executor.llm_utils.mcp import get_mcp_server
 
-llm = LLM(logger=logger)
+llm = LLM(logger=logger, context=context)
 # With optional MCP integration:
 weather_mcp_server = get_mcp_server(
     logger=logger,
@@ -80,7 +82,7 @@ weather_mcp_server = get_mcp_server(
         },
     }
 )
-llm_mcp = LLM(logger=logger, mcp_servers=[weather_mcp_server])
+llm_mcp = LLM(logger=logger, context=context, mcp_servers=[weather_mcp_server])
 
 # Call LLM with default model
 result = await llm.generate("What is the weather in Redmond, WA today?")
@@ -99,7 +101,7 @@ class UserProfile(BaseModel):
 
 result = await llm.generate(
     prompt="Extract the user profile from the following text: {{text}}",
-    model="openai/o4-mini",
+    model="openai/gpt-4o",
     max_tokens=100,
     output_type=UserProfile
 )
@@ -118,10 +120,10 @@ If no deployment name is provided, the model name is used as the deployment name
 
 ### Supported providers:
 
-- **openai**: OpenAI models (e.g., `gpt-4o`, `o3`, `o4-mini`, etc.)
-- **azure**: Azure OpenAI models (e.g., `gpt-4o`, `o3`, `o4-mini`, etc.)
+- **openai**: OpenAI models (e.g., `gpt-4o`, `gpt-4.1`, `o3`, `o4-mini`)
+- **azure**: Azure OpenAI models (e.g., `gpt-4o`, `gpt-4.1`, `o3`, `o4-mini`)
 - **azure**: Azure OpenAI models with custom deployment name (e.g., `gpt-4o/my_deployment_name`)
-- **anthropic**: Anthropic models (e.g., `claude-3-7-sonnet-latest`)
+- **anthropic**: Anthropic models (e.g., `claude-3-5-sonnet-latest`)
 - **ollama**: Ollama models (e.g., `phi4`, `llama3.2`, `qwen2.5-coder:14b`)
 
 ## Error Handling
@@ -143,3 +145,4 @@ except Exception as e:
 ## Important Notes
 
 - The component logs full request details at debug level
+- API keys are read from context configuration, not directly from environment

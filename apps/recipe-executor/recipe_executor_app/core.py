@@ -17,6 +17,7 @@ from recipe_executor_app.utils import (
     read_file,
     safe_json_dumps,
 )
+from recipe_executor_app.settings_sidebar import get_model_string, get_setting
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class RecipeExecutorCore:
     def __init__(self, executor: Optional[Executor] = None):
         """Initialize with the executor."""
         self.executor = executor if executor is not None else Executor(logger)
+        self.current_settings = {}
 
     async def execute_recipe(
         self, recipe_file: Optional[str], recipe_text: Optional[str], context_vars: Optional[str]
@@ -52,7 +54,25 @@ class RecipeExecutorCore:
             if "output_root" in context_dict:
                 os.makedirs(context_dict["output_root"], exist_ok=True)
 
-            context = Context(artifacts=context_dict)
+            # Add model configuration from config/environment
+            model_str = get_model_string()
+            context_dict["model"] = model_str
+
+            # Add max_tokens if set in config/environment
+            max_tokens = get_setting("MAX_TOKENS")
+            if max_tokens:
+                try:
+                    context_dict["max_tokens"] = int(max_tokens)
+                except ValueError:
+                    pass
+
+            # Load configuration from environment
+            from recipe_executor.config import load_configuration
+
+            config = load_configuration()
+
+            # Create context with both artifacts and config
+            context = Context(artifacts=context_dict, config=config)
 
             # Determine recipe source
             if recipe_file:

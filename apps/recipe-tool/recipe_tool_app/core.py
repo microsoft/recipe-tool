@@ -11,6 +11,9 @@ from recipe_executor_app.utils import (
     parse_context_vars,
 )
 
+# Import the new config-based function
+from recipe_tool_app.settings_sidebar import get_model_string
+
 from .path_resolver import find_recipe_creator, prepare_context_paths
 from .recipe_processor import find_recipe_output, process_recipe_output
 
@@ -65,8 +68,27 @@ class RecipeToolCore:
             # Add input
             context_dict["input"] = idea_source
 
-            # Create context
-            context = Context(artifacts=context_dict)
+            # Add model configuration from config/environment
+            model_str = get_model_string()
+            context_dict["model"] = model_str
+
+            # Add max_tokens if set in config/environment
+            from recipe_tool_app.settings_sidebar import get_setting
+
+            max_tokens = get_setting("MAX_TOKENS")
+            if max_tokens:
+                try:
+                    context_dict["max_tokens"] = str(int(max_tokens))
+                except ValueError:
+                    pass
+
+            # Load configuration from environment
+            from recipe_executor.config import load_configuration
+
+            config = load_configuration()
+
+            # Create context with both artifacts and config
+            context = Context(artifacts=context_dict, config=config)
 
             # Find recipe creator
             creator_path = find_recipe_creator()

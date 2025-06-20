@@ -5,7 +5,7 @@
 **Search:** ['recipes/codebase_generator']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/27/2025, 2:32:39 PM
+**Date:** 6/18/2025, 12:10:57 PM
 **Files:** 8
 
 === File: recipes/codebase_generator/README.md ===
@@ -69,7 +69,7 @@ See blueprint files in `blueprints/recipe_executor/` for component definitions.
       "type": "set_context",
       "config": {
         "key": "existing_code_root",
-        "value": "{{ existing_code_root | default: 'recipe_executor' }}"
+        "value": "{{ existing_code_root | default: 'recipe-executor/recipe_executor' }}"
       }
     },
     {

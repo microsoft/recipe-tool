@@ -68,10 +68,41 @@ logger.error("An error occurred during recipe execution: ...")
 
 The stack trace for exceptions is output to stderr (via `traceback.format_exc()`) to aid in debugging issues directly from the console.
 
+## Configuration Loading
+
+The Main component uses a hierarchical approach to configuration:
+
+1. **Environment Variables**: Loaded from system environment and `.env` file
+2. **Recipe-Specific Variables**: If the recipe declares `env_vars`, those are loaded
+3. **CLI Overrides**: `--config` arguments override any environment-based configuration
+
+Example flow:
+```python
+# 1. Load .env file
+load_dotenv()
+
+# 2. Load recipe
+recipe = Recipe.model_validate_json(recipe_json)
+
+# 3. Load configuration from environment
+from recipe_executor.config import load_configuration
+env_config = load_configuration(recipe.env_vars)
+
+# 4. Parse CLI config arguments
+cli_config = parse_config(args.config)
+
+# 5. Merge configurations (CLI overrides environment)
+merged_config = {**env_config, **cli_config}
+
+# 6. Create context with merged configuration
+context = Context(artifacts=artifacts, config=merged_config)
+```
+
 ## Important Notes
 
 - The main entry point is designed to be simple and minimal. It delegates the heavy lifting to the `Context` and `Executor` components.
-- All steps in the executed recipe share the same context instance, which is created by Main from the provided context arguments.
+- All steps in the executed recipe share the same context instance, which is created by Main from the provided context arguments and configuration.
 - The Main component itself doesn't enforce any type of step ordering beyond what the recipe dictates; it simply invokes the Executor and waits for it to process the steps sequentially.
-- Environment variables (for example, API keys for LLM steps) can be set in a `.env` file. Main will load this file at startup via `load_dotenv()`, making those values available to components that need them.
+- Environment variables (for example, API keys for LLM steps) can be set in a `.env` file. Main will load this file at startup via `load_dotenv()`, making those values available through the Config component.
+- Configuration values are accessible to steps through `context.get_config()` method, allowing centralized access to all configuration.
 - Logging is configured at runtime when Main calls `init_logger`. The logs (including debug information and errors) are saved in the directory specified by `--log-dir`. Each run may append to these logs, so it's advisable to monitor or clean the log directory if running many recipes.

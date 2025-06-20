@@ -1,7 +1,7 @@
 """Configuration for the documentation server."""
 
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Sequence
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,7 +17,7 @@ class DocsServerSettings(BaseSettings):
     )
 
     # Paths to documentation files or URLs
-    doc_paths: List[Union[Path, str]] = Field(
+    doc_paths: Sequence[Union[Path, str]] = Field(
         default_factory=lambda: [Path(".")],
         description="List of paths to documentation files/directories or URLs",
     )

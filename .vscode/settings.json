@@ -21,7 +21,7 @@
     "recipes",
     "blueprints"
   ],
-  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "python.analysis.autoFormatStrings": true,
   "python.analysis.autoImportCompletions": true,
@@ -56,7 +56,8 @@
 
   // === RUFF CONFIGURATION ===
   "ruff.nativeServer": "on",
-  "ruff.interpreter": ["./.venv/bin/python"],
+  "ruff.configuration": "${workspaceFolder}/ruff.toml",
+  "ruff.interpreter": ["${workspaceFolder}/.multi-root-tools/.venv/bin/python"],
 
   // === TESTING CONFIGURATION ===
   // Testing disabled at workspace level due to import conflicts
@@ -119,9 +120,11 @@
     "ai_context"
   ],
   "cSpell.words": [
+    "charliermarsh",
     "codegen",
     "Cytoscape",
     "dagre",
+    "debugpy",
     "dotenv",
     "edgehandle",
     "Eles",
@@ -148,6 +151,7 @@
     "subschema",
     "substep",
     "substeps",
+    "tamasfe",
     "toplevel",
     "venv"
   ]

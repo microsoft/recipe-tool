@@ -8,6 +8,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "gradio[mcp]>=5.30.0",
+    "gradio-components>=0.1.0",
     "python-dotenv>=1.1.0",
     "recipe-executor-app>=0.1.0",
 ]

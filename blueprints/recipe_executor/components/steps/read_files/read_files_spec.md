@@ -23,13 +23,14 @@ The ReadFilesStep component reads one or more files from the filesystem and stor
 - Render template strings for the `path` parameter before evaluating the input type
 - Use template rendering to support dynamic paths for single path, comma-separated paths in one string, and lists of paths
 - Render template strings for the `content_key` parameter
+- Handle glob pattern in files
 - Handle missing files explicitly with meaningful error messages
 - Use consistent UTF-8 encoding for text files
 - Implement an `optional` flag to continue execution if files are missing
 - For multiple files, provide a way to merge content (default: concatenate with newlines separating each file’s content)
 - Provide a clear content structure when reading multiple files (e.g. a dictionary with filenames as keys)
 - Keep the implementation simple and focused on a single responsibility
-- For backwards compatibility, preserve the behavior of the original single-file read step
+- Support both single-file and multi-file read operations
 
 ## Logging
 

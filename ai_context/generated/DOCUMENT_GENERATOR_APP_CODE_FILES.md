@@ -5,7 +5,7 @@
 **Search:** ['apps/document-generator/document_generator_app']
 **Exclude:** ['.venv', 'node_modules', '*.lock', '.git', '__pycache__', '*.pyc', '*.ruff_cache', 'logs', 'output']
 **Include:** []
-**Date:** 5/29/2025, 9:29:06 AM
+**Date:** 6/18/2025, 3:22:46 PM
 **Files:** 9
 
 === File: apps/document-generator/document_generator_app/__init__.py ===

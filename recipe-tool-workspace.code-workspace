@@ -61,7 +61,9 @@
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": ["--color=yes", "-v"],
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
-    "python.testing.unittestEnabled": false
+    "python.testing.unittestEnabled": false,
+    "ruff.nativeServer": "on",
+    "ruff.configuration": "${workspaceFolder}/ruff.toml"
   },
   "extensions": {
     "recommendations": [

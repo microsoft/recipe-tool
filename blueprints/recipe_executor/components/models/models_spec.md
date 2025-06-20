@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The Models component defines the core data structures used throughout the Recipe Executor system. It provides Pydantic models for validating and structuring data, including recipe steps, and files.
+The Models component defines the core data structures used throughout the Recipe Executor system. It provides Pydantic models for validating and structuring data, including recipe steps, files, and recipe configuration.
 
 ## Core Requirements
 
 - Define consistent data structures for files
 - Provide configuration models for various step types
-- Support recipe structure validation
+- Support recipe structure validation with optional environment variable declarations
 - Leverage Pydantic for schema validation and documentation
 - Include clear type hints and docstrings
 
@@ -21,6 +21,8 @@ The Models component defines the core data structures used throughout the Recipe
 - Provide sensible defaults where appropriate
 - Use descriptive field names and docstrings
 - Focus on essential fields without over-engineering
+- Support optional fields for forward compatibility
+
 
 ## Logging
 

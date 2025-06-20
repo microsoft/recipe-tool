@@ -1,0 +1,68 @@
+{
+  "title": "AI Context System Implementation Guide",
+  "general_instruction": "Generate a practical copy-and-paste guide for developers who want to implement this AI context system in their own projects. Focus on the minimal viable setup, essential files to copy, and basic customization. Assume the reader wants to get it working quickly with their existing project structure. Include concrete examples but keep explanations concise. Emphasize that this system uses only Python standard library with no external dependencies.",
+  "resources": [
+    {
+      "key": "implementation_files",
+      "path": "tools/collect_files.py, tools/build_ai_context_files.py, tools/build_git_collector_files.py",
+      "description": "Core implementation files that provide the AI context generation functionality. These are the main Python modules that developers need to copy and customize."
+    },
+    {
+      "key": "generated_examples",
+      "path": "ai_context/generated/README.md, ai_context/generated/RECIPE_EXECUTOR_CODE_FILES.md, ai_context/generated/DOCUMENT_GENERATOR_RECIPE_FILES.md",
+      "description": "Examples of generated AI context files showing the output format and structure that the system produces."
+    },
+    {
+      "key": "build_integration",
+      "path": "Makefile",
+      "description": "Optional Makefile target for AI context generation convenience (ai-context-files target only). Not required - system works with direct Python execution."
+    },
+    {
+      "key": "philosophy_docs",
+      "path": "ai_context/IMPLEMENTATION_PHILOSOPHY.md, ai_context/MODULAR_DESIGN_PHILOSOPHY.md",
+      "description": "Design philosophy documents that guide how the AI context system should be structured and used."
+    },
+    {
+      "key": "project_structure",
+      "path": "ai_context/README.md",
+      "description": "AI context directory structure and organization patterns (excluding general development workflow)."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Quick Start - Copy This System",
+      "prompt": "Provide a minimal step-by-step checklist for copying the AI context system to a new repo: 1) Copy the two essential Python files (tools/collect_files.py, tools/build_ai_context_files.py), 2) Create the ai_context/generated directory, 3) Customize the tasks list in build_ai_context_files.py, 4) Run the script. Show both direct Python execution as the primary method and optional Make integration. Emphasize no external dependencies needed.",
+      "refs": ["implementation_files", "project_structure"]
+    },
+    {
+      "title": "Core Files You Need",
+      "prompt": "List only the essential files that must be copied: tools/collect_files.py and tools/build_ai_context_files.py (tools/build_git_collector_files.py is optional for external docs). Show what each file does and emphasize these are pure Python standard library with no external dependencies. Include the minimal directory structure after copying.",
+      "refs": ["implementation_files", "project_structure"]
+    },
+    {
+      "title": "Running the System",
+      "prompt": "Show the direct Python commands as the primary method: 'python tools/build_ai_context_files.py'. Then include Make integration as an optional convenience section. Make it clear that Make is not required and the system works with any build tool or direct execution.",
+      "refs": ["implementation_files", "build_integration"]
+    },
+    {
+      "title": "Customize for Your Project",
+      "prompt": "Show how to adapt the tasks configuration in build_ai_context_files.py for different project structures. Provide 2-3 concrete examples of common project layouts (src/, lib/, apps/, etc.) and how to configure the tasks list for each. Focus on the essential patterns from the actual implementation.",
+      "refs": ["implementation_files", "generated_examples"]
+    },
+    {
+      "title": "Configuration Options",
+      "prompt": "Using the actual code from the implementation files, show the key configuration options: patterns, exclude/include lists, and output paths. Include essential performance tips like splitting large codebases and using DEFAULT_EXCLUDE effectively.",
+      "refs": ["implementation_files", "philosophy_docs"]
+    },
+    {
+      "title": "Avoiding Redundant Documentation",
+      "prompt": "Explain how to identify and exclude existing AI-focused documentation directories from collection tasks. These are folders containing documentation written specifically for AI assistants (like ai_context/, ai_docs/, prompts/, etc.) that should be read directly rather than rolled up again. Provide guidance on recognizing these directories and configuring exclude patterns to avoid collecting them.",
+      "refs": []
+    },
+    {
+      "title": "Templates and Examples",
+      "prompt": "Provide ready-to-use task configuration templates based on the actual patterns from the implementation. Include basic troubleshooting tips for common issues like 'no files found' and permission errors. Keep focused on practical copy-paste examples.",
+      "refs": ["implementation_files", "generated_examples"]
+    }
+  ]
+}
