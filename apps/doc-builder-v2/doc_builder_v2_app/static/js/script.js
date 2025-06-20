@@ -1,6 +1,6 @@
 // Document Builder JavaScript
 
-function uploadResource() {
+function setupUploadResource() {
     // Try multiple selectors
     const uploadBtn = document.querySelector('.upload-resources-btn')
 
@@ -80,13 +80,13 @@ function toggleBlockCollapse(blockId, shouldFocus = false) {
         if (textarea) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             // Trigger the hidden toggle button
             setTimeout(() => {
                 const toggleBtn = document.getElementById('toggle-trigger');
                 if (toggleBtn) {
                     toggleBtn.click();
-                    
+
                     // If we should focus, wait for the block to expand then focus
                     if (shouldFocus) {
                         setTimeout(() => {
@@ -94,6 +94,8 @@ function toggleBlockCollapse(blockId, shouldFocus = false) {
                             if (block) {
                                 const textArea = block.querySelector('textarea');
                                 if (textArea) {
+                                    // Ensure auto-expand is setup before focusing
+                                    setupAutoExpand();
                                     textArea.focus();
                                     // Move cursor to end of text
                                     textArea.setSelectionRange(textArea.value.length, textArea.value.length);
@@ -107,19 +109,102 @@ function toggleBlockCollapse(blockId, shouldFocus = false) {
     }
 }
 
+// Auto-expand textarea function
+function autoExpandTextarea(textarea) {
+    // Store current scroll position of workspace
+    const workspace = document.querySelector('.workspace-display');
+    
+    // Store the current height before changing
+    const oldHeight = textarea.offsetHeight;
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+
+    // Set height to scrollHeight plus a small buffer
+    const newHeight = textarea.scrollHeight + 2;
+    textarea.style.height = newHeight + 'px';
+}
+
+// Setup auto-expand for all textareas
+function setupAutoExpand() {
+    // Get all textareas in the document
+    const textareas = document.querySelectorAll('textarea');
+
+    textareas.forEach(textarea => {
+        // Always setup/re-setup to handle re-renders
+        
+        // Initial sizing
+        autoExpandTextarea(textarea);
+        
+        // Remove existing listeners by using a named function
+        if (!textarea.autoExpandHandler) {
+            textarea.autoExpandHandler = function() {
+                autoExpandTextarea(this);
+            };
+            textarea.pasteHandler = function() {
+                setTimeout(() => autoExpandTextarea(this), 10);
+            };
+            
+            // Add event listeners
+            textarea.addEventListener('input', textarea.autoExpandHandler);
+            textarea.addEventListener('paste', textarea.pasteHandler);
+        }
+    });
+}
+
 // Try setting up when DOM loads and with a delay
-document.addEventListener('DOMContentLoaded', uploadResource);
-window.addEventListener('load', function() {
-    setTimeout(uploadResource, 1000);
+document.addEventListener('DOMContentLoaded', function() {
+    setupUploadResource();
+    setupAutoExpand();
 });
 
-// Use MutationObserver as backup for dynamic content
-const observer = new MutationObserver(function() {
-    if (uploadResource()) {
-        observer.disconnect();
+window.addEventListener('load', function() {
+    setTimeout(setupUploadResource, 1000);
+    setTimeout(setupAutoExpand, 100);
+});
+
+// Use MutationObserver for dynamic content
+let debounceTimer;
+const observer = new MutationObserver(function(mutations) {
+    // Check if any mutations are relevant (new nodes added)
+    let hasRelevantChanges = false;
+    
+    for (const mutation of mutations) {
+        // Only care about added nodes
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            // Check if any added nodes contain textareas or are blocks
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === 1) { // Element node
+                    if (node.classList?.contains('content-block') || 
+                        node.querySelector?.('textarea') ||
+                        node.tagName === 'TEXTAREA') {
+                        hasRelevantChanges = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Only run setup if relevant changes detected
+    if (hasRelevantChanges) {
+        setupUploadResource();
+        
+        // Debounce the setupAutoExpand to avoid multiple calls
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            setupAutoExpand();
+        }, 100);
     }
 });
 
 if (document.body) {
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { 
+        childList: true, 
+        subtree: true
+        // Removed attributes observation - we don't need it
+    });
 }
+
+// Also add a global function that can be called
+window.setupAutoExpand = setupAutoExpand;

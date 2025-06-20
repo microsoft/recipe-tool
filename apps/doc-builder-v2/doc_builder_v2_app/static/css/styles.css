@@ -110,16 +110,26 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e5e5;
     border-radius: 4px !important;
-    overflow-y: auto;
+    overflow-y: scroll; /* Always show scroll area */
     overflow-x: hidden;
-    -ms-overflow-style: none !important;
-    /* IE and Edge */
-    scrollbar-width: none !important;
-    /* Firefox */
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
 }
+
 .workspace-display::-webkit-scrollbar {
+    width: 0 !important;
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Also apply to any nested containers that might have scrollbars */
+.workspace-display * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.workspace-display *::-webkit-scrollbar {
+    width: 0 !important;
     display: none !important;
-    /* Chrome, Safari and Opera */
 }
 
 /* Workspace - Content block add buttons */
@@ -193,9 +203,13 @@
     padding: 10px;
     padding-top: 0px;
     font-size: 14px;
-    resize: vertical;
+    resize: none; /* Disable manual resize since we auto-expand */
     background: transparent;
     outline: none;
+    overflow-y: hidden; /* Hide vertical scrollbars */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
 }
 .ai-block .block-resources {
     margin-top: 10px;
@@ -237,9 +251,13 @@
     padding: 10px;
     padding-top: 0px;
     font-size: 14px;
-    resize: vertical;
+    resize: none; /* Disable manual resize since we auto-expand */
     background: transparent;
     outline: none;
+    overflow-y: hidden; /* Hide vertical scrollbars */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
 }
 .text-block .block-resources {
     margin-top: 10px;
