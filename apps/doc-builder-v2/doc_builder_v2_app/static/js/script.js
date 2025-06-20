@@ -42,6 +42,56 @@ function deleteBlock(blockId) {
     }
 }
 
+// Update block content function
+function updateBlockContent(blockId, content) {
+    // Set the block ID and content in hidden inputs
+    const blockIdInput = document.getElementById('update-block-id');
+    const contentInput = document.getElementById('update-content-input');
+
+    if (blockIdInput && contentInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const contentTextarea = contentInput.querySelector('textarea');
+
+        if (blockIdTextarea && contentTextarea) {
+            blockIdTextarea.value = blockId;
+            contentTextarea.value = content;
+
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            contentTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Trigger the update button
+            setTimeout(() => {
+                const updateBtn = document.getElementById('update-trigger');
+                if (updateBtn) {
+                    updateBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
+// Toggle block collapse function
+function toggleBlockCollapse(blockId) {
+    // Set the block ID in the hidden input
+    const blockIdInput = document.getElementById('toggle-block-id');
+    if (blockIdInput) {
+        const textarea = blockIdInput.querySelector('textarea');
+        if (textarea) {
+            textarea.value = blockId;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the hidden toggle button
+            setTimeout(() => {
+                const toggleBtn = document.getElementById('toggle-trigger');
+                if (toggleBtn) {
+                    toggleBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Try setting up when DOM loads and with a delay
 document.addEventListener('DOMContentLoaded', uploadResource);
 window.addEventListener('load', function() {

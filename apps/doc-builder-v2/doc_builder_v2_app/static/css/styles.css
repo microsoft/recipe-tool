@@ -267,6 +267,69 @@
     color: white;
 }
 
+/* Collapsible blocks */
+.block-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    position: relative;
+}
+
+.collapse-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.collapse-btn:hover {
+    color: #333;
+}
+
+.collapse-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.block-type-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.block-preview {
+    flex: 1;
+    font-size: 14px;
+    color: #999;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-left: 10px;
+}
+
+.content-block.collapsed {
+    min-height: auto;
+}
+
+.content-block.collapsed .block-content {
+    display: none;
+}
+
+.block-content {
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
 /* Generate Document */
 .generate-col {
     width: 100% !important;
@@ -315,3 +378,4 @@
     max-width: 170px !important;
     height: 30px !important;
 }
+
