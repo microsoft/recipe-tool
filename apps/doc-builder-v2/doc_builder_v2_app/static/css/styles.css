@@ -340,6 +340,15 @@
     display: inline;
 }
 
+.block-preview.clickable {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.block-preview.clickable:hover {
+    color: #666;
+}
+
 .content-block.collapsed {
     min-height: auto;
 }

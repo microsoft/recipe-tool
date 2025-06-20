@@ -79,11 +79,11 @@ def render_blocks(blocks):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-preview {preview_class}'>{preview_text}</span>
+                    <span class='block-preview {preview_class} clickable' onclick='toggleBlockCollapse("{block_id}", true)'>{preview_text}</span>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='Enter your AI instruction here...''
+                    <textarea placeholder='Enter your AI instruction here...'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
                         Drop AI resources here
@@ -114,7 +114,7 @@ def render_blocks(blocks):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-preview {preview_class}'>{preview_text}</span>
+                    <span class='block-preview {preview_class} clickable' onclick='toggleBlockCollapse("{block_id}", true)'>{preview_text}</span>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
