@@ -1,5 +1,80 @@
 import gradio as gr
 from pathlib import Path
+import uuid
+
+def add_ai_block(blocks):
+    """Add an AI content block."""
+    new_block = {
+        'id': str(uuid.uuid4()),
+        'type': 'ai',
+        'content': '',
+        'resources': []
+    }
+    return blocks + [new_block]
+
+def add_heading_block(blocks):
+    """Add a heading block."""
+    new_block = {
+        'id': str(uuid.uuid4()),
+        'type': 'heading',
+        'content': 'New Heading'
+    }
+    return blocks + [new_block]
+
+def add_text_block(blocks):
+    """Add a text block."""
+    new_block = {
+        'id': str(uuid.uuid4()),
+        'type': 'text',
+        'content': '',
+        'resources': []
+    }
+    return blocks + [new_block]
+
+def delete_block(blocks, block_id):
+    """Delete a block by its ID."""
+    return [block for block in blocks if block['id'] != block_id]
+
+def render_blocks(blocks):
+    """Render blocks as HTML."""
+    if not blocks:
+        return "<div style='color: #999; text-align: center; padding: 20px;'>Click AI, H, or T to add content blocks</div>"
+    
+    html = ""
+    for block in blocks:
+        block_id = block['id']
+        if block['type'] == 'ai':
+            html += f"""
+            <div class='content-block ai-block' data-id='{block_id}'>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                <textarea placeholder='AI will generate content here based on resources...' 
+                          style='width: 100%; min-height: 150px; border: none; resize: vertical;'>{block['content']}</textarea>
+                <div class='block-resources' style='margin-top: 10px; min-height: 40px; border: 1px dashed #ccc; padding: 5px;'>
+                    Drop resources here
+                </div>
+            </div>
+            """
+        elif block['type'] == 'heading':
+            html += f"""
+            <div class='content-block heading-block' data-id='{block_id}'>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                <input type='text' value='{block['content']}' 
+                       style='width: 100%; font-size: 18px; font-weight: bold; border: none;'/>
+            </div>
+            """
+        elif block['type'] == 'text':
+            html += f"""
+            <div class='content-block text-block' data-id='{block_id}'>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                <textarea placeholder='Enter your text here...' 
+                          style='width: 100%; min-height: 100px; border: none; resize: vertical;'>{block['content']}</textarea>
+                <div class='block-resources' style='margin-top: 10px; min-height: 40px; border: 1px dashed #ccc; padding: 5px;'>
+                    Drop resources here
+                </div>
+            </div>
+            """
+    
+    return html
 
 def handle_file_upload(files, current_resources):
     """Handle uploaded files and return HTML display of file names."""
@@ -57,8 +132,35 @@ def create_app():
     custom_js = f"<script>{js_content}</script>"
 
     with gr.Blocks(css=custom_css, head=custom_js) as app:
-        # State to track resources
+        # State to track resources and blocks
         resources_state = gr.State([])
+        
+        # Initialize with default blocks
+        initial_blocks = [
+            {
+                'id': str(uuid.uuid4()),
+                'type': 'heading',
+                'content': 'Introduction'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'type': 'ai',
+                'content': '',
+                'resources': []
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'type': 'heading',
+                'content': 'Details'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'type': 'text',
+                'content': '',
+                'resources': []
+            }
+        ]
+        blocks_state = gr.State(initial_blocks)
 
         with gr.Row():
             # App name and explanation
@@ -170,17 +272,14 @@ def create_app():
 
                 # Workspace panel for stacking content blocks
                 with gr.Column(elem_classes="workspace-display"):
-                    # Placeholder blocks - you can add more content blocks here
-                    gr.Textbox(
-                        value="Content Block 1",
-                        label=None,
-                        elem_classes="content-block"
+                    blocks_display = gr.HTML(
+                        value=render_blocks(initial_blocks),
+                        elem_classes="blocks-container"
                     )
-                    gr.Textbox(
-                        value="Content Block 2",
-                        label=None,
-                        elem_classes="content-block"
-                    )
+                    
+                    # Hidden components for JS communication
+                    delete_block_id = gr.Textbox(visible=False, elem_id="delete-block-id")
+                    delete_trigger = gr.Button("Delete", visible=False, elem_id="delete-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -206,6 +305,48 @@ def create_app():
                         value="*Click 'Generate Document' to see the generated content here*",
                         elem_classes="generated-content"
                     )
+        
+        # Connect button clicks to add blocks
+        ai_btn.click(
+            fn=add_ai_block,
+            inputs=blocks_state,
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=blocks_state,
+            outputs=blocks_display
+        )
+        
+        h_btn.click(
+            fn=add_heading_block,
+            inputs=blocks_state,
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=blocks_state,
+            outputs=blocks_display
+        )
+        
+        t_btn.click(
+            fn=add_text_block,
+            inputs=blocks_state,
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=blocks_state,
+            outputs=blocks_display
+        )
+        
+        # Delete block handler
+        delete_trigger.click(
+            fn=delete_block,
+            inputs=[blocks_state, delete_block_id],
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=blocks_state,
+            outputs=blocks_display
+        )
 
     return app
 

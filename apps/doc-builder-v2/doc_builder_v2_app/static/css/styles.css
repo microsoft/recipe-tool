@@ -27,8 +27,6 @@
     background-color: #8e8e8e !important;
     border-color: #8e8e8e !important;
 }
-
-/* Import Builder button - medium grey */
 .import-builder-btn {
     width: 170px !important;
     min-width: 170px !important;
@@ -36,7 +34,7 @@
     height: 30px !important;
 }
 
-/* Header section row */
+/* Header section */
 .header-section {
     background-color: #ffffff !important;
     border-radius: 4px !important;
@@ -106,6 +104,25 @@
     margin-right: 5px !important;
     gap: 7px !important;
 }
+.workspace-display {
+    height: 700px !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 4px !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -ms-overflow-style: none !important;
+    /* IE and Edge */
+    scrollbar-width: none !important;
+    /* Firefox */
+}
+.workspace-display::-webkit-scrollbar {
+    display: none !important;
+    /* Chrome, Safari and Opera */
+}
+
+/* Workspace - Content block add buttons */
 .square-btn-group {
     border: 1px #f5f5f5 !important;
 }
@@ -142,21 +159,113 @@
     background-color: #f5f5f5 !important;
     border-color: #b0b0b0 !important;
 }
-.workspace-display {
-    height: 700px !important;
-    background-color: white !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e5e5;
-    border-radius: 4px !important;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -ms-overflow-style: none !important;  /* IE and Edge */
-    scrollbar-width: none !important;  /* Firefox */
-}
-.workspace-display::-webkit-scrollbar {
-    display: none !important;  /* Chrome, Safari and Opera */
+
+/* Workspace - Content block styling */
+.blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
+.content-block {
+    background-color: white;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+}
+
+.content-block:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ai-block {
+    border-left: 3px solid #4a9d9e !important;
+}
+.ai-block textarea {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+}
+.ai-block .block-resources {
+    margin-top: 10px;
+    min-height: 40px;
+    border: 1px dashed #4a9d9e;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+}
+
+.heading-block {
+    border-left: 2px solid #d0d0d0 !important;
+    padding: 10px 15px;
+}
+.heading-block input {
+    width: 100%;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.text-block {
+    border-left: 2px solid #d0d0d0 !important;
+}
+.text-block textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+}
+.text-block .block-resources {
+    margin-top: 10px;
+    min-height: 40px;
+    border: 1px dashed #d0d0d0;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+.content-block:hover .delete-btn {
+    opacity: 1;
+}
+.delete-btn:hover {
+    background-color: #ff6b6b;
+    border-color: #ff5252;
+    color: white;
+}
 
 /* Generate Document */
 .generate-col {
@@ -182,6 +291,8 @@
 .generate-display::-webkit-scrollbar {
     display: none !important;  /* Chrome, Safari and Opera */
 }
+
+/* Generate Document - buttons*/
 .generate-btn {
     width: 170px !important;
     min-width: 170px !important;
@@ -192,10 +303,12 @@
     color: white !important;
     font-weight: bold !important;
 }
+
 .generate-btn:hover {
     background-color: #3a8d8e !important;
     border-color: #3a8d8e !important;
 }
+
 .save-doc-btn {
     width: 170px !important;
     min-width: 170px !important;

@@ -1,6 +1,6 @@
 // Document Builder JavaScript
 
-function setupUploadButton() {
+function uploadResource() {
     // Try multiple selectors
     const uploadBtn = document.querySelector('.upload-resources-btn')
 
@@ -20,15 +20,37 @@ function setupUploadButton() {
     return false;
 }
 
+// Delete block function
+function deleteBlock(blockId) {
+    // Set the block ID in the hidden textbox
+    const blockIdInput = document.getElementById('delete-block-id');
+    if (blockIdInput) {
+        // Find the textarea element and set its value
+        const textarea = blockIdInput.querySelector('textarea');
+        if (textarea) {
+            textarea.value = blockId;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Trigger the hidden delete button
+            setTimeout(() => {
+                const deleteBtn = document.getElementById('delete-trigger');
+                if (deleteBtn) {
+                    deleteBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Try setting up when DOM loads and with a delay
-document.addEventListener('DOMContentLoaded', setupUploadButton);
+document.addEventListener('DOMContentLoaded', uploadResource);
 window.addEventListener('load', function() {
-    setTimeout(setupUploadButton, 1000);
+    setTimeout(uploadResource, 1000);
 });
 
 // Use MutationObserver as backup for dynamic content
 const observer = new MutationObserver(function() {
-    if (setupUploadButton()) {
+    if (uploadResource()) {
         observer.disconnect();
     }
 });

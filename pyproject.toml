@@ -2,6 +2,7 @@
 members = [
     "recipe-tool",
     "recipe-executor",
+    "apps/doc-builder-v2",
     "apps/doc-constructor",
     "shared/gradio-components",
     "apps/document-generator",
@@ -18,7 +19,6 @@ recipe-executor = { workspace = true }
 recipe-tool = { workspace = true }
 gradio-components = { workspace = true }
 # Apps
-doc-constructor-app = { workspace = true }
 recipe-executor-app = { workspace = true }
 recipe-tool-app = { workspace = true }
 # MCP servers
