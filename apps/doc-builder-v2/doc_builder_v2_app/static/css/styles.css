@@ -164,14 +164,16 @@
 .blocks-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
+}
+.blocks-container .html-container {
+    padding: 15px !important;
 }
 
 .content-block {
     background-color: white;
     border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 10px;
     position: relative;
     transition: box-shadow 0.2s ease;
 }
@@ -186,11 +188,14 @@
 .ai-block textarea {
     width: 100%;
     min-height: 150px;
-    border: 1px solid #e0e0e0;
+    border: none;
     border-radius: 4px;
     padding: 10px;
+    padding-top: 0px;
     font-size: 14px;
     resize: vertical;
+    background: transparent;
+    outline: none;
 }
 .ai-block .block-resources {
     margin-top: 10px;
@@ -206,7 +211,6 @@
 
 .heading-block {
     border-left: 2px solid #d0d0d0 !important;
-    padding: 10px 15px;
 }
 .heading-block input {
     width: 100%;
@@ -215,6 +219,11 @@
     border: none;
     outline: none;
     background: transparent;
+    padding: 10px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+    margin-right: 35px;
 }
 
 .text-block {
@@ -223,11 +232,14 @@
 .text-block textarea {
     width: 100%;
     min-height: 100px;
-    border: 1px solid #e0e0e0;
+    border: none;
     border-radius: 4px;
     padding: 10px;
+    padding-top: 0px;
     font-size: 14px;
     resize: vertical;
+    background: transparent;
+    outline: none;
 }
 .text-block .block-resources {
     margin-top: 10px;
@@ -243,8 +255,8 @@
 
 .delete-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 6px;
+    right: 6px;
     width: 24px;
     height: 24px;
     padding: 0;
@@ -267,11 +279,18 @@
     color: white;
 }
 
+/* Empty blocks message */
+.empty-blocks-message {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
 /* Collapsible blocks */
 .block-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     min-height: 36px;
     position: relative;
 }
@@ -314,7 +333,11 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    margin-left: 10px;
+    display: none;
+}
+
+.block-preview.show {
+    display: inline;
 }
 
 .content-block.collapsed {
@@ -326,8 +349,12 @@
 }
 
 .block-content {
-    margin-top: 10px;
+    display: none;
     transition: all 0.3s ease;
+}
+
+.block-content.show {
+    display: block;
 }
 
 /* Generate Document */

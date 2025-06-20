@@ -18,8 +18,7 @@ def add_heading_block(blocks):
     new_block = {
         'id': str(uuid.uuid4()),
         'type': 'heading',
-        'content': 'New Heading',
-        'collapsed': False
+        'content': 'Heading'
     }
     return blocks + [new_block]
 
@@ -57,81 +56,77 @@ def toggle_block_collapse(blocks, block_id):
 def render_blocks(blocks):
     """Render blocks as HTML."""
     if not blocks:
-        return "<div style='color: #999; text-align: center; padding: 20px;'>Click AI, H, or T to add content blocks</div>"
-    
+        return "<div class='empty-blocks-message'>Click AI, H, or T to add content blocks</div>"
+
     html = ""
     for block in blocks:
         block_id = block['id']
         is_collapsed = block.get('collapsed', False)
         collapsed_class = 'collapsed' if is_collapsed else ''
-        
+        preview_class = 'show' if is_collapsed else ''
+        content_class = '' if is_collapsed else 'show'
+
         if block['type'] == 'ai':
-            # Preview text for collapsed state
-            preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content'] or 'AI content block'
-            
+            # Preview text for collapsed state - use placeholder if no content
+            if block['content']:
+                preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+            else:
+                preview_text = 'Enter your AI instruction here...'
+
             html += f"""
             <div class='content-block ai-block {collapsed_class}' data-id='{block_id}'>
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-type-label'>AI Block</span>
-                    <span class='block-preview' style='display: {"inline" if is_collapsed else "none"}'>{preview_text}</span>
+                    <span class='block-preview {preview_class}'>{preview_text}</span>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
-                <div class='block-content' style='display: {"none" if is_collapsed else "block"}'>
-                    <textarea placeholder='AI will generate content here based on resources...' 
-                              oninput='updateBlockContent("{block_id}", this.value)'
-                              style='width: 100%; min-height: 150px; border: none; resize: vertical;'>{block['content']}</textarea>
-                    <div class='block-resources' style='margin-top: 10px; min-height: 40px; border: 1px dashed #ccc; padding: 5px;'>
-                        Drop resources here
+                <div class='block-content {content_class}'>
+                    <textarea placeholder='Enter your AI instruction here...''
+                              oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
+                    <div class='block-resources'>
+                        Drop AI resources here
                     </div>
                 </div>
             </div>
             """
         elif block['type'] == 'heading':
             html += f"""
-            <div class='content-block heading-block {collapsed_class}' data-id='{block_id}'>
-                <div class='block-header'>
-                    <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
-                        <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
-                    </button>
-                    <span class='block-type-label'>Heading</span>
-                    <span class='block-preview' style='display: {"inline" if is_collapsed else "none"}'>{block['content']}</span>
+            <div class='content-block heading-block' data-id='{block_id}'>
+                <div class='block-header heading-header'>
+                    <input type='text' value='{block['content']}'
+                           oninput='updateBlockContent("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
-                </div>
-                <div class='block-content' style='display: {"none" if is_collapsed else "block"}'>
-                    <input type='text' value='{block['content']}' 
-                           oninput='updateBlockContent("{block_id}", this.value)'
-                           style='width: 100%; font-size: 18px; font-weight: bold; border: none;'/>
                 </div>
             </div>
             """
         elif block['type'] == 'text':
-            # Preview text for collapsed state
-            preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content'] or 'Text block'
-            
+            # Preview text for collapsed state - use placeholder if no content
+            if block['content']:
+                preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+            else:
+                preview_text = 'Enter your text here...'
+
             html += f"""
             <div class='content-block text-block {collapsed_class}' data-id='{block_id}'>
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-type-label'>Text Block</span>
-                    <span class='block-preview' style='display: {"inline" if is_collapsed else "none"}'>{preview_text}</span>
+                    <span class='block-preview {preview_class}'>{preview_text}</span>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
-                <div class='block-content' style='display: {"none" if is_collapsed else "block"}'>
-                    <textarea placeholder='Enter your text here...' 
-                              oninput='updateBlockContent("{block_id}", this.value)'
-                              style='width: 100%; min-height: 100px; border: none; resize: vertical;'>{block['content']}</textarea>
-                    <div class='block-resources' style='margin-top: 10px; min-height: 40px; border: 1px dashed #ccc; padding: 5px;'>
-                        Drop resources here
+                <div class='block-content {content_class}'>
+                    <textarea placeholder='Enter your text here...'
+                              oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
+                    <div class='block-resources'>
+                        Drop text resources here
                     </div>
                 </div>
             </div>
             """
-    
+
     return html
 
 def handle_file_upload(files, current_resources):
@@ -192,14 +187,13 @@ def create_app():
     with gr.Blocks(css=custom_css, head=custom_js) as app:
         # State to track resources and blocks
         resources_state = gr.State([])
-        
+
         # Initialize with default blocks
         initial_blocks = [
             {
                 'id': str(uuid.uuid4()),
                 'type': 'heading',
-                'content': 'Introduction',
-                'collapsed': False
+                'content': 'Heading'
             },
             {
                 'id': str(uuid.uuid4()),
@@ -211,8 +205,7 @@ def create_app():
             {
                 'id': str(uuid.uuid4()),
                 'type': 'heading',
-                'content': 'Details',
-                'collapsed': False
+                'content': 'Heading'
             },
             {
                 'id': str(uuid.uuid4()),
@@ -338,16 +331,16 @@ def create_app():
                         value=render_blocks(initial_blocks),
                         elem_classes="blocks-container"
                     )
-                    
+
                     # Hidden components for JS communication
                     delete_block_id = gr.Textbox(visible=False, elem_id="delete-block-id")
                     delete_trigger = gr.Button("Delete", visible=False, elem_id="delete-trigger")
-                    
+
                     # Hidden components for content updates
                     update_block_id = gr.Textbox(visible=False, elem_id="update-block-id")
                     update_content_input = gr.Textbox(visible=False, elem_id="update-content-input")
                     update_trigger = gr.Button("Update", visible=False, elem_id="update-trigger")
-                    
+
                     # Hidden components for toggle collapse
                     toggle_block_id = gr.Textbox(visible=False, elem_id="toggle-block-id")
                     toggle_trigger = gr.Button("Toggle", visible=False, elem_id="toggle-trigger")
@@ -376,7 +369,7 @@ def create_app():
                         value="*Click 'Generate Document' to see the generated content here*",
                         elem_classes="generated-content"
                     )
-        
+
         # Connect button clicks to add blocks
         ai_btn.click(
             fn=add_ai_block,
@@ -387,7 +380,7 @@ def create_app():
             inputs=blocks_state,
             outputs=blocks_display
         )
-        
+
         h_btn.click(
             fn=add_heading_block,
             inputs=blocks_state,
@@ -397,7 +390,7 @@ def create_app():
             inputs=blocks_state,
             outputs=blocks_display
         )
-        
+
         t_btn.click(
             fn=add_text_block,
             inputs=blocks_state,
@@ -407,7 +400,7 @@ def create_app():
             inputs=blocks_state,
             outputs=blocks_display
         )
-        
+
         # Delete block handler
         delete_trigger.click(
             fn=delete_block,
@@ -418,14 +411,14 @@ def create_app():
             inputs=blocks_state,
             outputs=blocks_display
         )
-        
+
         # Update block content handler
         update_trigger.click(
             fn=update_block_content,
             inputs=[blocks_state, update_block_id, update_content_input],
             outputs=blocks_state
         )
-        
+
         # Toggle collapse handler
         toggle_trigger.click(
             fn=toggle_block_collapse,
