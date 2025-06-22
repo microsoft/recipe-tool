@@ -7,6 +7,7 @@ def add_ai_block(blocks):
     new_block = {
         'id': str(uuid.uuid4()),
         'type': 'ai',
+        'heading': '',
         'content': '',
         'resources': [],
         'collapsed': False
@@ -27,6 +28,7 @@ def add_text_block(blocks):
     new_block = {
         'id': str(uuid.uuid4()),
         'type': 'text',
+        'heading': '',
         'content': '',
         'resources': [],
         'collapsed': False
@@ -45,6 +47,14 @@ def update_block_content(blocks, block_id, content):
             break
     return blocks
 
+def update_block_heading(blocks, block_id, heading):
+    """Update the heading of a specific block."""
+    for block in blocks:
+        if block['id'] == block_id:
+            block['heading'] = heading
+            break
+    return blocks
+
 def toggle_block_collapse(blocks, block_id):
     """Toggle the collapsed state of a specific block."""
     for block in blocks:
@@ -56,7 +66,7 @@ def toggle_block_collapse(blocks, block_id):
 def render_blocks(blocks):
     """Render blocks as HTML."""
     if not blocks:
-        return "<div class='empty-blocks-message'>Click AI, H, or T to add content blocks</div>"
+        return "<div class='empty-blocks-message'>Click AI or T to add content blocks</div>"
 
     html = ""
     for block in blocks:
@@ -67,11 +77,17 @@ def render_blocks(blocks):
         content_class = '' if is_collapsed else 'show'
 
         if block['type'] == 'ai':
-            # Preview text for collapsed state - use placeholder if no content
-            if block['content']:
-                preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+            # For collapsed state, show heading if available, otherwise show content preview
+            if is_collapsed:
+                heading_text = block.get('heading', '')
+                if heading_text:
+                    preview_text = heading_text
+                elif block['content']:
+                    preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+                else:
+                    preview_text = 'Enter your AI instruction here...'
             else:
-                preview_text = 'Enter your AI instruction here...'
+                preview_text = ''
 
             html += f"""
             <div class='content-block ai-block {collapsed_class}' data-id='{block_id}'>
@@ -83,6 +99,9 @@ def render_blocks(blocks):
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
+                    <input type='text' class='block-heading-input' placeholder='Heading (optional)'
+                           value='{block.get("heading", "")}' 
+                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <textarea placeholder='Enter your AI instruction here...'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
@@ -102,11 +121,17 @@ def render_blocks(blocks):
             </div>
             """
         elif block['type'] == 'text':
-            # Preview text for collapsed state - use placeholder if no content
-            if block['content']:
-                preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+            # For collapsed state, show heading if available, otherwise show content preview
+            if is_collapsed:
+                heading_text = block.get('heading', '')
+                if heading_text:
+                    preview_text = heading_text
+                elif block['content']:
+                    preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
+                else:
+                    preview_text = 'Enter your text here...'
             else:
-                preview_text = 'Enter your text here...'
+                preview_text = ''
 
             html += f"""
             <div class='content-block text-block {collapsed_class}' data-id='{block_id}'>
@@ -118,6 +143,9 @@ def render_blocks(blocks):
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
+                    <input type='text' class='block-heading-input' placeholder='Heading (optional)'
+                           value='{block.get("heading", "")}' 
+                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <textarea placeholder='Enter your text here...'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
@@ -192,24 +220,16 @@ def create_app():
         initial_blocks = [
             {
                 'id': str(uuid.uuid4()),
-                'type': 'heading',
-                'content': 'Heading'
-            },
-            {
-                'id': str(uuid.uuid4()),
                 'type': 'ai',
+                'heading': 'Section 1',
                 'content': '',
                 'resources': [],
                 'collapsed': False
             },
             {
                 'id': str(uuid.uuid4()),
-                'type': 'heading',
-                'content': 'Heading'
-            },
-            {
-                'id': str(uuid.uuid4()),
                 'type': 'text',
+                'heading': 'Section 2',
                 'content': '',
                 'resources': [],
                 'collapsed': False
@@ -314,11 +334,6 @@ def create_app():
                             elem_classes="square-btn ai-btn",
                             size="sm"
                         )
-                        h_btn = gr.Button(
-                            "H",
-                            elem_classes="square-btn h-btn",
-                            size="sm"
-                        )
                         t_btn = gr.Button(
                             "T",
                             elem_classes="square-btn t-btn",
@@ -344,6 +359,11 @@ def create_app():
                     # Hidden components for toggle collapse
                     toggle_block_id = gr.Textbox(visible=False, elem_id="toggle-block-id")
                     toggle_trigger = gr.Button("Toggle", visible=False, elem_id="toggle-trigger")
+                    
+                    # Hidden components for heading updates
+                    update_heading_block_id = gr.Textbox(visible=False, elem_id="update-heading-block-id")
+                    update_heading_input = gr.Textbox(visible=False, elem_id="update-heading-input")
+                    update_heading_trigger = gr.Button("Update Heading", visible=False, elem_id="update-heading-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -381,15 +401,6 @@ def create_app():
             outputs=blocks_display
         )
 
-        h_btn.click(
-            fn=add_heading_block,
-            inputs=blocks_state,
-            outputs=blocks_state
-        ).then(
-            fn=render_blocks,
-            inputs=blocks_state,
-            outputs=blocks_display
-        )
 
         t_btn.click(
             fn=add_text_block,
@@ -428,6 +439,13 @@ def create_app():
             fn=render_blocks,
             inputs=blocks_state,
             outputs=blocks_display
+        )
+        
+        # Update heading handler
+        update_heading_trigger.click(
+            fn=update_block_heading,
+            inputs=[blocks_state, update_heading_block_id, update_heading_input],
+            outputs=blocks_state
         )
 
     return app

@@ -71,6 +71,35 @@ function updateBlockContent(blockId, content) {
     }
 }
 
+// Update block heading function
+function updateBlockHeading(blockId, heading) {
+    // Set the block ID and heading in hidden inputs
+    const blockIdInput = document.getElementById('update-heading-block-id');
+    const headingInput = document.getElementById('update-heading-input');
+
+    if (blockIdInput && headingInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const headingTextarea = headingInput.querySelector('textarea');
+
+        if (blockIdTextarea && headingTextarea) {
+            blockIdTextarea.value = blockId;
+            headingTextarea.value = heading;
+
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            headingTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Trigger the update button
+            setTimeout(() => {
+                const updateBtn = document.getElementById('update-heading-trigger');
+                if (updateBtn) {
+                    updateBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Toggle block collapse function
 function toggleBlockCollapse(blockId, shouldFocus = false) {
     // Set the block ID in the hidden input

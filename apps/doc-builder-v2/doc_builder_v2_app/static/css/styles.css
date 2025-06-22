@@ -271,6 +271,32 @@
     background-color: #f8f8f8;
 }
 
+/* Heading input styles for AI and Text blocks */
+.block-heading-input {
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-bottom: 1px solid #e0e0e0;
+    outline: none;
+    background: transparent;
+    padding: 8px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+}
+
+.block-heading-input:focus {
+    border-bottom-color: #4a9d9e;
+}
+
+.ai-block .block-heading-input:focus {
+    border-bottom-color: #4a9d9e;
+}
+
+.text-block .block-heading-input:focus {
+    border-bottom-color: #666;
+}
+
 .delete-btn {
     position: absolute;
     top: 6px;
