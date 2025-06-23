@@ -211,7 +211,7 @@
     width: calc(100% - 90px);
 }
 .content-block[data-indent="4"] {
-    margin-left:120px;
+    margin-left: 120px;
     width: calc(100% - 120px);
 }
 .content-block[data-indent="5"] {
@@ -223,21 +223,23 @@
 .indent-controls {
     position: absolute;
     left: -35px;
-    top: 10px;
+    top: 0px;
     display: flex;
     flex-direction: column;
     gap: 2px;
     opacity: 0;
     transition: opacity 0.2s ease;
+    padding-top: 7px;
+    padding-bottom: 7px
 }
 
 /* Adjust indent control position based on indent level to keep them fixed */
-.content-block[data-indent="0"] .indent-controls { left: -35px; }
-.content-block[data-indent="1"] .indent-controls { left: -65px; }
-.content-block[data-indent="2"] .indent-controls { left: -95px; }
-.content-block[data-indent="3"] .indent-controls { left: -125px; }
-.content-block[data-indent="4"] .indent-controls { left: -155px; }
-.content-block[data-indent="5"] .indent-controls { left: -185px; }
+.content-block[data-indent="0"] .indent-controls { left: -35px; padding-right: 35px;}
+.content-block[data-indent="1"] .indent-controls { left: -65px; padding-right: 65px;}
+.content-block[data-indent="2"] .indent-controls { left: -95px; padding-right: 95px;}
+.content-block[data-indent="3"] .indent-controls { left: -125px; padding-right: 125px;}
+.content-block[data-indent="4"] .indent-controls { left: -155px; padding-right: 155px;}
+.content-block[data-indent="5"] .indent-controls { left: -185px; padding-right: 185px;}
 
 .content-block:hover .indent-controls {
     opacity: 1;

@@ -13,11 +13,11 @@ def add_ai_block(blocks, focused_block_id=None):
         'collapsed': True,  # Start collapsed
         'indent_level': 0
     }
-    
+
     # If no focused block or focused block not found, add at the end
     if not focused_block_id:
         return blocks + [new_block]
-    
+
     # Find the focused block and insert after it
     for i, block in enumerate(blocks):
         if block['id'] == focused_block_id:
@@ -25,7 +25,7 @@ def add_ai_block(blocks, focused_block_id=None):
             new_block['indent_level'] = block.get('indent_level', 0)
             # Insert after the focused block
             return blocks[:i+1] + [new_block] + blocks[i+1:]
-    
+
     # If focused block not found, add at the end
     return blocks + [new_block]
 
@@ -49,11 +49,11 @@ def add_text_block(blocks, focused_block_id=None):
         'collapsed': True,  # Start collapsed
         'indent_level': 0
     }
-    
+
     # If no focused block or focused block not found, add at the end
     if not focused_block_id:
         return blocks + [new_block]
-    
+
     # Find the focused block and insert after it
     for i, block in enumerate(blocks):
         if block['id'] == focused_block_id:
@@ -61,7 +61,7 @@ def add_text_block(blocks, focused_block_id=None):
             new_block['indent_level'] = block.get('indent_level', 0)
             # Insert after the focused block
             return blocks[:i+1] + [new_block] + blocks[i+1:]
-    
+
     # If focused block not found, add at the end
     return blocks + [new_block]
 
@@ -118,29 +118,29 @@ def update_block_indent(blocks, block_id, direction):
         if block['id'] == block_id:
             block_index = i
             break
-    
+
     if block_index is None:
         return blocks
-    
+
     block = blocks[block_index]
     current_level = block.get('indent_level', 0)
-    
+
     if direction == 'in':
         # Check if this is the first block - if so, can't indent at all
         if block_index == 0:
             return blocks
-        
+
         # Get the previous block's indent level
         prev_block = blocks[block_index - 1]
         prev_level = prev_block.get('indent_level', 0)
         max_allowed_level = prev_level + 1
-        
+
         # Can only indent if current level is less than max allowed and less than 5
         if current_level < max_allowed_level and current_level < 5:
             block['indent_level'] = current_level + 1
     elif direction == 'out' and current_level > 0:
         block['indent_level'] = current_level - 1
-    
+
     return blocks
 
 def render_blocks(blocks, focused_block_id=None):
@@ -175,7 +175,7 @@ def render_blocks(blocks, focused_block_id=None):
                 indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
-            
+
             if indent_level > 0:
                 indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
             else:
@@ -189,7 +189,7 @@ def render_blocks(blocks, focused_block_id=None):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <input type='text' class='block-heading-inline' placeholder='Heading (optional)'
+                    <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
                            onfocus='setFocusedBlock("{block_id}")'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
@@ -233,7 +233,7 @@ def render_blocks(blocks, focused_block_id=None):
                 indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
-            
+
             if indent_level > 0:
                 indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
             else:
@@ -247,7 +247,7 @@ def render_blocks(blocks, focused_block_id=None):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <input type='text' class='block-heading-inline' placeholder='Heading (optional)'
+                    <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
                            onfocus='setFocusedBlock("{block_id}")'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
@@ -331,7 +331,7 @@ def create_app():
             {
                 'id': str(uuid.uuid4()),
                 'type': 'ai',
-                'heading': 'Section 1',
+                'heading': '',
                 'content': '',
                 'resources': [],
                 'collapsed': False,  # AI block starts expanded
@@ -340,7 +340,7 @@ def create_app():
             {
                 'id': str(uuid.uuid4()),
                 'type': 'text',
-                'heading': 'Section 2',
+                'heading': '',
                 'content': '',
                 'resources': [],
                 'collapsed': True,   # Text block starts collapsed
@@ -475,12 +475,12 @@ def create_app():
                     update_heading_block_id = gr.Textbox(visible=False, elem_id="update-heading-block-id")
                     update_heading_input = gr.Textbox(visible=False, elem_id="update-heading-input")
                     update_heading_trigger = gr.Button("Update Heading", visible=False, elem_id="update-heading-trigger")
-                    
+
                     # Hidden components for indent updates
                     indent_block_id = gr.Textbox(visible=False, elem_id="indent-block-id")
                     indent_direction = gr.Textbox(visible=False, elem_id="indent-direction")
                     indent_trigger = gr.Button("Update Indent", visible=False, elem_id="indent-trigger")
-                    
+
                     # Hidden components for focus tracking
                     focus_block_id = gr.Textbox(visible=False, elem_id="focus-block-id")
                     focus_trigger = gr.Button("Set Focus", visible=False, elem_id="focus-trigger")
@@ -579,7 +579,7 @@ def create_app():
             inputs=update_heading_block_id,
             outputs=focused_block_state
         )
-        
+
         # Update indent handler
         indent_trigger.click(
             fn=update_block_indent,
@@ -594,7 +594,7 @@ def create_app():
             inputs=indent_block_id,
             outputs=focused_block_state
         )
-        
+
         # Focus handler
         focus_trigger.click(
             fn=set_focused_block,

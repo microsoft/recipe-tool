@@ -269,5 +269,6 @@ function setFocusedBlock(blockId) {
     }
 }
 
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
