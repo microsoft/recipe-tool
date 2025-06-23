@@ -218,5 +218,34 @@ if (document.body) {
     });
 }
 
+// Update block indent function
+function updateBlockIndent(blockId, direction) {
+    // Set the block ID and direction in hidden inputs
+    const blockIdInput = document.getElementById('indent-block-id');
+    const directionInput = document.getElementById('indent-direction');
+
+    if (blockIdInput && directionInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const directionTextarea = directionInput.querySelector('textarea');
+
+        if (blockIdTextarea && directionTextarea) {
+            blockIdTextarea.value = blockId;
+            directionTextarea.value = direction;
+
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            directionTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Trigger the update button
+            setTimeout(() => {
+                const indentBtn = document.getElementById('indent-trigger');
+                if (indentBtn) {
+                    indentBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;

@@ -10,7 +10,8 @@ def add_ai_block(blocks):
         'heading': '',
         'content': '',
         'resources': [],
-        'collapsed': False
+        'collapsed': False,
+        'indent_level': 0
     }
     return blocks + [new_block]
 
@@ -31,7 +32,8 @@ def add_text_block(blocks):
         'heading': '',
         'content': '',
         'resources': [],
-        'collapsed': False
+        'collapsed': False,
+        'indent_level': 0
     }
     return blocks + [new_block]
 
@@ -63,6 +65,18 @@ def toggle_block_collapse(blocks, block_id):
             break
     return blocks
 
+def update_block_indent(blocks, block_id, direction):
+    """Update the indent level of a specific block."""
+    for block in blocks:
+        if block['id'] == block_id:
+            current_level = block.get('indent_level', 0)
+            if direction == 'in' and current_level < 5:
+                block['indent_level'] = current_level + 1
+            elif direction == 'out' and current_level > 0:
+                block['indent_level'] = current_level - 1
+            break
+    return blocks
+
 def render_blocks(blocks):
     """Render blocks as HTML."""
     if not blocks:
@@ -78,9 +92,24 @@ def render_blocks(blocks):
 
         if block['type'] == 'ai':
             heading_value = block.get('heading', '')
+            indent_level = block.get('indent_level', 0)
+
+            # Build indent controls - always include both buttons, just hide if not applicable
+            indent_controls = '<div class="indent-controls">'
+            if indent_level < 5:
+                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
+            else:
+                indent_controls += '<div class="indent-btn-placeholder"></div>'
+            
+            if indent_level > 0:
+                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
+            else:
+                indent_controls += '<div class="indent-btn-placeholder"></div>'
+            indent_controls += '</div>'
 
             html += f"""
-            <div class='content-block ai-block {collapsed_class}' data-id='{block_id}'>
+            <div class='content-block ai-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
+                {indent_controls}
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
@@ -111,9 +140,24 @@ def render_blocks(blocks):
             """
         elif block['type'] == 'text':
             heading_value = block.get('heading', '')
+            indent_level = block.get('indent_level', 0)
+
+            # Build indent controls - always include both buttons, just hide if not applicable
+            indent_controls = '<div class="indent-controls">'
+            if indent_level < 5:
+                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
+            else:
+                indent_controls += '<div class="indent-btn-placeholder"></div>'
+            
+            if indent_level > 0:
+                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
+            else:
+                indent_controls += '<div class="indent-btn-placeholder"></div>'
+            indent_controls += '</div>'
 
             html += f"""
-            <div class='content-block text-block {collapsed_class}' data-id='{block_id}'>
+            <div class='content-block text-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
+                {indent_controls}
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
@@ -202,7 +246,8 @@ def create_app():
                 'heading': 'Section 1',
                 'content': '',
                 'resources': [],
-                'collapsed': False
+                'collapsed': False,
+                'indent_level': 0
             },
             {
                 'id': str(uuid.uuid4()),
@@ -210,7 +255,8 @@ def create_app():
                 'heading': 'Section 2',
                 'content': '',
                 'resources': [],
-                'collapsed': False
+                'collapsed': False,
+                'indent_level': 0
             }
         ]
         blocks_state = gr.State(initial_blocks)
@@ -341,6 +387,11 @@ def create_app():
                     update_heading_block_id = gr.Textbox(visible=False, elem_id="update-heading-block-id")
                     update_heading_input = gr.Textbox(visible=False, elem_id="update-heading-input")
                     update_heading_trigger = gr.Button("Update Heading", visible=False, elem_id="update-heading-trigger")
+                    
+                    # Hidden components for indent updates
+                    indent_block_id = gr.Textbox(visible=False, elem_id="indent-block-id")
+                    indent_direction = gr.Textbox(visible=False, elem_id="indent-direction")
+                    indent_trigger = gr.Button("Update Indent", visible=False, elem_id="indent-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -423,6 +474,17 @@ def create_app():
             fn=update_block_heading,
             inputs=[blocks_state, update_heading_block_id, update_heading_input],
             outputs=blocks_state
+        )
+        
+        # Update indent handler
+        indent_trigger.click(
+            fn=update_block_indent,
+            inputs=[blocks_state, indent_block_id, indent_direction],
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=blocks_state,
+            outputs=blocks_display
         )
 
     return app

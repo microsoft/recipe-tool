@@ -164,6 +164,7 @@
 }
 .blocks-container .html-container {
     padding: 15px !important;
+    padding-left: 50px !important; /* Extra space for indent controls */
 }
 
 .content-block {
@@ -171,11 +172,96 @@
     border-radius: 4px;
     padding: 10px;
     position: relative;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, margin-left 0.2s ease, width 0.2s ease;
 }
 
 .content-block:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Indentation levels - using margin for visual indent but keeping arrows fixed */
+.content-block[data-indent="0"] {
+    margin-left: 0;
+    width: 100%;
+}
+.content-block[data-indent="1"] {
+    margin-left: 30px;
+    width: calc(100% - 30px);
+}
+.content-block[data-indent="2"] {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+}
+.content-block[data-indent="3"] {
+    margin-left: 90px;
+    width: calc(100% - 90px);
+}
+.content-block[data-indent="4"] {
+    margin-left:120px;
+    width: calc(100% - 120px);
+}
+.content-block[data-indent="5"] {
+    margin-left: 150px;
+    width: calc(100% - 150px);
+}
+
+/* Indent controls */
+.indent-controls {
+    position: absolute;
+    left: -35px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Adjust indent control position based on indent level to keep them fixed */
+.content-block[data-indent="0"] .indent-controls { left: -35px; }
+.content-block[data-indent="1"] .indent-controls { left: -65px; }
+.content-block[data-indent="2"] .indent-controls { left: -95px; }
+.content-block[data-indent="3"] .indent-controls { left: -125px; }
+.content-block[data-indent="4"] .indent-controls { left: -155px; }
+.content-block[data-indent="5"] .indent-controls { left: -185px; }
+
+.content-block:hover .indent-controls {
+    opacity: 1;
+}
+
+.indent-btn {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.indent-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+.indent-btn.outdent {
+    color: #666;
+}
+
+.indent-btn.indent {
+    color: #4a9d9e;
+}
+
+/* Placeholder to maintain spacing when button is hidden */
+.indent-btn-placeholder {
+    width: 20px;
+    height: 20px;
 }
 
 .ai-block {
