@@ -91,22 +91,10 @@ def set_focused_block(block_id):
 
 def toggle_block_collapse(blocks, block_id):
     """Toggle the collapsed state of a specific block."""
-    focused_id = None
     for block in blocks:
         if block['id'] == block_id:
-            # If currently collapsed, expand this and collapse all others
-            if block.get('collapsed', False):
-                # Collapse all blocks first
-                for b in blocks:
-                    if b['type'] in ['ai', 'text']:
-                        b['collapsed'] = True
-                # Then expand only this one
-                block['collapsed'] = False
-                # This block is now focused since it's expanded
-                focused_id = block_id
-            else:
-                # If currently expanded, just collapse it
-                block['collapsed'] = True
+            # Simply toggle the collapsed state
+            block['collapsed'] = not block.get('collapsed', False)
             break
     return blocks
 
