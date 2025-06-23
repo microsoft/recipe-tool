@@ -101,7 +101,7 @@ function updateBlockHeading(blockId, heading) {
 }
 
 // Toggle block collapse function
-function toggleBlockCollapse(blockId, shouldFocus = false) {
+function toggleBlockCollapse(blockId) {
     // Set the block ID in the hidden input
     const blockIdInput = document.getElementById('toggle-block-id');
     if (blockIdInput) {
@@ -115,23 +115,6 @@ function toggleBlockCollapse(blockId, shouldFocus = false) {
                 const toggleBtn = document.getElementById('toggle-trigger');
                 if (toggleBtn) {
                     toggleBtn.click();
-
-                    // If we should focus, wait for the block to expand then focus
-                    if (shouldFocus) {
-                        setTimeout(() => {
-                            const block = document.querySelector(`[data-id="${blockId}"]`);
-                            if (block) {
-                                const textArea = block.querySelector('textarea');
-                                if (textArea) {
-                                    // Ensure auto-expand is setup before focusing
-                                    setupAutoExpand();
-                                    textArea.focus();
-                                    // Move cursor to end of text
-                                    textArea.setSelectionRange(textArea.value.length, textArea.value.length);
-                                }
-                            }
-                        }, 200);
-                    }
                 }
             }, 100);
         }

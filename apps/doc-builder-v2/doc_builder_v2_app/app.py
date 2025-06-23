@@ -77,17 +77,7 @@ def render_blocks(blocks):
         content_class = '' if is_collapsed else 'show'
 
         if block['type'] == 'ai':
-            # For collapsed state, show heading if available, otherwise show content preview
-            if is_collapsed:
-                heading_text = block.get('heading', '')
-                if heading_text:
-                    preview_text = heading_text
-                elif block['content']:
-                    preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
-                else:
-                    preview_text = 'Enter your AI instruction here...'
-            else:
-                preview_text = ''
+            heading_value = block.get('heading', '')
 
             html += f"""
             <div class='content-block ai-block {collapsed_class}' data-id='{block_id}'>
@@ -95,13 +85,12 @@ def render_blocks(blocks):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-preview {preview_class} clickable' onclick='toggleBlockCollapse("{block_id}", true)'>{preview_text}</span>
+                    <input type='text' class='block-heading-inline' placeholder='Heading (optional)'
+                           value='{heading_value}'
+                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <input type='text' class='block-heading-input' placeholder='Heading (optional)'
-                           value='{block.get("heading", "")}' 
-                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <textarea placeholder='Enter your AI instruction here...'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
@@ -121,17 +110,7 @@ def render_blocks(blocks):
             </div>
             """
         elif block['type'] == 'text':
-            # For collapsed state, show heading if available, otherwise show content preview
-            if is_collapsed:
-                heading_text = block.get('heading', '')
-                if heading_text:
-                    preview_text = heading_text
-                elif block['content']:
-                    preview_text = block['content'][:50] + '...' if len(block['content']) > 50 else block['content']
-                else:
-                    preview_text = 'Enter your text here...'
-            else:
-                preview_text = ''
+            heading_value = block.get('heading', '')
 
             html += f"""
             <div class='content-block text-block {collapsed_class}' data-id='{block_id}'>
@@ -139,13 +118,12 @@ def render_blocks(blocks):
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
                         <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
                     </button>
-                    <span class='block-preview {preview_class} clickable' onclick='toggleBlockCollapse("{block_id}", true)'>{preview_text}</span>
+                    <input type='text' class='block-heading-inline' placeholder='Heading (optional)'
+                           value='{heading_value}'
+                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <input type='text' class='block-heading-input' placeholder='Heading (optional)'
-                           value='{block.get("heading", "")}' 
-                           oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <textarea placeholder='Enter your text here...'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
@@ -326,19 +304,18 @@ def create_app():
 
             # Workspace column: AI, H, T buttons (aligned left)
             with gr.Column(scale=1, elem_classes="workspace-col"):
-                # Button group container
-                with gr.Group(elem_classes="square-btn-group"):
-                    with gr.Row(elem_classes="square-btn-row"):
-                        ai_btn = gr.Button(
-                            "AI",
-                            elem_classes="square-btn ai-btn",
-                            size="sm"
-                        )
-                        t_btn = gr.Button(
-                            "T",
-                            elem_classes="square-btn t-btn",
-                            size="sm"
-                        )
+                with gr.Row(elem_classes="square-btn-row"):
+                    ai_btn = gr.Button(
+                        "+ AI Instruction",
+                        elem_classes="ai-btn",
+                        size="sm"
+                    )
+                    t_btn = gr.Button(
+                        "+ Custom Text",
+                        elem_classes="text-btn",
+                        variant="secondary",
+                        size="sm"
+                    )
 
                 # Workspace panel for stacking content blocks
                 with gr.Column(elem_classes="workspace-display"):
@@ -359,7 +336,7 @@ def create_app():
                     # Hidden components for toggle collapse
                     toggle_block_id = gr.Textbox(visible=False, elem_id="toggle-block-id")
                     toggle_trigger = gr.Button("Toggle", visible=False, elem_id="toggle-trigger")
-                    
+
                     # Hidden components for heading updates
                     update_heading_block_id = gr.Textbox(visible=False, elem_id="update-heading-block-id")
                     update_heading_input = gr.Textbox(visible=False, elem_id="update-heading-input")
@@ -440,7 +417,7 @@ def create_app():
             inputs=blocks_state,
             outputs=blocks_display
         )
-        
+
         # Update heading handler
         update_heading_trigger.click(
             fn=update_block_heading,

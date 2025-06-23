@@ -133,41 +133,27 @@
 }
 
 /* Workspace - Content block add buttons */
-.square-btn-group {
-    border: 1px #f5f5f5 !important;
-}
-.square-btn-row {
-    background-color: #f5f5f5 !important;
-}
-.square-btn {
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-    padding: 0 !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-    border-radius: 4px !important;
-
-    margin-right: 5px !important;
-}
 .ai-btn {
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    height: 30px !important;
     background-color: #4a9d9e !important;
     border: 1px solid #4a9d9e !important;
     color: white !important;
+    font-weight: bold !important;
 }
 .ai-btn:hover {
     background-color: #3a8d8e !important;
     border-color: #3a8d8e !important;
 }
-.h-btn, .t-btn {
-    background-color: white !important;
-    border: 1px solid #d0d0d0 !important;
-    color: black !important;
-}
-.h-btn:hover, .t-btn:hover {
-    background-color: #f5f5f5 !important;
-    border-color: #b0b0b0 !important;
+
+.text-btn {
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    height: 30px !important;
+    font-weight: bold !important;
 }
 
 /* Workspace - Content block styling */
@@ -271,30 +257,37 @@
     background-color: #f8f8f8;
 }
 
-/* Heading input styles for AI and Text blocks */
-.block-heading-input {
-    width: 100%;
+/* Heading input styles for AI and Text blocks - inline version */
+.block-heading-inline {
+    flex: 1;
     font-size: 16px;
     font-weight: bold;
     border: none;
-    border-bottom: 1px solid #e0e0e0;
     outline: none;
     background: transparent;
-    padding: 8px;
-    margin-bottom: 10px;
-    transition: border-color 0.2s ease;
+    padding: 4px 8px;
+    margin: 0 8px;
+    color: #333;
+    transition: background-color 0.2s ease;
 }
 
-.block-heading-input:focus {
-    border-bottom-color: #4a9d9e;
+.block-heading-inline:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
-.ai-block .block-heading-input:focus {
-    border-bottom-color: #4a9d9e;
+.block-heading-inline::placeholder {
+    color: #999;
+    font-weight: normal;
 }
 
-.text-block .block-heading-input:focus {
-    border-bottom-color: #666;
+/* Update block header to use flexbox for proper alignment */
+.block-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 36px;
+    position: relative;
 }
 
 .delete-btn {
@@ -331,14 +324,6 @@
 }
 
 /* Collapsible blocks */
-.block-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    min-height: 36px;
-    position: relative;
-}
-
 .collapse-btn {
     width: 24px;
     height: 24px;
@@ -361,36 +346,6 @@
 .collapse-icon {
     display: inline-block;
     transition: transform 0.2s ease;
-}
-
-.block-type-label {
-    font-size: 12px;
-    font-weight: bold;
-    color: #666;
-    text-transform: uppercase;
-}
-
-.block-preview {
-    flex: 1;
-    font-size: 14px;
-    color: #999;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: none;
-}
-
-.block-preview.show {
-    display: inline;
-}
-
-.block-preview.clickable {
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.block-preview.clickable:hover {
-    color: #666;
 }
 
 .content-block.collapsed {
