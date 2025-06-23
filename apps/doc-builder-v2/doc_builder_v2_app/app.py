@@ -74,6 +74,11 @@ def update_block_content(blocks, block_id, content):
     for block in blocks:
         if block['id'] == block_id:
             block['content'] = content
+            # Also save to type-specific field
+            if block['type'] == 'ai':
+                block['ai_content'] = content
+            elif block['type'] == 'text':
+                block['text_content'] = content
             break
     return blocks
 
@@ -88,6 +93,41 @@ def update_block_heading(blocks, block_id, heading):
 def set_focused_block(block_id):
     """Set the currently focused block."""
     return block_id
+
+def convert_block_type(blocks, block_id, to_type):
+    """Convert a block from one type to another while preserving separate content for each type."""
+    for block in blocks:
+        if block['id'] == block_id:
+            current_type = block['type']
+
+            # Save current content to type-specific field
+            if current_type == 'ai':
+                block['ai_content'] = block.get('content', '')
+                block['ai_resources'] = block.get('resources', [])
+            elif current_type == 'text':
+                block['text_content'] = block.get('content', '')
+                block['text_resources'] = block.get('resources', [])
+
+            # Switch to new type
+            block['type'] = to_type
+
+            # Load content for the new type
+            if to_type == 'ai':
+                block['content'] = block.get('ai_content', '')
+                block['resources'] = block.get('ai_resources', [])
+            elif to_type == 'text':
+                block['content'] = block.get('text_content', '')
+                block['resources'] = block.get('text_resources', [])
+
+            # Ensure all required fields exist
+            if 'heading' not in block:
+                block['heading'] = ''
+            if 'collapsed' not in block:
+                block['collapsed'] = False
+            if 'indent_level' not in block:
+                block['indent_level'] = 0
+            break
+    return blocks
 
 def toggle_block_collapse(blocks, block_id):
     """Toggle the collapsed state of a specific block."""
@@ -143,7 +183,6 @@ def render_blocks(blocks, focused_block_id=None):
         collapsed_class = 'collapsed' if is_collapsed else ''
         preview_class = 'show' if is_collapsed else ''
         content_class = '' if is_collapsed else 'show'
-        focused_class = 'focused' if focused_block_id == block_id else ''
 
         if block['type'] == 'ai':
             heading_value = block.get('heading', '')
@@ -160,22 +199,22 @@ def render_blocks(blocks, focused_block_id=None):
             indent_controls = '<div class="indent-controls">'
             # Show indent button only if we can indent further
             if indent_level < 5 and indent_level < max_allowed_indent:
-                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
+                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">⇥</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
 
             if indent_level > 0:
-                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
+                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">⇤</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
             indent_controls += '</div>'
 
             html += f"""
-            <div class='content-block ai-block {collapsed_class} {focused_class}' data-id='{block_id}' data-indent='{indent_level}'>
+            <div class='content-block ai-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
                 {indent_controls}
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
-                        <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
+                        <span class='collapse-icon'>{'›' if is_collapsed else '›'}</span>
                     </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
@@ -183,10 +222,11 @@ def render_blocks(blocks, focused_block_id=None):
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                     <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
+                    <button class='convert-btn convert-to-text {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "text")'>T</button>
                 </div>
                 <div class='block-content {content_class}'>
                     <textarea placeholder='Enter your AI instruction here...'
-                              onfocus='setFocusedBlock("{block_id}")'
+                              onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
                         Drop AI resources here
@@ -220,33 +260,33 @@ def render_blocks(blocks, focused_block_id=None):
             indent_controls = '<div class="indent-controls">'
             # Show indent button only if we can indent further
             if indent_level < 5 and indent_level < max_allowed_indent:
-                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">▶</button>'
+                indent_controls += f'<button class="indent-btn indent" onclick="updateBlockIndent(\'{block_id}\', \'in\')">⇥</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
 
             if indent_level > 0:
-                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">◀</button>'
+                indent_controls += f'<button class="indent-btn outdent" onclick="updateBlockIndent(\'{block_id}\', \'out\')">⇤</button>'
             else:
                 indent_controls += '<div class="indent-btn-placeholder"></div>'
             indent_controls += '</div>'
 
             html += f"""
-            <div class='content-block text-block {collapsed_class} {focused_class}' data-id='{block_id}' data-indent='{indent_level}'>
+            <div class='content-block text-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
                 {indent_controls}
                 <div class='block-header'>
                     <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
-                        <span class='collapse-icon'>{'▶' if is_collapsed else '▼'}</span>
+                        <span class='collapse-icon'>{'›' if is_collapsed else '›'}</span>
                     </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
-                           onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                     <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
+                    <button class='convert-btn convert-to-ai {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "ai")'>AI</button>
                 </div>
                 <div class='block-content {content_class}'>
                     <textarea placeholder='Enter your text here...'
-                              onfocus='setFocusedBlock("{block_id}")'
+                              onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block['content']}</textarea>
                     <div class='block-resources'>
                         Drop text resources here
@@ -356,14 +396,14 @@ def create_app():
                     # Add empty space to push buttons to the right
                     gr.HTML("<div style='flex: 1;'></div>")
                     import_builder_btn = gr.Button(
-                        "Import Builder",
+                        "Import",
                         elem_id="import-builder-btn-id",
                         variant="secondary",
                         size="sm",
                         elem_classes="import-builder-btn"
                     )
                     save_builder_btn = gr.Button(
-                        "Save Builder",
+                        "Save",
                         elem_id="save-builder-btn-id",
                         variant="primary",
                         size="sm",
@@ -431,14 +471,8 @@ def create_app():
             with gr.Column(scale=1, elem_classes="workspace-col"):
                 with gr.Row(elem_classes="square-btn-row"):
                     ai_btn = gr.Button(
-                        "+ AI Instruction",
-                        elem_classes="ai-btn",
-                        size="sm"
-                    )
-                    t_btn = gr.Button(
-                        "+ Custom Text",
-                        elem_classes="text-btn",
-                        variant="secondary",
+                        "+ Add Section",
+                        elem_classes="add-section-btn",
                         size="sm"
                     )
 
@@ -475,26 +509,31 @@ def create_app():
                     # Hidden components for focus tracking
                     focus_block_id = gr.Textbox(visible=False, elem_id="focus-block-id")
                     focus_trigger = gr.Button("Set Focus", visible=False, elem_id="focus-trigger")
-                    
+
                     # Hidden components for adding block after
                     add_after_block_id = gr.Textbox(visible=False, elem_id="add-after-block-id")
                     add_after_type = gr.Textbox(visible=False, elem_id="add-after-type")
                     add_after_trigger = gr.Button("Add After", visible=False, elem_id="add-after-trigger")
 
+                    # Hidden components for converting block type
+                    convert_block_id = gr.Textbox(visible=False, elem_id="convert-block-id")
+                    convert_type = gr.Textbox(visible=False, elem_id="convert-type")
+                    convert_trigger = gr.Button("Convert", visible=False, elem_id="convert-trigger")
+
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
-                with gr.Row():
+                with gr.Row(elem_classes="generate-btn-row"):
                     # Add empty space to push buttons to the right
                     gr.HTML("<div style='flex: 1;'></div>")
                     generate_doc_btn = gr.Button(
-                        "Generate Document",
+                        "▷ Generate",
                         elem_classes="generate-btn",
                         variant="primary",
                         size="sm"
                     )
                     save_doc_btn = gr.Button(
-                        "Save Document",
-                        elem_classes="save-doc-btn",
+                        "Download",
+                        elem_classes="download-btn",
                         variant="secondary",
                         size="sm"
                     )
@@ -506,23 +545,12 @@ def create_app():
                         elem_classes="generated-content"
                     )
 
-        # Create a constant None state for top buttons
+        # Create a constant None state for top button
         none_state = gr.State(None)
-        
-        # Connect button clicks to add blocks
+
+        # Connect button click to add block
         ai_btn.click(
             fn=add_ai_block,
-            inputs=[blocks_state, none_state],  # Always pass None for focused_block_id
-            outputs=blocks_state
-        ).then(
-            fn=render_blocks,
-            inputs=[blocks_state, focused_block_state],
-            outputs=blocks_display
-        )
-
-
-        t_btn.click(
-            fn=add_text_block,
             inputs=[blocks_state, none_state],  # Always pass None for focused_block_id
             outputs=blocks_state
         ).then(
@@ -604,17 +632,28 @@ def create_app():
             inputs=[blocks_state, focus_block_id],
             outputs=blocks_display
         )
-        
+
         # Add after handler - for + button on content blocks
         def handle_add_after(blocks, block_id, block_type):
             if block_type == 'ai':
                 return add_ai_block(blocks, block_id)
             else:
                 return add_text_block(blocks, block_id)
-        
+
         add_after_trigger.click(
             fn=handle_add_after,
             inputs=[blocks_state, add_after_block_id, add_after_type],
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=[blocks_state, focused_block_state],
+            outputs=blocks_display
+        )
+
+        # Convert block type handler
+        convert_trigger.click(
+            fn=convert_block_type,
+            inputs=[blocks_state, convert_block_id, convert_type],
             outputs=blocks_state
         ).then(
             fn=render_blocks,

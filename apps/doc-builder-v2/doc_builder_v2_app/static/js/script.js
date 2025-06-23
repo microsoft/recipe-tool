@@ -251,7 +251,7 @@ function updateBlockIndent(blockId, direction) {
 }
 
 // Set focused block function
-function setFocusedBlock(blockId, shouldRefocusHeading = false) {
+function setFocusedBlock(blockId, skipRender = false) {
     const focusIdInput = document.getElementById('focus-block-id');
     if (focusIdInput) {
         const textarea = focusIdInput.querySelector('textarea');
@@ -259,27 +259,15 @@ function setFocusedBlock(blockId, shouldRefocusHeading = false) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
             
-            setTimeout(() => {
-                const focusBtn = document.getElementById('focus-trigger');
-                if (focusBtn) {
-                    focusBtn.click();
-                    
-                    // If we should refocus the heading after render
-                    if (shouldRefocusHeading) {
-                        setTimeout(() => {
-                            const block = document.querySelector(`[data-id="${blockId}"]`);
-                            if (block) {
-                                const headingInput = block.querySelector('.block-heading-inline');
-                                if (headingInput) {
-                                    headingInput.focus();
-                                    // Place cursor at end of text
-                                    headingInput.setSelectionRange(headingInput.value.length, headingInput.value.length);
-                                }
-                            }
-                        }, 200);
+            // Only trigger render if not skipping
+            if (!skipRender) {
+                setTimeout(() => {
+                    const focusBtn = document.getElementById('focus-trigger');
+                    if (focusBtn) {
+                        focusBtn.click();
                     }
-                }
-            }, 100);
+                }, 100);
+            }
         }
     }
 }
@@ -320,6 +308,35 @@ function addBlockAfter(blockId) {
                     }
                 }, 100);
             }
+        }
+    }
+}
+
+// Convert block type function
+function convertBlock(blockId, toType) {
+    // Set the values in hidden inputs
+    const blockIdInput = document.getElementById('convert-block-id');
+    const typeInput = document.getElementById('convert-type');
+    
+    if (blockIdInput && typeInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const typeTextarea = typeInput.querySelector('textarea');
+        
+        if (blockIdTextarea && typeTextarea) {
+            blockIdTextarea.value = blockId;
+            typeTextarea.value = toType;
+            
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            typeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the convert button
+            setTimeout(() => {
+                const convertBtn = document.getElementById('convert-trigger');
+                if (convertBtn) {
+                    convertBtn.click();
+                }
+            }, 100);
         }
     }
 }
