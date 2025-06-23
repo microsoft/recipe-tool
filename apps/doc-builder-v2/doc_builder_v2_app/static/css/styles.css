@@ -163,8 +163,8 @@
     gap: 5px;
 }
 .blocks-container .html-container {
-    padding: 15px !important;
-    padding-left: 50px !important; /* Extra space for indent controls */
+    padding: 50px !important;
+    padding-right: 40px !important;
 }
 
 .content-block {
@@ -394,27 +394,54 @@
 
 .delete-btn {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 24px;
-    height: 24px;
+    top: -3px;
+    right: -3px;
+    width: 20px;
+    height: 20px;
     padding: 0;
     background-color: #f5f5f5;
     border: 1px solid #d0d0d0;
-    border-radius: 4px;
-    font-size: 18px;
+    border-radius: 3px;
+    font-size: 14px;
     line-height: 1;
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s ease, background-color 0.2s ease;
     z-index: 10;
 }
-.content-block:hover .delete-btn {
+
+.add-btn {
+    position: absolute;
+    top: 19px;  /* 6px top + 20px height + 2px gap */
+    right: -3px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.content-block:hover .delete-btn,
+.content-block:hover .add-btn {
     opacity: 1;
 }
+
 .delete-btn:hover {
     background-color: #ff6b6b;
     border-color: #ff5252;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #4a9d9e;
+    border-color: #4a9d9e;
     color: white;
 }
 

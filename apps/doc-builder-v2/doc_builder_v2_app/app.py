@@ -182,6 +182,7 @@ def render_blocks(blocks, focused_block_id=None):
                            onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
                 </div>
                 <div class='block-content {content_class}'>
                     <textarea placeholder='Enter your AI instruction here...'
@@ -200,6 +201,7 @@ def render_blocks(blocks, focused_block_id=None):
                     <input type='text' value='{block['content']}'
                            oninput='updateBlockContent("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
                 </div>
             </div>
             """
@@ -240,6 +242,7 @@ def render_blocks(blocks, focused_block_id=None):
                            onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
+                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
                 </div>
                 <div class='block-content {content_class}'>
                     <textarea placeholder='Enter your text here...'
@@ -472,6 +475,11 @@ def create_app():
                     # Hidden components for focus tracking
                     focus_block_id = gr.Textbox(visible=False, elem_id="focus-block-id")
                     focus_trigger = gr.Button("Set Focus", visible=False, elem_id="focus-trigger")
+                    
+                    # Hidden components for adding block after
+                    add_after_block_id = gr.Textbox(visible=False, elem_id="add-after-block-id")
+                    add_after_type = gr.Textbox(visible=False, elem_id="add-after-type")
+                    add_after_trigger = gr.Button("Add After", visible=False, elem_id="add-after-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -498,10 +506,13 @@ def create_app():
                         elem_classes="generated-content"
                     )
 
+        # Create a constant None state for top buttons
+        none_state = gr.State(None)
+        
         # Connect button clicks to add blocks
         ai_btn.click(
             fn=add_ai_block,
-            inputs=[blocks_state, focused_block_state],
+            inputs=[blocks_state, none_state],  # Always pass None for focused_block_id
             outputs=blocks_state
         ).then(
             fn=render_blocks,
@@ -512,7 +523,7 @@ def create_app():
 
         t_btn.click(
             fn=add_text_block,
-            inputs=[blocks_state, focused_block_state],
+            inputs=[blocks_state, none_state],  # Always pass None for focused_block_id
             outputs=blocks_state
         ).then(
             fn=render_blocks,
@@ -591,6 +602,23 @@ def create_app():
         ).then(
             fn=render_blocks,
             inputs=[blocks_state, focus_block_id],
+            outputs=blocks_display
+        )
+        
+        # Add after handler - for + button on content blocks
+        def handle_add_after(blocks, block_id, block_type):
+            if block_type == 'ai':
+                return add_ai_block(blocks, block_id)
+            else:
+                return add_text_block(blocks, block_id)
+        
+        add_after_trigger.click(
+            fn=handle_add_after,
+            inputs=[blocks_state, add_after_block_id, add_after_type],
+            outputs=blocks_state
+        ).then(
+            fn=render_blocks,
+            inputs=[blocks_state, focused_block_state],
             outputs=blocks_display
         )
 

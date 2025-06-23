@@ -285,5 +285,44 @@ function setFocusedBlock(blockId, shouldRefocusHeading = false) {
 }
 
 
+// Add block after function - adds same type as the block being clicked
+function addBlockAfter(blockId) {
+    // Get the block element to determine its type
+    const blockElement = document.querySelector(`[data-id="${blockId}"]`);
+    if (blockElement) {
+        // Determine type based on class
+        let blockType = 'ai'; // default
+        if (blockElement.classList.contains('text-block')) {
+            blockType = 'text';
+        }
+        
+        // Set the values in hidden inputs
+        const blockIdInput = document.getElementById('add-after-block-id');
+        const typeInput = document.getElementById('add-after-type');
+        
+        if (blockIdInput && typeInput) {
+            const blockIdTextarea = blockIdInput.querySelector('textarea');
+            const typeTextarea = typeInput.querySelector('textarea');
+            
+            if (blockIdTextarea && typeTextarea) {
+                blockIdTextarea.value = blockId;
+                typeTextarea.value = blockType;
+                
+                // Dispatch input events
+                blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                typeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Trigger the add after button
+                setTimeout(() => {
+                    const addAfterBtn = document.getElementById('add-after-trigger');
+                    if (addAfterBtn) {
+                        addAfterBtn.click();
+                    }
+                }, 100);
+            }
+        }
+    }
+}
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
