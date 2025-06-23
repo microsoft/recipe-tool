@@ -220,6 +220,9 @@ if (document.body) {
 
 // Update block indent function
 function updateBlockIndent(blockId, direction) {
+    // Set focused block when indenting
+    setFocusedBlock(blockId);
+    
     // Set the block ID and direction in hidden inputs
     const blockIdInput = document.getElementById('indent-block-id');
     const directionInput = document.getElementById('indent-direction');
@@ -241,6 +244,25 @@ function updateBlockIndent(blockId, direction) {
                 const indentBtn = document.getElementById('indent-trigger');
                 if (indentBtn) {
                     indentBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
+// Set focused block function
+function setFocusedBlock(blockId) {
+    const focusIdInput = document.getElementById('focus-block-id');
+    if (focusIdInput) {
+        const textarea = focusIdInput.querySelector('textarea');
+        if (textarea) {
+            textarea.value = blockId;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            setTimeout(() => {
+                const focusBtn = document.getElementById('focus-trigger');
+                if (focusBtn) {
+                    focusBtn.click();
                 }
             }, 100);
         }
