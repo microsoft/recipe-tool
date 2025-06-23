@@ -251,7 +251,7 @@ function updateBlockIndent(blockId, direction) {
 }
 
 // Set focused block function
-function setFocusedBlock(blockId) {
+function setFocusedBlock(blockId, shouldRefocusHeading = false) {
     const focusIdInput = document.getElementById('focus-block-id');
     if (focusIdInput) {
         const textarea = focusIdInput.querySelector('textarea');
@@ -263,6 +263,21 @@ function setFocusedBlock(blockId) {
                 const focusBtn = document.getElementById('focus-trigger');
                 if (focusBtn) {
                     focusBtn.click();
+                    
+                    // If we should refocus the heading after render
+                    if (shouldRefocusHeading) {
+                        setTimeout(() => {
+                            const block = document.querySelector(`[data-id="${blockId}"]`);
+                            if (block) {
+                                const headingInput = block.querySelector('.block-heading-inline');
+                                if (headingInput) {
+                                    headingInput.focus();
+                                    // Place cursor at end of text
+                                    headingInput.setSelectionRange(headingInput.value.length, headingInput.value.length);
+                                }
+                            }
+                        }, 200);
+                    }
                 }
             }, 100);
         }

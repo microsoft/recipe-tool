@@ -191,7 +191,7 @@ def render_blocks(blocks, focused_block_id=None):
                     </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
-                           onfocus='setFocusedBlock("{block_id}")'
+                           onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
@@ -249,7 +249,7 @@ def render_blocks(blocks, focused_block_id=None):
                     </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
-                           onfocus='setFocusedBlock("{block_id}")'
+                           onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                     <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
                 </div>
