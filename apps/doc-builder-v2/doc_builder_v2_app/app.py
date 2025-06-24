@@ -287,12 +287,23 @@ def generate_document_json(title, description, resources, blocks):
     # Create the base structure
     doc_json = {"title": title, "general_instruction": description, "resources": [], "sections": []}
 
-    # Process resources
+    # First, collect all resource descriptions from blocks
+    resource_descriptions = {}
+    for block in blocks:
+        if block.get("type") == "ai" and "resources" in block:
+            for res in block["resources"]:
+                if res.get("path") and res.get("description"):
+                    # Store the description keyed by path
+                    resource_descriptions[res["path"]] = res["description"]
+    
+    # Process resources with descriptions from blocks
     for idx, resource in enumerate(resources):
+        # Get description from blocks if available, otherwise empty
+        description = resource_descriptions.get(resource["path"], "")
         doc_json["resources"].append({
             "key": f"resource_{idx + 1}",
             "path": resource["path"],
-            "description": f"Uploaded {resource['type']}: {resource['name']}",
+            "description": description,
         })
 
     # Helper function to build nested sections based on indentation
@@ -403,16 +414,22 @@ def update_block_resources(blocks, block_id, resource_json, title, description, 
             if "resources" not in block:
                 block["resources"] = []
             
-            # Check if resource already exists in the block
-            exists = False
-            for res in block["resources"]:
-                if res.get("path") == resource_data.get("path"):
-                    exists = True
-                    break
-            
-            # Add resource if it doesn't exist
-            if not exists:
-                block["resources"].append(resource_data)
+            # For text blocks, only allow one resource
+            if block["type"] == "text":
+                # Replace any existing resource
+                block["resources"] = [resource_data]
+            else:
+                # For AI blocks, allow multiple resources
+                # Check if resource already exists in the block
+                exists = False
+                for res in block["resources"]:
+                    if res.get("path") == resource_data.get("path"):
+                        exists = True
+                        break
+                
+                # Add resource if it doesn't exist
+                if not exists:
+                    block["resources"].append(resource_data)
             break
     
     # Regenerate outline
@@ -432,6 +449,20 @@ def remove_block_resource(blocks, block_id, resource_path, title, description, r
     
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
+    return blocks, outline, json_str
+
+
+def update_resource_description(blocks, block_id, resource_path, description_text, title, doc_description, resources):
+    """Update the description of a resource globally - affects all blocks using this resource."""
+    # Update the description in ALL blocks that have this resource
+    for block in blocks:
+        if "resources" in block:
+            for res in block["resources"]:
+                if res.get("path") == resource_path:
+                    res["description"] = description_text
+    
+    # Regenerate outline
+    outline, json_str = regenerate_outline_from_state(title, doc_description, resources, blocks)
     return blocks, outline, json_str
 
 
@@ -688,7 +719,26 @@ def render_block_resources(block_resources, block_type, block_id):
         icon = "📄"  # Always use text file icon
         name = resource.get("name", "Unknown")
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
-        html += f'<span class="dropped-resource">{icon} {name}<span class="remove-resource" onclick="removeBlockResource(\'{block_id}\', \'{path}\')">×</span></span>'
+        description = resource.get("description", "").replace('"', '&quot;')  # Escape quotes for HTML attribute
+        
+        if block_type == "AI":
+            # For AI blocks, show resource with description input
+            html += f'''
+            <div class="dropped-resource-container">
+                <div class="dropped-resource">
+                    {icon} {name}
+                    <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
+                </div>
+                <input type="text" 
+                       class="resource-description" 
+                       placeholder="Describe why this resource is relevant..." 
+                       value="{description}"
+                       oninput="updateResourceDescription('{block_id}', '{path}', this.value)">
+            </div>
+            '''
+        else:
+            # For text blocks, just show the resource
+            html += f'<span class="dropped-resource">{icon} {name}<span class="remove-resource" onclick="removeBlockResource(\'{block_id}\', \'{path}\')">×</span></span>'
     
     return html
 
@@ -1070,6 +1120,12 @@ def create_app():
                     # Hidden components for deleting resources from panel
                     delete_panel_resource_path = gr.Textbox(visible=False, elem_id="delete-panel-resource-path")
                     delete_panel_resource_trigger = gr.Button("Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger")
+                    
+                    # Hidden components for updating resource descriptions
+                    update_desc_block_id = gr.Textbox(visible=False, elem_id="update-desc-block-id")
+                    update_desc_resource_path = gr.Textbox(visible=False, elem_id="update-desc-resource-path")
+                    update_desc_text = gr.Textbox(visible=False, elem_id="update-desc-text")
+                    update_desc_trigger = gr.Button("Update Description", visible=False, elem_id="update-desc-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -1217,6 +1273,13 @@ def create_app():
             inputs=[resources_state, delete_panel_resource_path, doc_title, doc_description, blocks_state],
             outputs=[resources_state, blocks_state, resources_display, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        
+        # Update resource description handler - don't re-render blocks to avoid interrupting typing
+        update_desc_trigger.click(
+            fn=update_resource_description,
+            inputs=[blocks_state, update_desc_block_id, update_desc_resource_path, update_desc_text, doc_title, doc_description, resources_state],
+            outputs=[blocks_state, outline_state, json_output],
+        )
 
         # Title and description change handlers
         doc_title.change(

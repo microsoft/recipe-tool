@@ -421,6 +421,67 @@ function removeBlockResource(blockId, resourcePath) {
     }
 }
 
+// Debounce timer for resource descriptions
+let descriptionDebounceTimers = {};
+
+// Update resource description function with debouncing
+function updateResourceDescription(blockId, resourcePath, description) {
+    // Create unique key for this input
+    const timerKey = `${blockId}-${resourcePath}`;
+    
+    // Clear existing timer for this input
+    if (descriptionDebounceTimers[timerKey]) {
+        clearTimeout(descriptionDebounceTimers[timerKey]);
+    }
+    
+    // Update all other description text boxes for the same resource immediately
+    const allDescInputs = document.querySelectorAll('.resource-description');
+    allDescInputs.forEach(input => {
+        // Check if this input is for the same resource but different block
+        if (input.getAttribute('oninput') && 
+            input.getAttribute('oninput').includes(`'${resourcePath}'`) &&
+            !input.getAttribute('oninput').includes(`'${blockId}'`)) {
+            input.value = description;
+        }
+    });
+    
+    // Set new timer with 50ms delay (0.05 seconds after user stops typing)
+    descriptionDebounceTimers[timerKey] = setTimeout(() => {
+        // Set the values in hidden inputs
+        const blockIdInput = document.getElementById('update-desc-block-id');
+        const resourcePathInput = document.getElementById('update-desc-resource-path');
+        const descTextInput = document.getElementById('update-desc-text');
+        
+        if (blockIdInput && resourcePathInput && descTextInput) {
+            const blockIdTextarea = blockIdInput.querySelector('textarea');
+            const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+            const descTextTextarea = descTextInput.querySelector('textarea');
+            
+            if (blockIdTextarea && resourcePathTextarea && descTextTextarea) {
+                blockIdTextarea.value = blockId;
+                resourcePathTextarea.value = resourcePath;
+                descTextTextarea.value = description;
+                
+                // Dispatch input events
+                blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                resourcePathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                descTextTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Trigger the update button
+                setTimeout(() => {
+                    const updateBtn = document.getElementById('update-desc-trigger');
+                    if (updateBtn) {
+                        updateBtn.click();
+                    }
+                }, 100);
+            }
+        }
+        
+        // Clean up timer reference
+        delete descriptionDebounceTimers[timerKey];
+    }, 50); // Wait 50ms after user stops typing
+}
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
 

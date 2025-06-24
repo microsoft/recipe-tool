@@ -196,6 +196,41 @@
     opacity: 1;
 }
 
+/* Resource container for AI blocks with descriptions */
+.dropped-resource-container {
+    margin-bottom: 8px;
+    padding: 4px;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+}
+
+.dropped-resource-container .dropped-resource {
+    display: inline-block;
+    width: auto;
+    margin-bottom: 4px;
+}
+
+.resource-description {
+    width: 100%;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 11px;
+    font-style: italic;
+    background-color: white;
+    transition: border-color 0.2s ease;
+}
+
+.resource-description:focus {
+    outline: none;
+    border-color: #4a9d9e;
+}
+
+.resource-description::placeholder {
+    color: #999;
+}
+
 
 /* Workspace */
 .workspace-col {
