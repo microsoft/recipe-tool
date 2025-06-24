@@ -120,6 +120,7 @@
 .resource-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 6px;
     margin-bottom: 4px;
     background-color: white;
@@ -132,6 +133,7 @@
     cursor: grab;
     user-select: none;
     transition: transform 0.2s ease;
+    position: relative;
 }
 .resource-item:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -139,6 +141,59 @@
 .resource-item.dragging {
     opacity: 0.5;
     cursor: grabbing;
+}
+
+/* Delete button for resources in panel */
+.resource-delete {
+    cursor: pointer;
+    padding: 0 4px;
+    font-weight: bold;
+    color: #999;
+    transition: color 0.2s ease;
+    opacity: 0;
+}
+
+.resource-item:hover .resource-delete {
+    opacity: 1;
+}
+
+.resource-delete:hover {
+    color: #ff5252;
+}
+
+/* Drag and drop styles */
+.block-resources.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 2px !important;
+}
+
+.block-resources .dropped-resource {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    background-color: #4a9d9e;
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    position: relative;
+}
+
+.block-resources .dropped-resource:hover {
+    background-color: #3a8d8e;
+}
+
+.block-resources .dropped-resource .remove-resource {
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.block-resources .dropped-resource:hover .remove-resource {
+    opacity: 1;
 }
 
 

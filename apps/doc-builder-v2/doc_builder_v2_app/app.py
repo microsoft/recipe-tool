@@ -390,6 +390,84 @@ def update_document_metadata(title, description, resources, blocks):
     return outline, json_str
 
 
+def update_block_resources(blocks, block_id, resource_json, title, description, resources):
+    """Update a block's resources when a resource is dropped on it."""
+    import json
+    
+    # Parse the resource data
+    resource_data = json.loads(resource_json)
+    
+    # Find the block and update its resources
+    for block in blocks:
+        if block["id"] == block_id:
+            if "resources" not in block:
+                block["resources"] = []
+            
+            # Check if resource already exists in the block
+            exists = False
+            for res in block["resources"]:
+                if res.get("path") == resource_data.get("path"):
+                    exists = True
+                    break
+            
+            # Add resource if it doesn't exist
+            if not exists:
+                block["resources"].append(resource_data)
+            break
+    
+    # Regenerate outline
+    outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
+    return blocks, outline, json_str
+
+
+def remove_block_resource(blocks, block_id, resource_path, title, description, resources):
+    """Remove a resource from a block."""
+    # Find the block and remove the resource
+    for block in blocks:
+        if block["id"] == block_id:
+            if "resources" in block:
+                # Remove the resource with matching path
+                block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
+            break
+    
+    # Regenerate outline
+    outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
+    return blocks, outline, json_str
+
+
+def delete_resource_from_panel(resources, resource_path, title, description, blocks):
+    """Delete a resource from the resource panel and all blocks that use it."""
+    # Remove from resources list
+    new_resources = [res for res in resources if res.get("path") != resource_path]
+    
+    # Also remove from all blocks that have this resource
+    for block in blocks:
+        if "resources" in block:
+            block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
+    
+    # Generate HTML for resources display
+    if new_resources:
+        html_items = []
+        for resource in new_resources:
+            icon = "🖼️" if resource["type"] == "image" else "📄"
+            css_class = f"resource-item {resource['type']}"
+            path = resource["path"].replace("'", "\\'")  # Escape single quotes
+            html_items.append(
+                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource["type"]}" data-resource-path="{resource["path"]}">'
+                f'{icon} {resource["name"]}'
+                f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
+                f'</div>'
+            )
+        resources_html = "\n".join(html_items)
+    else:
+        resources_html = "<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
+    
+    # Regenerate outline
+    outline, json_str = regenerate_outline_from_state(title, description, new_resources, blocks)
+    
+    return new_resources, blocks, gr.update(value=resources_html), outline, json_str
+
+
 def import_outline(file_path):
     """Import an outline from a JSON file and convert it to blocks format."""
     if not file_path:
@@ -502,8 +580,12 @@ def import_outline(file_path):
             for resource in resources:
                 icon = "🖼️" if resource.get("type") == "image" else "📄"
                 css_class = f"resource-item {resource.get('type', 'file')}"
+                path = resource["path"].replace("'", "\\'")  # Escape single quotes
                 html_items.append(
-                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource.get("type", "file")}" data-resource-path="{resource["path"]}">{icon} {resource["name"]}</div>'
+                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource.get("type", "file")}" data-resource-path="{resource["path"]}">'
+                    f'{icon} {resource["name"]}'
+                    f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
+                    f'</div>'
                 )
             resources_html = "\n".join(html_items)
         else:
@@ -556,6 +638,21 @@ def save_outline(title, outline_json):
     except Exception as e:
         error_msg = f"Error saving outline: {str(e)}"
         return gr.update(value=error_msg, visible=True)
+
+
+def render_block_resources(block_resources, block_type, block_id):
+    """Render the resources inside a block."""
+    if not block_resources:
+        return f"Drop {block_type} resources here"
+    
+    html = ""
+    for resource in block_resources:
+        icon = "🖼️" if resource.get("type") == "image" else "📄"
+        name = resource.get("name", "Unknown")
+        path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
+        html += f'<span class="dropped-resource">{icon} {name}<span class="remove-resource" onclick="removeBlockResource(\'{block_id}\', \'{path}\')">×</span></span>'
+    
+    return html
 
 
 def render_blocks(blocks, focused_block_id=None):
@@ -618,7 +715,7 @@ def render_blocks(blocks, focused_block_id=None):
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
-                        Drop AI resources here
+                        {render_block_resources(block.get("resources", []), "AI", block_id)}
                     </div>
                 </div>
             </div>
@@ -680,7 +777,7 @@ def render_blocks(blocks, focused_block_id=None):
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
-                        Drop text resources here
+                        {render_block_resources(block.get("resources", []), "text", block_id)}
                     </div>
                 </div>
             </div>
@@ -715,8 +812,12 @@ def handle_file_upload(files, current_resources, title, description, blocks):
         for resource in new_resources:
             icon = "🖼️" if resource["type"] == "image" else "📄"
             css_class = f"resource-item {resource['type']}"
+            path = resource["path"].replace("'", "\\'")  # Escape single quotes
             html_items.append(
-                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource["type"]}" data-resource-path="{resource["path"]}">{icon} {resource["name"]}</div>'
+                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource["type"]}" data-resource-path="{resource["path"]}">'
+                f'{icon} {resource["name"]}'
+                f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
+                f'</div>'
             )
         resources_html = "\n".join(html_items)
     else:
@@ -915,6 +1016,20 @@ def create_app():
                     convert_block_id = gr.Textbox(visible=False, elem_id="convert-block-id")
                     convert_type = gr.Textbox(visible=False, elem_id="convert-type")
                     convert_trigger = gr.Button("Convert", visible=False, elem_id="convert-trigger")
+                    
+                    # Hidden components for updating block resources
+                    update_resources_block_id = gr.Textbox(visible=False, elem_id="update-resources-block-id")
+                    update_resources_input = gr.Textbox(visible=False, elem_id="update-resources-input")
+                    update_resources_trigger = gr.Button("Update Resources", visible=False, elem_id="update-resources-trigger")
+                    
+                    # Hidden components for removing block resources
+                    remove_resource_block_id = gr.Textbox(visible=False, elem_id="remove-resource-block-id")
+                    remove_resource_path = gr.Textbox(visible=False, elem_id="remove-resource-path")
+                    remove_resource_trigger = gr.Button("Remove Resource", visible=False, elem_id="remove-resource-trigger")
+                    
+                    # Hidden components for deleting resources from panel
+                    delete_panel_resource_path = gr.Textbox(visible=False, elem_id="delete-panel-resource-path")
+                    delete_panel_resource_trigger = gr.Button("Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -1040,6 +1155,27 @@ def create_app():
             fn=convert_block_type,
             inputs=[blocks_state, convert_block_id, convert_type, doc_title, doc_description, resources_state],
             outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        
+        # Update block resources handler
+        update_resources_trigger.click(
+            fn=update_block_resources,
+            inputs=[blocks_state, update_resources_block_id, update_resources_input, doc_title, doc_description, resources_state],
+            outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        
+        # Remove block resource handler
+        remove_resource_trigger.click(
+            fn=remove_block_resource,
+            inputs=[blocks_state, remove_resource_block_id, remove_resource_path, doc_title, doc_description, resources_state],
+            outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        
+        # Delete resource from panel handler
+        delete_panel_resource_trigger.click(
+            fn=delete_resource_from_panel,
+            inputs=[resources_state, delete_panel_resource_path, doc_title, doc_description, blocks_state],
+            outputs=[resources_state, blocks_state, resources_display, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Title and description change handlers

@@ -216,6 +216,7 @@ const observer = new MutationObserver(function(mutations) {
     if (hasRelevantChanges) {
         setupUploadResource();
         setupImportButton();
+        setupDragAndDrop();
         
         // Debounce the setupAutoExpand to avoid multiple calls
         clearTimeout(debounceTimer);
@@ -356,6 +357,60 @@ function convertBlock(blockId, toType) {
     }
 }
 
+// Delete resource from panel function
+function deleteResourceFromPanel(resourcePath) {
+    // Set the value in hidden input
+    const resourcePathInput = document.getElementById('delete-panel-resource-path');
+    
+    if (resourcePathInput) {
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        
+        if (resourcePathTextarea) {
+            resourcePathTextarea.value = resourcePath;
+            
+            // Dispatch input event
+            resourcePathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the delete button
+            setTimeout(() => {
+                const deleteBtn = document.getElementById('delete-panel-resource-trigger');
+                if (deleteBtn) {
+                    deleteBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
+// Remove resource from block function
+function removeBlockResource(blockId, resourcePath) {
+    // Set the values in hidden inputs
+    const blockIdInput = document.getElementById('remove-resource-block-id');
+    const resourcePathInput = document.getElementById('remove-resource-path');
+    
+    if (blockIdInput && resourcePathInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        
+        if (blockIdTextarea && resourcePathTextarea) {
+            blockIdTextarea.value = blockId;
+            resourcePathTextarea.value = resourcePath;
+            
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            resourcePathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the remove button
+            setTimeout(() => {
+                const removeBtn = document.getElementById('remove-resource-trigger');
+                if (removeBtn) {
+                    removeBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
 
@@ -387,8 +442,100 @@ function setupImportButton() {
     }
 }
 
+// Drag and drop functionality for resources
+function setupDragAndDrop() {
+    // Setup draggable resources
+    const resourceItems = document.querySelectorAll('.resource-item');
+    resourceItems.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Setup drop zones
+    const dropZones = document.querySelectorAll('.block-resources');
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', handleDragOver);
+        zone.addEventListener('drop', handleDrop);
+        zone.addEventListener('dragleave', handleDragLeave);
+    });
+}
+
+let draggedResource = null;
+
+function handleDragStart(e) {
+    draggedResource = {
+        name: e.target.dataset.resourceName,
+        path: e.target.dataset.resourcePath,
+        type: e.target.dataset.resourceType
+    };
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copy';
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    
+    if (!draggedResource) return;
+    
+    // Find the block ID from the parent content block
+    const contentBlock = e.currentTarget.closest('.content-block');
+    if (!contentBlock) return;
+    
+    const blockId = contentBlock.dataset.id;
+    
+    // Update the block's resources
+    updateBlockResources(blockId, draggedResource);
+    
+    draggedResource = null;
+}
+
+// Function to update block resources
+function updateBlockResources(blockId, resource) {
+    // Set the values in hidden inputs
+    const blockIdInput = document.getElementById('update-resources-block-id');
+    const resourceInput = document.getElementById('update-resources-input');
+    
+    if (blockIdInput && resourceInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const resourceTextarea = resourceInput.querySelector('textarea');
+        
+        if (blockIdTextarea && resourceTextarea) {
+            blockIdTextarea.value = blockId;
+            resourceTextarea.value = JSON.stringify(resource);
+            
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            resourceTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the update button
+            setTimeout(() => {
+                const updateBtn = document.getElementById('update-resources-trigger');
+                if (updateBtn) {
+                    updateBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function() {
     setupImportButton();
     setupUploadResource();
+    setupDragAndDrop();
 });
