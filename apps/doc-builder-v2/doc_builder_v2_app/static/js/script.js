@@ -187,6 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     setTimeout(setupUploadResource, 1000);
     setTimeout(setupAutoExpand, 100);
+    // Also setup drag and drop on window load
+    setTimeout(setupDragAndDrop, 200);
 });
 
 // Use MutationObserver for dynamic content
@@ -202,7 +204,11 @@ const observer = new MutationObserver(function(mutations) {
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === 1) { // Element node
                     if (node.classList?.contains('content-block') || 
+                        node.classList?.contains('resource-item') ||
+                        node.classList?.contains('block-resources') ||
                         node.querySelector?.('textarea') ||
+                        node.querySelector?.('.resource-item') ||
+                        node.querySelector?.('.block-resources') ||
                         node.tagName === 'TEXTAREA') {
                         hasRelevantChanges = true;
                         break;
@@ -216,7 +222,11 @@ const observer = new MutationObserver(function(mutations) {
     if (hasRelevantChanges) {
         setupUploadResource();
         setupImportButton();
-        setupDragAndDrop();
+        
+        // Delay drag and drop setup slightly to ensure DOM is ready
+        setTimeout(() => {
+            setupDragAndDrop();
+        }, 50);
         
         // Debounce the setupAutoExpand to avoid multiple calls
         clearTimeout(debounceTimer);
@@ -444,19 +454,39 @@ function setupImportButton() {
 
 // Drag and drop functionality for resources
 function setupDragAndDrop() {
+    console.log('Setting up drag and drop...');
+    
     // Setup draggable resources
     const resourceItems = document.querySelectorAll('.resource-item');
+    console.log('Found resource items:', resourceItems.length);
+    
     resourceItems.forEach(item => {
+        // Remove existing listeners to avoid duplicates
+        item.removeEventListener('dragstart', handleDragStart);
+        item.removeEventListener('dragend', handleDragEnd);
+        
+        // Add new listeners
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragend', handleDragEnd);
     });
     
     // Setup drop zones
     const dropZones = document.querySelectorAll('.block-resources');
-    dropZones.forEach(zone => {
+    console.log('Found drop zones:', dropZones.length);
+    
+    dropZones.forEach((zone, index) => {
+        // Remove existing listeners to avoid duplicates
+        zone.removeEventListener('dragover', handleDragOver);
+        zone.removeEventListener('drop', handleDrop);
+        zone.removeEventListener('dragleave', handleDragLeave);
+        
+        // Add new listeners
         zone.addEventListener('dragover', handleDragOver);
         zone.addEventListener('drop', handleDrop);
         zone.addEventListener('dragleave', handleDragLeave);
+        
+        // Add data attribute to help debug
+        zone.setAttribute('data-drop-zone-index', index);
     });
 }
 
@@ -490,13 +520,22 @@ function handleDrop(e) {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
     
-    if (!draggedResource) return;
+    console.log('Drop event triggered on zone:', e.currentTarget.getAttribute('data-drop-zone-index'));
+    
+    if (!draggedResource) {
+        console.error('No dragged resource found');
+        return;
+    }
     
     // Find the block ID from the parent content block
     const contentBlock = e.currentTarget.closest('.content-block');
-    if (!contentBlock) return;
+    if (!contentBlock) {
+        console.error('No parent content block found');
+        return;
+    }
     
     const blockId = contentBlock.dataset.id;
+    console.log('Dropping resource on block:', blockId, draggedResource);
     
     // Update the block's resources
     updateBlockResources(blockId, draggedResource);
@@ -506,9 +545,13 @@ function handleDrop(e) {
 
 // Function to update block resources
 function updateBlockResources(blockId, resource) {
+    console.log('updateBlockResources called with:', blockId, resource);
+    
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('update-resources-block-id');
     const resourceInput = document.getElementById('update-resources-input');
+    
+    console.log('Found inputs:', !!blockIdInput, !!resourceInput);
     
     if (blockIdInput && resourceInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
@@ -537,5 +580,8 @@ function updateBlockResources(blockId, resource) {
 document.addEventListener('DOMContentLoaded', function() {
     setupImportButton();
     setupUploadResource();
-    setupDragAndDrop();
+    // Delay initial drag and drop setup
+    setTimeout(() => {
+        setupDragAndDrop();
+    }, 100);
 });

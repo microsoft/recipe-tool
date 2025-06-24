@@ -310,7 +310,7 @@ def generate_document_json(title, description, resources, blocks):
 
             # If this block is at the expected level
             if current_level == parent_level + 1:
-                if block["type"] in ["ai", "text"] and (block.get("heading") or block.get("content")):
+                if block["type"] in ["ai", "text"] and (block.get("heading") or block.get("content") or block.get("resources")):
                     section = {"title": block.get("heading", "Untitled Section")}
 
                     # Handle AI blocks vs Text blocks differently
@@ -449,11 +449,11 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
     if new_resources:
         html_items = []
         for resource in new_resources:
-            icon = "🖼️" if resource["type"] == "image" else "📄"
-            css_class = f"resource-item {resource['type']}"
+            icon = "📄"  # Always use text file icon
+            css_class = "resource-item text"
             path = resource["path"].replace("'", "\\'")  # Escape single quotes
             html_items.append(
-                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource["type"]}" data-resource-path="{resource["path"]}">'
+                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
                 f'{icon} {resource["name"]}'
                 f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
                 f'</div>'
@@ -474,6 +474,17 @@ def import_outline(file_path):
         # Return 8 values: title, description, resources, blocks, outline, json, resources_display, import_file
         return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
     
+    # Define allowed text file extensions
+    ALLOWED_EXTENSIONS = {
+        ".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx",
+        ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
+        ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
+        ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift",
+        ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml",
+        ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less",
+        ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org"
+    }
+    
     try:
         # Read and parse the JSON file
         with open(file_path, 'r') as f:
@@ -483,16 +494,43 @@ def import_outline(file_path):
         title = json_data.get("title", "Document Title")
         description = json_data.get("general_instruction", "")
         
-        # Extract resources
+        # Extract and validate resources
         resources = []
+        invalid_resources = []
+        
         for res_data in json_data.get("resources", []):
+            resource_path = res_data.get("path", "")
+            resource_name = Path(resource_path).name
+            file_ext = Path(resource_name).suffix.lower()
+            
+            # Check if file extension is allowed
+            if file_ext not in ALLOWED_EXTENSIONS:
+                invalid_resources.append(f"{resource_name} ({file_ext})")
+                continue
+                
             resources.append({
                 "key": res_data.get("key", ""),
-                "path": res_data.get("path", ""),
-                "name": Path(res_data.get("path", "")).name,
-                "type": "file",  # Default type, could be enhanced
+                "path": resource_path,
+                "name": resource_name,
+                "type": "text",  # All are text files now
                 "description": res_data.get("description", "")
             })
+        
+        # If there are invalid resources, show error and return
+        if invalid_resources:
+            error_msg = f"Import failed: The following resources have unsupported file types:\n" + "\n".join(invalid_resources)
+            error_msg += f"\n\nOnly text files are allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+            # Return error in the JSON output field
+            return (
+                gr.update(),  # title
+                gr.update(),  # description
+                gr.update(),  # resources
+                gr.update(),  # blocks
+                gr.update(),  # outline
+                json.dumps({"error": error_msg}, indent=2),  # json_output
+                gr.update(),  # resources_display
+                None  # import_file
+            )
         
         # Convert sections to blocks
         blocks = []
@@ -582,7 +620,7 @@ def import_outline(file_path):
                 css_class = f"resource-item {resource.get('type', 'file')}"
                 path = resource["path"].replace("'", "\\'")  # Escape single quotes
                 html_items.append(
-                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource.get("type", "file")}" data-resource-path="{resource["path"]}">'
+                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
                     f'{icon} {resource["name"]}'
                     f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
                     f'</div>'
@@ -647,7 +685,7 @@ def render_block_resources(block_resources, block_type, block_id):
     
     html = ""
     for resource in block_resources:
-        icon = "🖼️" if resource.get("type") == "image" else "📄"
+        icon = "📄"  # Always use text file icon
         name = resource.get("name", "Unknown")
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
         html += f'<span class="dropped-resource">{icon} {name}<span class="remove-resource" onclick="removeBlockResource(\'{block_id}\', \'{path}\')">×</span></span>'
@@ -799,22 +837,18 @@ def handle_file_upload(files, current_resources, title, description, blocks):
             import os
 
             file_name = os.path.basename(file_path)
-            file_ext = os.path.splitext(file_name)[1].lower()
-
-            # Determine if it's an image
-            is_image = file_ext in [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]
-
-            new_resources.append({"path": file_path, "name": file_name, "type": "image" if is_image else "file"})
+            # All uploaded files are text files now
+            new_resources.append({"path": file_path, "name": file_name, "type": "text"})
 
     # Generate HTML for resources display
     if new_resources:
         html_items = []
         for resource in new_resources:
-            icon = "🖼️" if resource["type"] == "image" else "📄"
-            css_class = f"resource-item {resource['type']}"
+            icon = "📄"  # Always use text file icon
+            css_class = "resource-item text"
             path = resource["path"].replace("'", "\\'")  # Escape single quotes
             html_items.append(
-                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource["type"]}" data-resource-path="{resource["path"]}">'
+                f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
                 f'{icon} {resource["name"]}'
                 f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
                 f'</div>'
@@ -959,7 +993,13 @@ def create_app():
                 file_upload = gr.File(
                     label="Upload Resources",
                     file_count="multiple",
-                    file_types=["image", ".pdf", ".txt", ".md", ".doc", ".docx"],
+                    file_types=[".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx", 
+                                ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", 
+                                ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
+                                ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift",
+                                ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml",
+                                ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less",
+                                ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org"],
                     elem_classes="upload-file-invisible-btn",
                     visible=False,
                 )
