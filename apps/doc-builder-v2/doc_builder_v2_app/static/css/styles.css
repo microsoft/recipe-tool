@@ -62,6 +62,19 @@
     width: 100%;
 }
 
+/* Save status message */
+.save-status-message {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.save-status-message p {
+    margin: 0;
+    color: #4CAF50;
+}
+
 /* Debug Panel */
 .debug-panel {
     margin-top: 20px;

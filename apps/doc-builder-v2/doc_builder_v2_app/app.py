@@ -315,25 +315,29 @@ def generate_document_json(title, description, resources, blocks):
 
                     # Handle AI blocks vs Text blocks differently
                     if block["type"] == "ai":
-                        # AI blocks have prompt and refs
+                        # AI blocks always have these keys
                         section["prompt"] = block.get("content", "")
-
-                        # Only add refs if this specific block has resources attached
+                        section["sections"] = []  # Will be populated if there are nested sections
+                        
+                        # Handle refs - always include the key
+                        refs = []
                         block_resources = block.get("resources", [])
                         if block_resources:
                             # Find the resource keys for this block's resources
-                            refs = []
                             for block_resource in block_resources:
                                 # Find matching resource in the global resources list
                                 for idx, resource in enumerate(resources):
                                     if resource["path"] == block_resource.get("path"):
                                         refs.append(f"resource_{idx + 1}")
                                         break
-                            if refs:
-                                section["refs"] = refs
+                        section["refs"] = refs
 
                     else:  # block['type'] == 'text'
-                        # Text blocks don't have prompt, and use resource_key instead of refs
+                        # Text blocks always have these keys
+                        section["resource_key"] = ""  # Default to empty string
+                        section["sections"] = []  # Will be populated if there are nested sections
+                        
+                        # Handle resource_key
                         block_resources = block.get("resources", [])
                         if block_resources:
                             # For text blocks, just use the first resource as resource_key
@@ -384,6 +388,174 @@ def update_document_metadata(title, description, resources, blocks):
     # Just regenerate the outline with new metadata
     outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
     return outline, json_str
+
+
+def import_outline(file_path):
+    """Import an outline from a JSON file and convert it to blocks format."""
+    if not file_path:
+        # Return 8 values: title, description, resources, blocks, outline, json, resources_display, import_file
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
+    
+    try:
+        # Read and parse the JSON file
+        with open(file_path, 'r') as f:
+            json_data = json.load(f)
+        
+        # Extract title and description
+        title = json_data.get("title", "Document Title")
+        description = json_data.get("general_instruction", "")
+        
+        # Extract resources
+        resources = []
+        for res_data in json_data.get("resources", []):
+            resources.append({
+                "key": res_data.get("key", ""),
+                "path": res_data.get("path", ""),
+                "name": Path(res_data.get("path", "")).name,
+                "type": "file",  # Default type, could be enhanced
+                "description": res_data.get("description", "")
+            })
+        
+        # Convert sections to blocks
+        blocks = []
+        
+        def sections_to_blocks(sections, parent_indent=-1):
+            """Recursively convert sections to blocks."""
+            for section in sections:
+                # Create a block from the section
+                block = {
+                    "id": str(uuid.uuid4()),
+                    "heading": section.get("title", ""),
+                    "content": "",
+                    "resources": [],
+                    "collapsed": True,
+                    "indent_level": parent_indent + 1
+                }
+                
+                # Determine block type and content
+                if "prompt" in section:
+                    # AI block
+                    block["type"] = "ai"
+                    block["content"] = section.get("prompt", "")
+                    block["ai_content"] = section.get("prompt", "")
+                    
+                    # Handle refs
+                    refs = section.get("refs", [])
+                    if refs and resources:
+                        # Map refs back to resources
+                        for ref in refs:
+                            # Extract index from ref (e.g., "resource_1" -> 0)
+                            try:
+                                idx = int(ref.split("_")[1]) - 1
+                                if 0 <= idx < len(resources):
+                                    block["resources"].append(resources[idx])
+                            except (IndexError, ValueError):
+                                pass
+                
+                elif "resource_key" in section:
+                    # Text block
+                    block["type"] = "text"
+                    block["text_content"] = ""
+                    
+                    # Handle resource_key
+                    resource_key = section.get("resource_key", "")
+                    if resource_key and resources:
+                        try:
+                            idx = int(resource_key.split("_")[1]) - 1
+                            if 0 <= idx < len(resources):
+                                block["resources"].append(resources[idx])
+                        except (IndexError, ValueError):
+                            pass
+                else:
+                    # Default to AI block if no specific type indicators
+                    block["type"] = "ai"
+                
+                blocks.append(block)
+                
+                # Process nested sections
+                if "sections" in section:
+                    sections_to_blocks(section["sections"], block["indent_level"])
+        
+        # Convert top-level sections
+        sections_to_blocks(json_data.get("sections", []))
+        
+        # If no blocks were created, add default ones
+        if not blocks:
+            blocks = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "ai",
+                    "heading": "",
+                    "content": "",
+                    "resources": [],
+                    "collapsed": False,
+                    "indent_level": 0
+                }
+            ]
+        
+        # Regenerate outline and JSON
+        outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
+        
+        # Generate resources HTML
+        if resources:
+            html_items = []
+            for resource in resources:
+                icon = "🖼️" if resource.get("type") == "image" else "📄"
+                css_class = f"resource-item {resource.get('type', 'file')}"
+                html_items.append(
+                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="{resource.get("type", "file")}" data-resource-path="{resource["path"]}">{icon} {resource["name"]}</div>'
+                )
+            resources_html = "\n".join(html_items)
+        else:
+            resources_html = "<p style='color: #666; font-size: 12px'>No resources uploaded yet</p>"
+        
+        # Return None for import_file to clear it
+        return title, description, resources, blocks, outline, json_str, gr.update(value=resources_html), None
+        
+    except Exception as e:
+        error_msg = f"Error importing file: {str(e)}"
+        print(error_msg)
+        # Return current values on error (including None for import_file)
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
+
+
+def save_outline(title, outline_json):
+    """Save the outline JSON to the output directory specified in the recipe."""
+    from datetime import datetime
+
+    try:
+        # Get the recipe path and load it to find output location
+        REPO_ROOT = Path(__file__).resolve().parents[3]
+        RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
+
+        # Load the recipe to get default output_root
+        with open(RECIPE_PATH, "r") as f:
+            recipe_data = json.load(f)
+
+        # Get the default output_root from recipe inputs
+        output_root = "output"  # Default fallback
+        if "inputs" in recipe_data and "output_root" in recipe_data["inputs"]:
+            output_root = recipe_data["inputs"]["output_root"].get("default", "output")
+
+        # Create output directory if it doesn't exist
+        output_dir = Path(output_root)
+        output_dir.mkdir(exist_ok=True)
+
+        # Create filename from title and timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
+        filename = f"{safe_title}_{timestamp}.json"
+
+        # Save the outline JSON
+        outline_path = output_dir / filename
+        outline_path.write_text(outline_json)
+
+        success_msg = f"Outline saved successfully to: {outline_path}"
+        return gr.update(value=success_msg, visible=True)
+
+    except Exception as e:
+        error_msg = f"Error saving outline: {str(e)}"
+        return gr.update(value=error_msg, visible=True)
 
 
 def render_blocks(blocks, focused_block_id=None):
@@ -634,6 +806,17 @@ def create_app():
                         elem_classes="save-builder-btn",
                     )
 
+                # Status message for save operation
+                save_status = gr.Markdown(visible=False, elem_classes="save-status-message")
+                
+                # Hidden file component for import
+                import_file = gr.File(
+                    label="Import JSON",
+                    file_types=[".json"],
+                    visible=False,
+                    elem_id="import-file-input"
+                )
+
         # Document title and description
         with gr.Row(elem_classes="header-section"):
             # Document title (25% width)
@@ -823,9 +1006,9 @@ def create_app():
 
         # Update indent handler
         indent_trigger.click(
-            fn=update_block_indent, 
-            inputs=[blocks_state, indent_block_id, indent_direction, doc_title, doc_description, resources_state], 
-            outputs=[blocks_state, outline_state, json_output]
+            fn=update_block_indent,
+            inputs=[blocks_state, indent_block_id, indent_direction, doc_title, doc_description, resources_state],
+            outputs=[blocks_state, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display).then(
             fn=set_focused_block, inputs=indent_block_id, outputs=focused_block_state
         )
@@ -877,6 +1060,29 @@ def create_app():
             fn=handle_document_generation,
             inputs=[doc_title, doc_description, resources_state, blocks_state],
             outputs=[json_output, generated_content, download_btn],
+        )
+
+        # Save button handler
+        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output], outputs=save_status)
+        
+        # Import file handler
+        import_file.change(
+            fn=import_outline,
+            inputs=import_file,
+            outputs=[
+                doc_title,
+                doc_description,
+                resources_state,
+                blocks_state,
+                outline_state,
+                json_output,
+                resources_display,
+                import_file  # Add import_file to outputs to clear it
+            ]
+        ).then(
+            fn=render_blocks,
+            inputs=[blocks_state, focused_block_state],
+            outputs=blocks_display
         )
 
     return app

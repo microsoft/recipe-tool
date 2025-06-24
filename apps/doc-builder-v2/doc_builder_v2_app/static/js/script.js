@@ -5,14 +5,28 @@ function setupUploadResource() {
     const uploadBtn = document.querySelector('.upload-resources-btn')
 
     if (uploadBtn) {
-        uploadBtn.addEventListener('click', function(e) {
+        // Remove any existing listeners first
+        uploadBtn.replaceWith(uploadBtn.cloneNode(true));
+        const newUploadBtn = document.querySelector('.upload-resources-btn');
+        
+        newUploadBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
-            const fileInput = document.querySelector('input[type="file"]');
+            // Find the file input that is NOT the import file input
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            let uploadFileInput = null;
+            
+            for (const input of fileInputs) {
+                // Skip the import file input
+                if (!input.closest('#import-file-input')) {
+                    uploadFileInput = input;
+                    break;
+                }
+            }
 
-            if (fileInput) {
-                fileInput.click();
+            if (uploadFileInput) {
+                uploadFileInput.click();
             }
         });
         return true;
@@ -201,6 +215,7 @@ const observer = new MutationObserver(function(mutations) {
     // Only run setup if relevant changes detected
     if (hasRelevantChanges) {
         setupUploadResource();
+        setupImportButton();
         
         // Debounce the setupAutoExpand to avoid multiple calls
         clearTimeout(debounceTimer);
@@ -343,3 +358,37 @@ function convertBlock(blockId, toType) {
 
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
+
+// Setup import button functionality
+function setupImportButton() {
+    const importBtn = document.getElementById('import-builder-btn-id');
+    console.log('Setting up import button, found:', importBtn);
+    
+    if (importBtn) {
+        // Remove any existing listeners first
+        importBtn.replaceWith(importBtn.cloneNode(true));
+        const newImportBtn = document.getElementById('import-builder-btn-id');
+        
+        newImportBtn.addEventListener('click', function(e) {
+            console.log('Import button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Find the import file input
+            const importFileInput = document.querySelector('#import-file-input input[type="file"]');
+            console.log('Import file input found:', importFileInput);
+            
+            if (importFileInput) {
+                importFileInput.click();
+            } else {
+                console.error('Import file input not found');
+            }
+        });
+    }
+}
+
+// Call setup on initial load
+document.addEventListener('DOMContentLoaded', function() {
+    setupImportButton();
+    setupUploadResource();
+});
