@@ -56,6 +56,39 @@
     font-size: 14px !important;
 }
 
+/* Download button */
+.download-generated-doc {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Debug Panel */
+.debug-panel {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.debug-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.json-debug-output {
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.json-debug-output pre {
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
 /* Resources */
 .resources-col {
     width: 190px !important;

@@ -466,10 +466,18 @@ version = "0.1.0"
 source = { editable = "apps/doc-builder-v2" }
 dependencies = [
     { name = "gradio" },
+    { name = "jsonschema" },
+    { name = "python-dotenv" },
+    { name = "recipe-executor" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "gradio", specifier = ">=4.0.0" }]
+requires-dist = [
+    { name = "gradio", specifier = ">=4.0.0" },
+    { name = "jsonschema" },
+    { name = "python-dotenv" },
+    { name = "recipe-executor", editable = "recipe-executor" },
+]
 
 [[package]]
 name = "doc-constructor-app"
