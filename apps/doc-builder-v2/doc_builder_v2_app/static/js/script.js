@@ -210,6 +210,8 @@ window.addEventListener('load', function() {
     setTimeout(setupAutoExpand, 100);
     // Also setup drag and drop on window load
     setTimeout(setupDragAndDrop, 200);
+    // Setup description toggle button
+    setTimeout(setupDescriptionToggle, 150);
 });
 
 // Use MutationObserver for dynamic content
@@ -253,6 +255,7 @@ const observer = new MutationObserver(function(mutations) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             setupAutoExpand();
+            setupDescriptionToggle();
         }, 100);
     }
 });
@@ -530,6 +533,128 @@ function loadResourceContent(blockId, resourcePath) {
             }, 100);
         }
     }
+}
+
+// Setup description expand/collapse button
+function setupDescriptionToggle() {
+    const container = document.querySelector('#doc-description-id');
+    const textarea = container?.querySelector('textarea');
+    
+    if (!container || !textarea || container.dataset.toggleSetup) {
+        return;
+    }
+    
+    // Mark as setup
+    container.dataset.toggleSetup = 'true';
+    
+    // Create expand/collapse button
+    const button = document.createElement('button');
+    button.className = 'desc-expand-btn';
+    button.innerHTML = '⌄'; // Down chevron
+    button.title = 'Collapse';
+    
+    // Insert button
+    container.appendChild(button);
+    
+    // Track collapsed state and full text
+    let isCollapsed = false;
+    let fullText = '';
+    
+    // Function to get first two lines of text
+    function getFirstTwoLines(text) {
+        const lines = text.split('\n');
+        // Take first two lines
+        let firstTwo = lines.slice(0, 2).join('\n');
+        
+        // If the second line exists and there's more content, add ellipsis
+        if (lines.length > 2 || (lines.length === 2 && lines[1].length > 50)) {
+            firstTwo += '...';
+        }
+        
+        return firstTwo;
+    }
+    
+    // Function to check if button should be visible
+    function checkButtonVisibility() {
+        const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
+        const padding = parseInt(window.getComputedStyle(textarea).paddingTop) + 
+                       parseInt(window.getComputedStyle(textarea).paddingBottom);
+        const twoLinesHeight = (lineHeight * 2) + padding;
+        
+        // Show button if content exceeds 2 lines
+        if (textarea.scrollHeight > twoLinesHeight && !isCollapsed) {
+            button.style.display = 'block';
+        } else if (!isCollapsed) {
+            button.style.display = 'none';
+        }
+    }
+    
+    // Toggle collapse/expand
+    function toggleCollapse() {
+        const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
+        const padding = parseInt(window.getComputedStyle(textarea).paddingTop) + 
+                       parseInt(window.getComputedStyle(textarea).paddingBottom);
+        const twoLinesHeight = (lineHeight * 2) + padding;
+        
+        if (isCollapsed) {
+            // Expand - restore full text
+            textarea.value = fullText;
+            textarea.style.height = 'auto';
+            textarea.style.maxHeight = '200px';
+            textarea.style.overflow = '';  // Reset to CSS default
+            container.classList.remove('collapsed');
+            button.innerHTML = '⌄';
+            button.title = 'Collapse';
+            isCollapsed = false;
+            autoExpandTextarea(textarea);
+            // Focus at the end
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            
+            // Trigger input event to update Gradio's state
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+            // Collapse - save full text and show only first 2 lines
+            fullText = textarea.value;
+            textarea.value = getFirstTwoLines(fullText);
+            textarea.style.height = twoLinesHeight + 'px';
+            textarea.style.maxHeight = twoLinesHeight + 'px';
+            textarea.style.overflow = 'hidden';
+            container.classList.add('collapsed');
+            button.innerHTML = '⌃';  // Up chevron
+            button.title = 'Expand';
+            isCollapsed = true;
+            // Remove focus to prevent scrolling
+            textarea.blur();
+        }
+    }
+    
+    // Button click handler
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleCollapse();
+    });
+    
+    // Click on collapsed textarea to expand
+    textarea.addEventListener('click', (e) => {
+        if (isCollapsed) {
+            e.preventDefault();
+            toggleCollapse();
+        }
+    });
+    
+    // Check on input
+    textarea.addEventListener('input', () => {
+        checkButtonVisibility();
+        // Auto-expand if typing while collapsed
+        if (isCollapsed) {
+            toggleCollapse();
+        }
+    });
+    
+    // Initial check
+    checkButtonVisibility();
 }
 
 // Also add a global function that can be called
