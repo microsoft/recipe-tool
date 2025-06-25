@@ -414,10 +414,18 @@ def update_block_resources(blocks, block_id, resource_json, title, description, 
             if "resources" not in block:
                 block["resources"] = []
             
-            # For text blocks, only allow one resource
+            # For text blocks, only allow one resource AND auto-load content
             if block["type"] == "text":
                 # Replace any existing resource
                 block["resources"] = [resource_data]
+                
+                # Auto-load the file content into the text block
+                try:
+                    with open(resource_data["path"], 'r', encoding='utf-8') as f:
+                        block["content"] = f.read()
+                except Exception as e:
+                    print(f"Error loading file content: {e}")
+                    # Keep existing content if file can't be read
             else:
                 # For AI blocks, allow multiple resources
                 # Check if resource already exists in the block
@@ -445,6 +453,10 @@ def remove_block_resource(blocks, block_id, resource_path, title, description, r
             if "resources" in block:
                 # Remove the resource with matching path
                 block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
+                
+                # If this is a text block and we just removed its resource, clear the content
+                if block["type"] == "text" and len(block["resources"]) == 0:
+                    block["content"] = ""
             break
     
     # Regenerate outline
@@ -474,7 +486,15 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
     # Also remove from all blocks that have this resource
     for block in blocks:
         if "resources" in block:
+            # Count resources before removal
+            original_count = len(block["resources"])
+            
+            # Remove the resource
             block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
+            
+            # If this was a text block and we removed its only resource, clear the content
+            if block["type"] == "text" and original_count > 0 and len(block["resources"]) == 0:
+                block["content"] = ""
     
     # Generate HTML for resources display
     if new_resources:

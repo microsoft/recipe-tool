@@ -482,6 +482,35 @@ function updateResourceDescription(blockId, resourcePath, description) {
     }, 50); // Wait 50ms after user stops typing
 }
 
+// Load resource content into text block
+function loadResourceContent(blockId, resourcePath) {
+    // Set the values in hidden inputs
+    const blockIdInput = document.getElementById('load-resource-block-id');
+    const resourcePathInput = document.getElementById('load-resource-path');
+    
+    if (blockIdInput && resourcePathInput) {
+        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        
+        if (blockIdTextarea && resourcePathTextarea) {
+            blockIdTextarea.value = blockId;
+            resourcePathTextarea.value = resourcePath;
+            
+            // Dispatch input events
+            blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            resourcePathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Trigger the load button
+            setTimeout(() => {
+                const loadBtn = document.getElementById('load-resource-trigger');
+                if (loadBtn) {
+                    loadBtn.click();
+                }
+            }, 100);
+        }
+    }
+}
+
 // Also add a global function that can be called
 window.setupAutoExpand = setupAutoExpand;
 

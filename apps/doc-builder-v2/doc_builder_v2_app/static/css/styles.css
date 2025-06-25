@@ -196,6 +196,21 @@
     opacity: 1;
 }
 
+/* Load resource button */
+.load-resource-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.load-resource-btn:hover {
+    opacity: 1;
+}
+
 /* Resource container for AI blocks with descriptions */
 .dropped-resource-container {
     margin-bottom: 8px;
