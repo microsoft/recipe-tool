@@ -55,6 +55,14 @@
     font-weight: bold !important;
     font-size: 14px !important;
 }
+.doc-description-box textarea {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    resize: none !important; /* Disable manual resize since we auto-expand */
+    overflow-y: auto !important; /* Show scrollbar when needed */
+    max-height: 200px !important; /* Limit maximum height */
+    transition: height 0.1s ease;
+}
 
 /* Download button */
 .download-generated-doc {

@@ -1170,7 +1170,7 @@ def create_app():
 
         # Document title and description
         with gr.Row(elem_classes="header-section"):
-            # Document title (25% width)
+            # Document title (narrower width)
             doc_title = gr.Textbox(
                 value="Document Title",
                 placeholder="Enter document title",
@@ -1178,18 +1178,21 @@ def create_app():
                 show_label=False,
                 elem_id="doc-title-id",
                 elem_classes="doc-title-box",
-                scale=1,
+                scale=2,
                 interactive=True,
             )
 
-            # Document description (75% width)
-            doc_description = gr.Textbox(
+            # Document description (wider width)
+            doc_description = gr.TextArea(
                 value="",
                 placeholder="Explain what this document is about. Include specifics such as purpose, audience, style, format, etc.",
                 label=None,
                 show_label=False,
                 elem_id="doc-description-id",
-                scale=3,
+                elem_classes="doc-description-box",
+                scale=5,
+                lines=2,
+                max_lines=10,
                 interactive=True,
             )
 

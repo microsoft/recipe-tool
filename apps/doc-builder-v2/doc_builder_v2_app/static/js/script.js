@@ -148,7 +148,16 @@ function autoExpandTextarea(textarea) {
 
     // Set height to scrollHeight plus a small buffer
     const newHeight = textarea.scrollHeight + 2;
-    textarea.style.height = newHeight + 'px';
+    
+    // Check if this is the description textarea
+    const isDescription = textarea.closest('#doc-description-id');
+    if (isDescription) {
+        // For description, cap at max-height (200px)
+        const maxHeight = 200;
+        textarea.style.height = Math.min(newHeight, maxHeight) + 'px';
+    } else {
+        textarea.style.height = newHeight + 'px';
+    }
 }
 
 // Setup auto-expand for all textareas
@@ -176,6 +185,18 @@ function setupAutoExpand() {
             textarea.addEventListener('paste', textarea.pasteHandler);
         }
     });
+    
+    // Special handling for the document description to ensure proper initial height
+    const docDescription = document.querySelector('#doc-description-id textarea');
+    if (docDescription) {
+        // Set minimum height for 2 lines
+        const lineHeight = parseInt(window.getComputedStyle(docDescription).lineHeight);
+        const padding = parseInt(window.getComputedStyle(docDescription).paddingTop) + 
+                       parseInt(window.getComputedStyle(docDescription).paddingBottom);
+        const minHeight = (lineHeight * 2) + padding;
+        docDescription.style.minHeight = minHeight + 'px';
+        autoExpandTextarea(docDescription);
+    }
 }
 
 // Try setting up when DOM loads and with a delay
