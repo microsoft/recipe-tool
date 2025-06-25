@@ -1223,12 +1223,12 @@ def create_app():
                         with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
                             gr.HTML("""
                                 <div class="examples-dropdown-item" data-example="1">
-                                    <div class="example-title">Technical Documentation</div>
-                                    <div class="example-desc">Production ready readme with code</div>
+                                    <div class="example-title">README Generator/div>
+                                    <div class="example-desc">Technical documentation with code</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="2">
-                                    <div class="example-title">Business Proposal</div>
-                                    <div class="example-desc">Product launch guide</div>
+                                    <div class="example-title">Product Launch Documentation</div>
+                                    <div class="example-desc">Product research and strategy</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="3">
                                     <div class="example-title">Business Report</div>
