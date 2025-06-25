@@ -303,11 +303,11 @@ async def handle_document_generation(title, description, resources, blocks):
         with open(file_path, "w") as f:
             f.write(generated_content)
 
-        return json_str, generated_content, gr.update(visible=True, value=file_path, label=f"Download {filename}")
+        return json_str, generated_content, file_path, filename
 
     except Exception as e:
         error_msg = f"Error generating document: {str(e)}"
-        return json_str, error_msg, gr.update(visible=False)
+        return json_str, error_msg, None, None
 
 
 def generate_document_json(title, description, resources, blocks, save_inline=False, inline_dir=None):
@@ -1099,6 +1099,7 @@ def create_app():
         # State to track resources and blocks
         resources_state = gr.State([])
         focused_block_state = gr.State(None)
+        generated_file_path = gr.State(None)  # State to store generated file path
 
         # Initialize with default blocks
         initial_blocks = [
@@ -1304,7 +1305,14 @@ def create_app():
                     generate_doc_btn = gr.Button(
                         "▷ Generate", elem_classes="generate-btn", variant="primary", size="sm"
                     )
-                    save_doc_btn = gr.Button("Download", elem_classes="download-btn", variant="secondary", size="sm")
+                    save_doc_btn = gr.DownloadButton(
+                        "Download", 
+                        elem_classes="download-btn", 
+                        variant="secondary", 
+                        size="sm",
+                        visible=True,
+                        interactive=False  # Disabled until document is generated
+                    )
 
                 # Generated document display panel
                 with gr.Column(elem_classes="generate-display"):
@@ -1313,10 +1321,6 @@ def create_app():
                         elem_classes="generated-content",
                     )
 
-                    # Download button for generated document
-                    download_btn = gr.DownloadButton(
-                        "Download Document", visible=False, elem_classes="download-generated-doc"
-                    )
 
                 # Debug panel for JSON display
                 with gr.Column(elem_classes="debug-panel"):
@@ -1463,11 +1467,22 @@ def create_app():
             outputs=[outline_state, json_output],
         )
 
-        # Generate document handler
+        # Generate document handler - update to return the download button state
+        async def handle_generate_and_update_download(title, description, resources, blocks):
+            """Generate document and update download button."""
+            json_str, content, file_path, filename = await handle_document_generation(title, description, resources, blocks)
+            
+            if file_path:
+                download_update = gr.update(value=file_path, interactive=True)
+            else:
+                download_update = gr.update(interactive=False)
+            
+            return json_str, content, download_update
+        
         generate_doc_btn.click(
-            fn=handle_document_generation,
+            fn=handle_generate_and_update_download,
             inputs=[doc_title, doc_description, resources_state, blocks_state],
-            outputs=[json_output, generated_content, download_btn],
+            outputs=[json_output, generated_content, save_doc_btn],
         )
 
         # Save button handler
