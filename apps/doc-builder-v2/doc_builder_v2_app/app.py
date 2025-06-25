@@ -620,6 +620,27 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
     return new_resources, blocks, gr.update(value=resources_html), outline, json_str
 
 
+def load_example(example_id):
+    """Load a predefined example based on the example ID."""
+    if not example_id:
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+
+    # Map example IDs to file paths
+    examples_dir = Path(__file__).parent.parent / "examples"
+    example_files = {
+        "1": examples_dir / "readme-generation" / "readme.json",
+        "2": examples_dir / "launch-documentation" / "launch-documentation.json",
+        "3": examples_dir / "scenario-1-monthly-marketing-report" / "MADE Marketing Report_20250625_140525.json",
+    }
+
+    file_path = example_files.get(example_id)
+    if not file_path or not file_path.exists():
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+
+    # Use the import_outline function to load the example
+    return import_outline(str(file_path))
+
+
 def import_outline(file_path):
     """Import an outline from a JSON file and convert it to blocks format."""
     if not file_path:
@@ -1202,32 +1223,16 @@ def create_app():
                         with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
                             gr.HTML("""
                                 <div class="examples-dropdown-item" data-example="1">
-                                    <div class="example-title">Research Paper Outline</div>
-                                    <div class="example-desc">Academic paper structure with citations</div>
+                                    <div class="example-title">Technical Documentation</div>
+                                    <div class="example-desc">Production ready readme with code</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="2">
-                                    <div class="example-title">Technical Documentation</div>
-                                    <div class="example-desc">API docs with code examples</div>
+                                    <div class="example-title">Business Proposal</div>
+                                    <div class="example-desc">Product launch guide</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="3">
-                                    <div class="example-title">Business Proposal</div>
-                                    <div class="example-desc">Professional proposal template</div>
-                                </div>
-                                <div class="examples-dropdown-item" data-example="4">
-                                    <div class="example-title">User Guide</div>
-                                    <div class="example-desc">Step-by-step instructions with screenshots</div>
-                                </div>
-                                <div class="examples-dropdown-item" data-example="5">
-                                    <div class="example-title">Blog Post</div>
-                                    <div class="example-desc">SEO-optimized article structure</div>
-                                </div>
-                                <div class="examples-dropdown-item" data-example="6">
-                                    <div class="example-title">Project Report</div>
-                                    <div class="example-desc">Status updates and milestones</div>
-                                </div>
-                                <div class="examples-dropdown-item" data-example="7">
-                                    <div class="example-title">Tutorial</div>
-                                    <div class="example-desc">Educational content with exercises</div>
+                                    <div class="example-title">Business Report</div>
+                                    <div class="example-desc">Marketing analysis and strategy</div>
                                 </div>
                             """)
                     import_builder_btn = gr.Button(
@@ -1440,6 +1445,10 @@ def create_app():
                     update_desc_resource_path = gr.Textbox(visible=False, elem_id="update-desc-resource-path")
                     update_desc_text = gr.Textbox(visible=False, elem_id="update-desc-text")
                     update_desc_trigger = gr.Button("Update Description", visible=False, elem_id="update-desc-trigger")
+
+                    # Hidden components for loading examples
+                    example_id_input = gr.Textbox(visible=False, elem_id="example-id-input")
+                    load_example_trigger = gr.Button("Load Example", visible=False, elem_id="load-example-trigger")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -1668,6 +1677,21 @@ def create_app():
                 json_output,
                 resources_display,
                 import_file,  # Add import_file to outputs to clear it
+            ],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
+        # Load example handler
+        load_example_trigger.click(
+            fn=load_example,
+            inputs=[example_id_input],
+            outputs=[
+                doc_title,
+                doc_description,
+                resources_state,
+                blocks_state,
+                outline_state,
+                json_output,
+                resources_display,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 

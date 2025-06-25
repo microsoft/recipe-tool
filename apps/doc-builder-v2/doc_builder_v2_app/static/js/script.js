@@ -823,10 +823,23 @@ function setupExampleSelection() {
             const exampleId = this.getAttribute('data-example');
             console.log('Selected example:', exampleId);
             
-            // TODO: Load the selected example
-            // For now, just log the selection
-            const title = this.querySelector('.example-title').textContent;
-            console.log('Loading example:', title);
+            // Set the example ID in hidden input
+            const exampleIdInput = document.getElementById('example-id-input');
+            if (exampleIdInput) {
+                const textarea = exampleIdInput.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = exampleId;
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    // Trigger the load example button
+                    setTimeout(() => {
+                        const loadExampleBtn = document.getElementById('load-example-trigger');
+                        if (loadExampleBtn) {
+                            loadExampleBtn.click();
+                        }
+                    }, 100);
+                }
+            }
             
             // Hide dropdown after selection
             const dropdown = document.getElementById('examples-dropdown-id');
