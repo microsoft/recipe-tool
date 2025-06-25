@@ -142,6 +142,13 @@ def update_block_content(blocks, block_id, content, title, description, resource
                 block["ai_content"] = content
             elif block["type"] == "text":
                 block["text_content"] = content
+                # Mark text block as edited when content changes
+                if content:
+                    block["edited"] = True
+                    # Store original resource reference if exists
+                    if "resources" in block and block["resources"]:
+                        block["original_resource"] = block["resources"][0]
+                        block["resources"] = []  # Clear resources since content is now edited
             break
 
     # Regenerate outline and JSON
@@ -253,12 +260,36 @@ def update_block_indent(blocks, block_id, direction, title, description, resourc
     return blocks, outline, json_str
 
 
+def save_inline_resources(blocks, output_dir):
+    """Save inline resources from edited text blocks to disk."""
+    saved_resources = []
+    for block in blocks:
+        if block.get("type") == "text" and block.get("edited") and block.get("text_content"):
+            # Save the inline resource
+            filename = f"inline_{block['id']}.txt"
+            filepath = Path(output_dir) / filename
+            filepath.write_text(block["text_content"], encoding='utf-8')
+            saved_resources.append({
+                "block_id": block["id"],
+                "path": str(filepath)
+            })
+    return saved_resources
+
+
 async def handle_document_generation(title, description, resources, blocks):
     """Generate document using the recipe executor."""
     try:
-        # First generate the JSON
-        json_str = generate_document_json(title, description, resources, blocks)
+        # Create temporary directory for inline resources
+        temp_dir = tempfile.mkdtemp()
+        
+        # Generate the JSON with inline resources saved to temp directory
+        json_str = generate_document_json(title, description, resources, blocks, save_inline=True, inline_dir=temp_dir)
         json_data = json.loads(json_str)
+        
+        # Remove is_inline flags for compatibility with json_to_outline
+        for res in json_data.get("resources", []):
+            if "is_inline" in res:
+                del res["is_inline"]
 
         # Convert to Outline
         outline = json_to_outline(json_data)
@@ -268,7 +299,6 @@ async def handle_document_generation(title, description, resources, blocks):
 
         # Save to temporary file for download
         filename = f"{title}.md" if title else "document.md"
-        temp_dir = tempfile.mkdtemp()
         file_path = os.path.join(temp_dir, filename)
         with open(file_path, "w") as f:
             f.write(generated_content)
@@ -280,13 +310,21 @@ async def handle_document_generation(title, description, resources, blocks):
         return json_str, error_msg, gr.update(visible=False)
 
 
-def generate_document_json(title, description, resources, blocks):
-    """Generate JSON structure from document data following the example format."""
+def generate_document_json(title, description, resources, blocks, save_inline=False, inline_dir=None):
+    """Generate JSON structure from document data following the example format.
+    
+    Args:
+        save_inline: If True, save inline resources to inline_dir and use real paths
+        inline_dir: Directory to save inline resources to (required if save_inline=True)
+    """
     import json
 
     # Create the base structure
     doc_json = {"title": title, "general_instruction": description, "resources": [], "sections": []}
 
+    # Track inline resources that need to be added
+    inline_resources = []
+    
     # First, collect all resource descriptions from blocks
     resource_descriptions = {}
     for block in blocks:
@@ -348,17 +386,28 @@ def generate_document_json(title, description, resources, blocks):
                         section["resource_key"] = ""  # Default to empty string
                         section["sections"] = []  # Will be populated if there are nested sections
                         
-                        # Handle resource_key
-                        block_resources = block.get("resources", [])
-                        if block_resources:
-                            # For text blocks, just use the first resource as resource_key
-                            for block_resource in block_resources:
-                                # Find matching resource in the global resources list
-                                for idx, resource in enumerate(resources):
-                                    if resource["path"] == block_resource.get("path"):
-                                        section["resource_key"] = f"resource_{idx + 1}"
-                                        break
-                                break  # Only use first resource for resource_key
+                        # Check if this text block has been edited
+                        if block.get("edited") and block.get("text_content"):
+                            # Create an inline resource for the edited content
+                            inline_resource_key = f"inline_resource_{len(inline_resources) + 1}"
+                            inline_resources.append({
+                                "key": inline_resource_key,
+                                "content": block["text_content"],
+                                "block_id": block["id"]
+                            })
+                            section["resource_key"] = inline_resource_key
+                        else:
+                            # Handle regular file resource
+                            block_resources = block.get("resources", [])
+                            if block_resources:
+                                # For text blocks, just use the first resource as resource_key
+                                for block_resource in block_resources:
+                                    # Find matching resource in the global resources list
+                                    for idx, resource in enumerate(resources):
+                                        if resource["path"] == block_resource.get("path"):
+                                            section["resource_key"] = f"resource_{idx + 1}"
+                                            break
+                                    break  # Only use first resource for resource_key
 
                     # Check if next blocks are indented under this one
                     next_idx = i + 1
@@ -377,6 +426,41 @@ def generate_document_json(title, description, resources, blocks):
 
     # Build the sections hierarchy
     doc_json["sections"], _ = build_nested_sections(blocks, 0, -1)
+    
+    # Add inline resources to the resources list
+    if save_inline and inline_dir:
+        # Actually save the inline resources and use real paths
+        for inline_res in inline_resources:
+            filename = f"inline_{inline_res['block_id']}.txt"
+            filepath = Path(inline_dir) / filename
+            filepath.write_text(inline_res["content"], encoding='utf-8')
+            
+            doc_json["resources"].append({
+                "key": inline_res["key"],
+                "path": str(filepath),
+                "description": "",  # No description for inline resources
+                "is_inline": True  # Mark as inline resource
+            })
+    else:
+        # For preview, save to temp gradio directory immediately
+        import tempfile
+        gradio_temp_dir = Path(tempfile.gettempdir()) / "gradio"
+        gradio_temp_dir.mkdir(exist_ok=True)
+        
+        for inline_res in inline_resources:
+            # Generate unique filename with timestamp
+            import time
+            timestamp = str(int(time.time() * 1000000))
+            filename = f"inline_{inline_res['block_id']}_{timestamp}.txt"
+            filepath = gradio_temp_dir / filename
+            filepath.write_text(inline_res["content"], encoding='utf-8')
+            
+            doc_json["resources"].append({
+                "key": inline_res["key"],
+                "path": str(filepath),
+                "description": "",  # No description for inline resources
+                "is_inline": True  # Mark as inline resource
+            })
 
     return json.dumps(doc_json, indent=2)
 
@@ -437,7 +521,23 @@ def update_block_resources(blocks, block_id, resource_json, title, description, 
                 
                 # Add resource if it doesn't exist
                 if not exists:
-                    block["resources"].append(resource_data)
+                    # Check if this resource already has a description in another block
+                    existing_description = ""
+                    for other_block in blocks:
+                        if other_block.get("type") == "ai" and "resources" in other_block:
+                            for res in other_block["resources"]:
+                                if res.get("path") == resource_data.get("path") and res.get("description"):
+                                    existing_description = res.get("description", "")
+                                    break
+                            if existing_description:
+                                break
+                    
+                    # Add the resource with existing description if found
+                    resource_to_add = resource_data.copy()
+                    if existing_description:
+                        resource_to_add["description"] = existing_description
+                    
+                    block["resources"].append(resource_to_add)
             break
     
     # Regenerate outline
@@ -548,11 +648,18 @@ def import_outline(file_path):
         # Extract and validate resources
         resources = []
         invalid_resources = []
+        inline_resources = {}  # Store inline resources by key
         
         for res_data in json_data.get("resources", []):
             resource_path = res_data.get("path", "")
             resource_name = Path(resource_path).name
             file_ext = Path(resource_name).suffix.lower()
+            
+            # Check if this is an inline resource
+            if res_data.get("is_inline", False) or res_data.get("key", "").startswith("inline_resource_"):
+                # Store inline resource content for later use
+                inline_resources[res_data["key"]] = resource_path
+                continue  # Don't add to regular resources
             
             # Check if file extension is allowed
             if file_ext not in ALLOWED_EXTENSIONS:
@@ -626,11 +733,37 @@ def import_outline(file_path):
                     
                     # Handle resource_key
                     resource_key = section.get("resource_key", "")
-                    if resource_key and resources:
+                    
+                    # Check if this is an inline resource
+                    if resource_key in inline_resources:
+                        # Load content from inline resource file
+                        try:
+                            inline_path = inline_resources[resource_key]
+                            # If it's a relative path in a save directory, construct full path
+                            if not Path(inline_path).is_absolute():
+                                # Look for the file in the same directory as the imported JSON
+                                import_dir = Path(file_path).parent
+                                inline_path = import_dir / inline_path
+                            
+                            with open(inline_path, 'r', encoding='utf-8') as f:
+                                block["content"] = f.read()
+                                block["text_content"] = block["content"]
+                                block["edited"] = True  # Mark as edited
+                        except Exception as e:
+                            print(f"Error loading inline resource: {e}")
+                    elif resource_key and resources:
+                        # Regular resource reference
                         try:
                             idx = int(resource_key.split("_")[1]) - 1
                             if 0 <= idx < len(resources):
                                 block["resources"].append(resources[idx])
+                                # Auto-load content from the resource file
+                                try:
+                                    with open(resources[idx]["path"], 'r', encoding='utf-8') as f:
+                                        block["content"] = f.read()
+                                        block["text_content"] = block["content"]
+                                except Exception as e:
+                                    print(f"Error loading resource content: {e}")
                         except (IndexError, ValueError):
                             pass
                 else:
@@ -690,7 +823,7 @@ def import_outline(file_path):
         return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
 
 
-def save_outline(title, outline_json):
+def save_outline(title, outline_json, blocks):
     """Save the outline JSON to the output directory specified in the recipe."""
     from datetime import datetime
 
@@ -715,11 +848,23 @@ def save_outline(title, outline_json):
         # Create filename from title and timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
-        filename = f"{safe_title}_{timestamp}.json"
-
-        # Save the outline JSON
-        outline_path = output_dir / filename
-        outline_path.write_text(outline_json)
+        base_name = f"{safe_title}_{timestamp}"
+        
+        # Create a subdirectory for this save
+        save_dir = output_dir / base_name
+        save_dir.mkdir(exist_ok=True)
+        
+        # Parse the current JSON - keep absolute paths for inline resources
+        current_json = json.loads(outline_json)
+        
+        # Just remove is_inline flags if present, but keep the absolute paths
+        for res in current_json.get("resources", []):
+            if "is_inline" in res:
+                del res["is_inline"]
+        
+        # Save the updated outline JSON
+        outline_path = save_dir / f"{base_name}.json"
+        outline_path.write_text(json.dumps(current_json, indent=2))
 
         success_msg = f"Outline saved successfully to: {outline_path}"
         return gr.update(value=success_msg, visible=True)
@@ -731,6 +876,11 @@ def save_outline(title, outline_json):
 
 def render_block_resources(block_resources, block_type, block_id):
     """Render the resources inside a block."""
+    if block_type == "text":
+        # Text blocks always show the drop zone, never show resources
+        return "Drop text resources here"
+    
+    # AI blocks show resources or drop zone
     if not block_resources:
         return f"Drop {block_type} resources here"
     
@@ -741,24 +891,20 @@ def render_block_resources(block_resources, block_type, block_id):
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
         description = resource.get("description", "").replace('"', '&quot;')  # Escape quotes for HTML attribute
         
-        if block_type == "AI":
-            # For AI blocks, show resource with description input
-            html += f'''
-            <div class="dropped-resource-container">
-                <div class="dropped-resource">
-                    {icon} {name}
-                    <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
-                </div>
-                <input type="text" 
-                       class="resource-description" 
-                       placeholder="Describe why this resource is relevant..." 
-                       value="{description}"
-                       oninput="updateResourceDescription('{block_id}', '{path}', this.value)">
+        # For AI blocks, show resource with description input
+        html += f'''
+        <div class="dropped-resource-container">
+            <div class="dropped-resource">
+                {icon} {name}
+                <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
             </div>
-            '''
-        else:
-            # For text blocks, just show the resource
-            html += f'<span class="dropped-resource">{icon} {name}<span class="remove-resource" onclick="removeBlockResource(\'{block_id}\', \'{path}\')">×</span></span>'
+            <input type="text" 
+                   class="resource-description" 
+                   placeholder="Describe why this resource is relevant..." 
+                   value="{description}"
+                   oninput="updateResourceDescription('{block_id}', '{path}', this.value)">
+        </div>
+        '''
     
     return html
 
@@ -1322,7 +1468,7 @@ def create_app():
         )
 
         # Save button handler
-        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output], outputs=save_status)
+        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output, blocks_state], outputs=save_status)
         
         # Import file handler
         import_file.change(
