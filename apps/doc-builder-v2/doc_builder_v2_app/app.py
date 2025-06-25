@@ -612,7 +612,7 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
             )
         resources_html = "\n".join(html_items)
     else:
-        resources_html = "<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
+        resources_html = "<p style='color: #666; font-size: 12px;'>No text files uploaded yet.</p>"
 
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, description, new_resources, blocks)
@@ -1201,9 +1201,9 @@ def create_app():
 
         with gr.Row():
             # App name and explanation
-            with gr.Column():
+            with gr.Column(elem_classes="app-header-col"):
                 gr.Markdown("# Document Generator")
-                gr.Markdown("An AI tool for creating structured documents with customizable sections.")
+                gr.Markdown(" An AI tool for creating structured documents with customizable sections.")
 
             # Import and Save buttons
             with gr.Column():
@@ -1292,7 +1292,7 @@ def create_app():
             with gr.Column(scale=1, elem_classes="resources-col"):
                 # File upload component styled as button
                 upload_resources_btn = gr.Button(
-                    "Upload Reference Files",
+                    "Upload References",
                     variant="secondary",
                     size="sm",
                     elem_id="upload-resources-btn-id",
@@ -1300,7 +1300,7 @@ def create_app():
                 )
 
                 file_upload = gr.File(
-                    label="Upload Reference Files",
+                    label="Upload References",
                     file_count="multiple",
                     file_types=[
                         ".txt",
@@ -1367,7 +1367,7 @@ def create_app():
                 )
 
                 resources_display = gr.HTML(
-                    value="<p style='color: #666; font-size: 12px'>No resources uploaded yet</p>",
+                    value="<p style='color: #666; font-size: 12px'>No text files uploaded yet.</p>",
                     elem_classes="resources-display-area",
                 )
 

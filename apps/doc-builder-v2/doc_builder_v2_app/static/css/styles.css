@@ -13,6 +13,11 @@
     max-width: 100% !important;
 }
 
+.app-header-col {
+    gap: 7px !important;
+}
+
+
 /* Builder buttons */
 .save-builder-btn {
     width: 120px !important;
@@ -390,7 +395,7 @@
     gap: 10px !important;
 }
 .workspace-display {
-    height: 700px !important;
+    height: 680px !important;
     color: #bbbbc2 !important;
     background-color: white !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -834,7 +839,7 @@
     gap: 10px !important;
 }
 .generate-display {
-    height: 700px !important;
+    height: 680px !important;
     background-color: white !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e5e5;
