@@ -983,7 +983,7 @@ def render_block_resources(block_resources, block_type, block_id):
 def render_blocks(blocks, focused_block_id=None):
     """Render blocks as HTML."""
     if not blocks:
-        return "<div class='empty-blocks-message'>Click AI or T to add content blocks</div>"
+        return "<div class='empty-blocks-message'>Click '+ Add AI' to add an AI generated section.</div><div class='empty-blocks-message'>Click '+ Add Text' to add a traditional text section.</div>"
 
     html = ""
     for i, block in enumerate(blocks):
@@ -1374,8 +1374,8 @@ def create_app():
             # Workspace column: AI, H, T buttons (aligned left)
             with gr.Column(scale=1, elem_classes="workspace-col"):
                 with gr.Row(elem_classes="square-btn-row"):
-                    ai_btn = gr.Button("+ Add Section", elem_classes="add-section-btn", size="sm")
-                    new_btn = gr.Button("Button Text", elem_classes="secondary-workspace-btn", size="sm")
+                    ai_btn = gr.Button("+ Add AI", elem_classes="add-section-btn", size="sm")
+                    new_btn = gr.Button("+ Add Text", elem_classes="secondary-workspace-btn", size="sm")
 
                 # Workspace panel for stacking content blocks
                 with gr.Column(elem_classes="workspace-display"):
@@ -1470,7 +1470,7 @@ def create_app():
                 # Generated document display panel
                 with gr.Column(elem_classes="generate-display"):
                     generated_content = gr.Markdown(
-                        value="*Click 'Generate Document' to see the generated content here*",
+                        value="*Click 'Generate Document' to see the generated content here.*",
                         elem_classes="generated-content",
                     )
 
