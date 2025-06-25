@@ -1,0 +1,41 @@
+Manager Feedback - Sarah Chen Annual Review 2024
+From: David Rodriguez, Engineering Manager
+
+Overall Performance Assessment:
+Sarah has consistently exceeded expectations throughout 2024, demonstrating exceptional technical leadership and mentorship capabilities. Her contributions have been instrumental in delivering critical projects while fostering team growth and improving engineering practices.
+
+Technical Excellence:
+Sarah's technical skills continue to evolve impressively. Her leadership on the OAuth system overhaul showcased her ability to architect complex solutions while maintaining code quality. The performance optimization work she led resulted in measurable improvements that directly impacted customer satisfaction. Her expertise in React and frontend technologies is among the best on our team.
+
+Leadership & Mentorship:
+One of Sarah's standout qualities this year has been her growth as a mentor and technical leader. She successfully onboarded three new team members, with all of them rating her mentorship as exceptional. Her patient teaching style and comprehensive code reviews have elevated the entire team's capabilities. She has become our go-to person for complex frontend architecture decisions.
+
+Collaboration & Communication:
+Sarah excels at cross-functional collaboration, particularly with our design and product teams. Her ability to translate technical constraints into business terms has been valuable in project planning. She actively participates in engineering discussions and isn't afraid to challenge ideas constructively when necessary.
+
+Areas of Strength:
+1. Technical expertise and problem-solving abilities
+2. Mentorship and knowledge sharing
+3. Project leadership and delivery
+4. Performance optimization and code quality
+5. Adaptability and continuous learning
+
+Areas for Development:
+1. Could benefit from more involvement in system-wide architecture decisions
+2. Opportunity to lead larger, cross-team initiatives
+3. Consider developing backend skills to become more full-stack
+4. Could take on more responsibility in hiring and team building
+
+Goal Achievement:
+Sarah achieved 100% of her annual goals and exceeded most by significant margins. Her performance optimization work delivered 4.5x the targeted improvement, and her mentorship impact exceeded expectations.
+
+Future Potential:
+Sarah is ready for increased responsibility and would be an excellent candidate for a Staff Engineer or Tech Lead role. Her combination of technical skills and leadership abilities positions her well for career advancement.
+
+Overall Rating: Exceeds Expectations (4.8/5.0)
+
+Recommended Actions:
+- Promote to Staff Engineer level
+- Increase involvement in architectural planning
+- Consider for technical interview panel leadership
+- Support conference speaking opportunities for professional development

@@ -256,6 +256,7 @@ const observer = new MutationObserver(function(mutations) {
         debounceTimer = setTimeout(() => {
             setupAutoExpand();
             setupDescriptionToggle();
+            setupExampleSelection();
         }, 100);
     }
 });
@@ -812,10 +813,39 @@ function updateBlockResources(blockId, resource) {
     }
 }
 
+// Setup example selection functionality
+function setupExampleSelection() {
+    const exampleItems = document.querySelectorAll('.examples-dropdown-item');
+    
+    exampleItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const exampleId = this.getAttribute('data-example');
+            console.log('Selected example:', exampleId);
+            
+            // TODO: Load the selected example
+            // For now, just log the selection
+            const title = this.querySelector('.example-title').textContent;
+            console.log('Loading example:', title);
+            
+            // Hide dropdown after selection
+            const dropdown = document.getElementById('examples-dropdown-id');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                // Re-show on next hover
+                setTimeout(() => {
+                    dropdown.style.removeProperty('display');
+                }, 300);
+            }
+        });
+    });
+}
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function() {
     setupImportButton();
     setupUploadResource();
+    setupExampleSelection();
     // Delay initial drag and drop setup
     setTimeout(() => {
         setupDragAndDrop();

@@ -34,6 +34,100 @@
     height: 30px !important;
 }
 
+/* Try Examples button - citrus orange tertiary color */
+.try-examples-btn {
+    position: absolute !important;
+    right: 0px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ff9f40 !important;
+    border: 1px solid #ff9f40 !important;
+    color: white !important;
+}
+.try-examples-btn:hover {
+    background-color: #ff8f20 !important;
+    border-color: #ff8f20 !important;
+}
+
+/* Try Examples dropdown container */
+.try-examples-container {
+    position: relative !important;
+    display: inline-block !important;
+    width: auto !important;
+}
+
+/* Examples dropdown styling */
+.examples-dropdown {
+    position: absolute !important;
+    top: 30px !important;
+    right: 0 !important;
+    margin-top: 4px !important;
+    min-width: 280px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1000 !important;
+    display: none !important;
+    padding: 8px !important;
+}
+
+/* Show dropdown on hover */
+.try-examples-container:hover .examples-dropdown {
+    display: block !important;
+}
+
+/* Create invisible bridge to maintain hover state */
+.examples-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: transparent;
+}
+
+/* Individual example items */
+.examples-dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.examples-dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.examples-dropdown-item:hover {
+    background-color: #fff5eb;
+    transform: translateX(4px);
+}
+
+/* Example title */
+.example-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+/* Example description */
+.example-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Active/selected state */
+.examples-dropdown-item:active {
+    background-color: #ffe5cc;
+}
+
 
 /* Header section */
 .header-section {
@@ -343,6 +437,23 @@
 .add-section-btn:hover {
     background-color: #3a8d8e !important;
     border-color: #3a8d8e !important;
+}
+
+/* Secondary workspace button - white with grey border */
+.secondary-workspace-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #666666 !important;
+    font-weight: normal !important;
+}
+.secondary-workspace-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+    color: #555555 !important;
 }
 
 
@@ -756,6 +867,26 @@
 }
 .generate-display::-webkit-scrollbar {
     display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Also hide scrollbars in any nested containers within generate-display */
+.generate-display * {
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.generate-display *::-webkit-scrollbar {
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Specific targeting for generated content */
+.generated-content {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.generated-content::-webkit-scrollbar {
+    display: none !important;
 }
 
 /* Generate Document - buttons*/

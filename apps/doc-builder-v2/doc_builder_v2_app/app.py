@@ -268,11 +268,8 @@ def save_inline_resources(blocks, output_dir):
             # Save the inline resource
             filename = f"inline_{block['id']}.txt"
             filepath = Path(output_dir) / filename
-            filepath.write_text(block["text_content"], encoding='utf-8')
-            saved_resources.append({
-                "block_id": block["id"],
-                "path": str(filepath)
-            })
+            filepath.write_text(block["text_content"], encoding="utf-8")
+            saved_resources.append({"block_id": block["id"], "path": str(filepath)})
     return saved_resources
 
 
@@ -281,11 +278,11 @@ async def handle_document_generation(title, description, resources, blocks):
     try:
         # Create temporary directory for inline resources
         temp_dir = tempfile.mkdtemp()
-        
+
         # Generate the JSON with inline resources saved to temp directory
         json_str = generate_document_json(title, description, resources, blocks, save_inline=True, inline_dir=temp_dir)
         json_data = json.loads(json_str)
-        
+
         # Remove is_inline flags for compatibility with json_to_outline
         for res in json_data.get("resources", []):
             if "is_inline" in res:
@@ -312,7 +309,7 @@ async def handle_document_generation(title, description, resources, blocks):
 
 def generate_document_json(title, description, resources, blocks, save_inline=False, inline_dir=None):
     """Generate JSON structure from document data following the example format.
-    
+
     Args:
         save_inline: If True, save inline resources to inline_dir and use real paths
         inline_dir: Directory to save inline resources to (required if save_inline=True)
@@ -324,7 +321,7 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
 
     # Track inline resources that need to be added
     inline_resources = []
-    
+
     # First, collect all resource descriptions from blocks
     resource_descriptions = {}
     for block in blocks:
@@ -333,7 +330,7 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
                 if res.get("path") and res.get("description"):
                     # Store the description keyed by path
                     resource_descriptions[res["path"]] = res["description"]
-    
+
     # Process resources with descriptions from blocks
     for idx, resource in enumerate(resources):
         # Get description from blocks if available, otherwise empty
@@ -359,7 +356,9 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
 
             # If this block is at the expected level
             if current_level == parent_level + 1:
-                if block["type"] in ["ai", "text"] and (block.get("heading") or block.get("content") or block.get("resources")):
+                if block["type"] in ["ai", "text"] and (
+                    block.get("heading") or block.get("content") or block.get("resources")
+                ):
                     section = {"title": block.get("heading", "Untitled Section")}
 
                     # Handle AI blocks vs Text blocks differently
@@ -367,7 +366,7 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
                         # AI blocks always have these keys
                         section["prompt"] = block.get("content", "")
                         section["sections"] = []  # Will be populated if there are nested sections
-                        
+
                         # Handle refs - always include the key
                         refs = []
                         block_resources = block.get("resources", [])
@@ -385,7 +384,7 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
                         # Text blocks always have these keys
                         section["resource_key"] = ""  # Default to empty string
                         section["sections"] = []  # Will be populated if there are nested sections
-                        
+
                         # Check if this text block has been edited
                         if block.get("edited") and block.get("text_content"):
                             # Create an inline resource for the edited content
@@ -393,7 +392,7 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
                             inline_resources.append({
                                 "key": inline_resource_key,
                                 "content": block["text_content"],
-                                "block_id": block["id"]
+                                "block_id": block["id"],
                             })
                             section["resource_key"] = inline_resource_key
                         else:
@@ -426,40 +425,42 @@ def generate_document_json(title, description, resources, blocks, save_inline=Fa
 
     # Build the sections hierarchy
     doc_json["sections"], _ = build_nested_sections(blocks, 0, -1)
-    
+
     # Add inline resources to the resources list
     if save_inline and inline_dir:
         # Actually save the inline resources and use real paths
         for inline_res in inline_resources:
             filename = f"inline_{inline_res['block_id']}.txt"
             filepath = Path(inline_dir) / filename
-            filepath.write_text(inline_res["content"], encoding='utf-8')
-            
+            filepath.write_text(inline_res["content"], encoding="utf-8")
+
             doc_json["resources"].append({
                 "key": inline_res["key"],
                 "path": str(filepath),
                 "description": "",  # No description for inline resources
-                "is_inline": True  # Mark as inline resource
+                "is_inline": True,  # Mark as inline resource
             })
     else:
         # For preview, save to temp gradio directory immediately
         import tempfile
+
         gradio_temp_dir = Path(tempfile.gettempdir()) / "gradio"
         gradio_temp_dir.mkdir(exist_ok=True)
-        
+
         for inline_res in inline_resources:
             # Generate unique filename with timestamp
             import time
+
             timestamp = str(int(time.time() * 1000000))
             filename = f"inline_{inline_res['block_id']}_{timestamp}.txt"
             filepath = gradio_temp_dir / filename
-            filepath.write_text(inline_res["content"], encoding='utf-8')
-            
+            filepath.write_text(inline_res["content"], encoding="utf-8")
+
             doc_json["resources"].append({
                 "key": inline_res["key"],
                 "path": str(filepath),
                 "description": "",  # No description for inline resources
-                "is_inline": True  # Mark as inline resource
+                "is_inline": True,  # Mark as inline resource
             })
 
     return json.dumps(doc_json, indent=2)
@@ -488,24 +489,24 @@ def update_document_metadata(title, description, resources, blocks):
 def update_block_resources(blocks, block_id, resource_json, title, description, resources):
     """Update a block's resources when a resource is dropped on it."""
     import json
-    
+
     # Parse the resource data
     resource_data = json.loads(resource_json)
-    
+
     # Find the block and update its resources
     for block in blocks:
         if block["id"] == block_id:
             if "resources" not in block:
                 block["resources"] = []
-            
+
             # For text blocks, only allow one resource AND auto-load content
             if block["type"] == "text":
                 # Replace any existing resource
                 block["resources"] = [resource_data]
-                
+
                 # Auto-load the file content into the text block
                 try:
-                    with open(resource_data["path"], 'r', encoding='utf-8') as f:
+                    with open(resource_data["path"], "r", encoding="utf-8") as f:
                         block["content"] = f.read()
                 except Exception as e:
                     print(f"Error loading file content: {e}")
@@ -518,7 +519,7 @@ def update_block_resources(blocks, block_id, resource_json, title, description, 
                     if res.get("path") == resource_data.get("path"):
                         exists = True
                         break
-                
+
                 # Add resource if it doesn't exist
                 if not exists:
                     # Check if this resource already has a description in another block
@@ -531,15 +532,15 @@ def update_block_resources(blocks, block_id, resource_json, title, description, 
                                     break
                             if existing_description:
                                 break
-                    
+
                     # Add the resource with existing description if found
                     resource_to_add = resource_data.copy()
                     if existing_description:
                         resource_to_add["description"] = existing_description
-                    
+
                     block["resources"].append(resource_to_add)
             break
-    
+
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
     return blocks, outline, json_str
@@ -553,12 +554,12 @@ def remove_block_resource(blocks, block_id, resource_path, title, description, r
             if "resources" in block:
                 # Remove the resource with matching path
                 block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
-                
+
                 # If this is a text block and we just removed its resource, clear the content
                 if block["type"] == "text" and len(block["resources"]) == 0:
                     block["content"] = ""
             break
-    
+
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
     return blocks, outline, json_str
@@ -572,7 +573,7 @@ def update_resource_description(blocks, block_id, resource_path, description_tex
             for res in block["resources"]:
                 if res.get("path") == resource_path:
                     res["description"] = description_text
-    
+
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, doc_description, resources, blocks)
     return blocks, outline, json_str
@@ -582,20 +583,20 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
     """Delete a resource from the resource panel and all blocks that use it."""
     # Remove from resources list
     new_resources = [res for res in resources if res.get("path") != resource_path]
-    
+
     # Also remove from all blocks that have this resource
     for block in blocks:
         if "resources" in block:
             # Count resources before removal
             original_count = len(block["resources"])
-            
+
             # Remove the resource
             block["resources"] = [res for res in block["resources"] if res.get("path") != resource_path]
-            
+
             # If this was a text block and we removed its only resource, clear the content
             if block["type"] == "text" and original_count > 0 and len(block["resources"]) == 0:
                 block["content"] = ""
-    
+
     # Generate HTML for resources display
     if new_resources:
         html_items = []
@@ -605,17 +606,17 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
             path = resource["path"].replace("'", "\\'")  # Escape single quotes
             html_items.append(
                 f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
-                f'{icon} {resource["name"]}'
+                f"{icon} {resource['name']}"
                 f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
-                f'</div>'
+                f"</div>"
             )
         resources_html = "\n".join(html_items)
     else:
         resources_html = "<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
-    
+
     # Regenerate outline
     outline, json_str = regenerate_outline_from_state(title, description, new_resources, blocks)
-    
+
     return new_resources, blocks, gr.update(value=resources_html), outline, json_str
 
 
@@ -624,59 +625,112 @@ def import_outline(file_path):
     if not file_path:
         # Return 8 values: title, description, resources, blocks, outline, json, resources_display, import_file
         return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
-    
+
     # Define allowed text file extensions
     ALLOWED_EXTENSIONS = {
-        ".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx",
-        ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
-        ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
-        ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift",
-        ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml",
-        ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less",
-        ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org"
+        ".txt",
+        ".md",
+        ".py",
+        ".c",
+        ".cpp",
+        ".h",
+        ".java",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".json",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".toml",
+        ".ini",
+        ".cfg",
+        ".conf",
+        ".sh",
+        ".bash",
+        ".zsh",
+        ".fish",
+        ".ps1",
+        ".bat",
+        ".cmd",
+        ".rs",
+        ".go",
+        ".rb",
+        ".php",
+        ".pl",
+        ".lua",
+        ".r",
+        ".m",
+        ".swift",
+        ".kt",
+        ".scala",
+        ".clj",
+        ".ex",
+        ".exs",
+        ".elm",
+        ".fs",
+        ".ml",
+        ".sql",
+        ".html",
+        ".htm",
+        ".css",
+        ".scss",
+        ".sass",
+        ".less",
+        ".vue",
+        ".svelte",
+        ".astro",
+        ".tex",
+        ".rst",
+        ".adoc",
+        ".org",
+        ".csv",
     }
-    
+
     try:
         # Read and parse the JSON file
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             json_data = json.load(f)
-        
+
         # Extract title and description
         title = json_data.get("title", "Document Title")
         description = json_data.get("general_instruction", "")
-        
+
         # Extract and validate resources
         resources = []
         invalid_resources = []
         inline_resources = {}  # Store inline resources by key
-        
+
         for res_data in json_data.get("resources", []):
             resource_path = res_data.get("path", "")
             resource_name = Path(resource_path).name
             file_ext = Path(resource_name).suffix.lower()
-            
+
             # Check if this is an inline resource
             if res_data.get("is_inline", False) or res_data.get("key", "").startswith("inline_resource_"):
                 # Store inline resource content for later use
                 inline_resources[res_data["key"]] = resource_path
                 continue  # Don't add to regular resources
-            
+
             # Check if file extension is allowed
             if file_ext not in ALLOWED_EXTENSIONS:
                 invalid_resources.append(f"{resource_name} ({file_ext})")
                 continue
-                
+
             resources.append({
-                "key": res_data.get("key", ""),
+                "key": res_data.get("key", ""),  # Preserve original key
                 "path": resource_path,
                 "name": resource_name,
                 "type": "text",  # All are text files now
-                "description": res_data.get("description", "")
+                "description": res_data.get("description", ""),
             })
-        
+
         # If there are invalid resources, show error and return
         if invalid_resources:
-            error_msg = f"Import failed: The following resources have unsupported file types:\n" + "\n".join(invalid_resources)
+            error_msg = "Import failed: The following resources have unsupported file types:\n" + "\n".join(
+                invalid_resources
+            )
             error_msg += f"\n\nOnly text files are allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
             # Return error in the JSON output field
             return (
@@ -687,12 +741,12 @@ def import_outline(file_path):
                 gr.update(),  # outline
                 json.dumps({"error": error_msg}, indent=2),  # json_output
                 gr.update(),  # resources_display
-                None  # import_file
+                None,  # import_file
             )
-        
+
         # Convert sections to blocks
         blocks = []
-        
+
         def sections_to_blocks(sections, parent_indent=-1):
             """Recursively convert sections to blocks."""
             for section in sections:
@@ -703,37 +757,35 @@ def import_outline(file_path):
                     "content": "",
                     "resources": [],
                     "collapsed": True,
-                    "indent_level": parent_indent + 1
+                    "indent_level": parent_indent + 1,
                 }
-                
+
                 # Determine block type and content
                 if "prompt" in section:
                     # AI block
                     block["type"] = "ai"
                     block["content"] = section.get("prompt", "")
                     block["ai_content"] = section.get("prompt", "")
-                    
+
                     # Handle refs
                     refs = section.get("refs", [])
                     if refs and resources:
-                        # Map refs back to resources
+                        # Map refs back to resources by matching keys
                         for ref in refs:
-                            # Extract index from ref (e.g., "resource_1" -> 0)
-                            try:
-                                idx = int(ref.split("_")[1]) - 1
-                                if 0 <= idx < len(resources):
-                                    block["resources"].append(resources[idx])
-                            except (IndexError, ValueError):
-                                pass
-                
+                            # Find resource with matching key
+                            for resource in resources:
+                                if resource.get("key") == ref:
+                                    block["resources"].append(resource)
+                                    break
+
                 elif "resource_key" in section:
                     # Text block
                     block["type"] = "text"
                     block["text_content"] = ""
-                    
+
                     # Handle resource_key
                     resource_key = section.get("resource_key", "")
-                    
+
                     # Check if this is an inline resource
                     if resource_key in inline_resources:
                         # Load content from inline resource file
@@ -744,41 +796,39 @@ def import_outline(file_path):
                                 # Look for the file in the same directory as the imported JSON
                                 import_dir = Path(file_path).parent
                                 inline_path = import_dir / inline_path
-                            
-                            with open(inline_path, 'r', encoding='utf-8') as f:
+
+                            with open(inline_path, "r", encoding="utf-8") as f:
                                 block["content"] = f.read()
                                 block["text_content"] = block["content"]
                                 block["edited"] = True  # Mark as edited
                         except Exception as e:
                             print(f"Error loading inline resource: {e}")
                     elif resource_key and resources:
-                        # Regular resource reference
-                        try:
-                            idx = int(resource_key.split("_")[1]) - 1
-                            if 0 <= idx < len(resources):
-                                block["resources"].append(resources[idx])
+                        # Regular resource reference - find by key
+                        for resource in resources:
+                            if resource.get("key") == resource_key:
+                                block["resources"].append(resource)
                                 # Auto-load content from the resource file
                                 try:
-                                    with open(resources[idx]["path"], 'r', encoding='utf-8') as f:
+                                    with open(resource["path"], "r", encoding="utf-8") as f:
                                         block["content"] = f.read()
                                         block["text_content"] = block["content"]
                                 except Exception as e:
                                     print(f"Error loading resource content: {e}")
-                        except (IndexError, ValueError):
-                            pass
+                                break
                 else:
                     # Default to AI block if no specific type indicators
                     block["type"] = "ai"
-                
+
                 blocks.append(block)
-                
+
                 # Process nested sections
                 if "sections" in section:
                     sections_to_blocks(section["sections"], block["indent_level"])
-        
+
         # Convert top-level sections
         sections_to_blocks(json_data.get("sections", []))
-        
+
         # If no blocks were created, add default ones
         if not blocks:
             blocks = [
@@ -789,13 +839,13 @@ def import_outline(file_path):
                     "content": "",
                     "resources": [],
                     "collapsed": False,
-                    "indent_level": 0
+                    "indent_level": 0,
                 }
             ]
-        
+
         # Regenerate outline and JSON
         outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
-        
+
         # Generate resources HTML
         if resources:
             html_items = []
@@ -805,17 +855,17 @@ def import_outline(file_path):
                 path = resource["path"].replace("'", "\\'")  # Escape single quotes
                 html_items.append(
                     f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
-                    f'{icon} {resource["name"]}'
+                    f"{icon} {resource['name']}"
                     f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
-                    f'</div>'
+                    f"</div>"
                 )
             resources_html = "\n".join(html_items)
         else:
             resources_html = "<p style='color: #666; font-size: 12px'>No resources uploaded yet</p>"
-        
+
         # Return None for import_file to clear it
         return title, description, resources, blocks, outline, json_str, gr.update(value=resources_html), None
-        
+
     except Exception as e:
         error_msg = f"Error importing file: {str(e)}"
         print(error_msg)
@@ -849,25 +899,25 @@ def save_outline(title, outline_json, blocks):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
         base_name = f"{safe_title}_{timestamp}"
-        
+
         # Create a subdirectory for this save
         save_dir = output_dir / base_name
         save_dir.mkdir(exist_ok=True)
-        
+
         # Parse the current JSON - keep absolute paths for inline resources
         current_json = json.loads(outline_json)
-        
+
         # Just remove is_inline flags if present, but keep the absolute paths
         for res in current_json.get("resources", []):
             if "is_inline" in res:
                 del res["is_inline"]
-        
+
         # Save the updated outline JSON
         outline_path = save_dir / f"{base_name}.json"
         outline_path.write_text(json.dumps(current_json, indent=2))
 
-        success_msg = f"Outline saved successfully to: {outline_path}"
-        return gr.update(value=success_msg, visible=True)
+        # Don't show success message
+        return gr.update(visible=False)
 
     except Exception as e:
         error_msg = f"Error saving outline: {str(e)}"
@@ -879,18 +929,18 @@ def render_block_resources(block_resources, block_type, block_id):
     if block_type == "text":
         # Text blocks always show the drop zone, never show resources
         return "Drop text resources here"
-    
+
     # AI blocks show resources or drop zone
     if not block_resources:
         return f"Drop {block_type} resources here"
-    
+
     html = ""
     for resource in block_resources:
         icon = "📄"  # Always use text file icon
         name = resource.get("name", "Unknown")
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
-        description = resource.get("description", "").replace('"', '&quot;')  # Escape quotes for HTML attribute
-        
+        description = resource.get("description", "").replace('"', "&quot;")  # Escape quotes for HTML attribute
+
         # For AI blocks, show resource with description input
         html += f'''
         <div class="dropped-resource-container">
@@ -898,14 +948,14 @@ def render_block_resources(block_resources, block_type, block_id):
                 {icon} {name}
                 <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
             </div>
-            <input type="text" 
-                   class="resource-description" 
-                   placeholder="Describe why this resource is relevant..." 
+            <input type="text"
+                   class="resource-description"
+                   placeholder="Describe why this resource is relevant..."
                    value="{description}"
                    oninput="updateResourceDescription('{block_id}', '{path}', this.value)">
         </div>
         '''
-    
+
     return html
 
 
@@ -1065,9 +1115,9 @@ def handle_file_upload(files, current_resources, title, description, blocks):
             path = resource["path"].replace("'", "\\'")  # Escape single quotes
             html_items.append(
                 f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
-                f'{icon} {resource["name"]}'
+                f"{icon} {resource['name']}"
                 f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
-                f'</div>'
+                f"</div>"
             )
         resources_html = "\n".join(html_items)
     else:
@@ -1131,18 +1181,55 @@ def create_app():
         with gr.Row():
             # App name and explanation
             with gr.Column():
-                gr.Markdown("# Document Builder")
-                gr.Markdown(
-                    "A tool for creating structured documents with customizable sections, "
-                    "templates, and formatting options. Build professional documents "
-                    "efficiently with an intuitive interface."
-                )
+                gr.Markdown("# Document Generator")
+                gr.Markdown("An AI tool for creating structured documents with customizable sections.")
 
             # Import and Save buttons
             with gr.Column():
                 with gr.Row():
                     # Add empty space to push buttons to the right
                     gr.HTML("<div style='flex: 1;'></div>")
+                    # Try Examples button with dropdown container
+                    with gr.Column(elem_classes="try-examples-container"):
+                        try_examples_btn = gr.Button(
+                            "Try Examples",
+                            elem_id="try-examples-btn-id",
+                            variant="secondary",
+                            size="sm",
+                            elem_classes="try-examples-btn",
+                        )
+                        # Dropdown menu (hidden by default via CSS)
+                        with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
+                            gr.HTML("""
+                                <div class="examples-dropdown-item" data-example="1">
+                                    <div class="example-title">Research Paper Outline</div>
+                                    <div class="example-desc">Academic paper structure with citations</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="2">
+                                    <div class="example-title">Technical Documentation</div>
+                                    <div class="example-desc">API docs with code examples</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="3">
+                                    <div class="example-title">Business Proposal</div>
+                                    <div class="example-desc">Professional proposal template</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="4">
+                                    <div class="example-title">User Guide</div>
+                                    <div class="example-desc">Step-by-step instructions with screenshots</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="5">
+                                    <div class="example-title">Blog Post</div>
+                                    <div class="example-desc">SEO-optimized article structure</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="6">
+                                    <div class="example-title">Project Report</div>
+                                    <div class="example-desc">Status updates and milestones</div>
+                                </div>
+                                <div class="examples-dropdown-item" data-example="7">
+                                    <div class="example-title">Tutorial</div>
+                                    <div class="example-desc">Educational content with exercises</div>
+                                </div>
+                            """)
                     import_builder_btn = gr.Button(
                         "Import",
                         elem_id="import-builder-btn-id",
@@ -1160,13 +1247,10 @@ def create_app():
 
                 # Status message for save operation
                 save_status = gr.Markdown(visible=False, elem_classes="save-status-message")
-                
+
                 # Hidden file component for import
                 import_file = gr.File(
-                    label="Import JSON",
-                    file_types=[".json"],
-                    visible=False,
-                    elem_id="import-file-input"
+                    label="Import JSON", file_types=[".json"], visible=False, elem_id="import-file-input"
                 )
 
         # Document title and description
@@ -1174,7 +1258,7 @@ def create_app():
             # Document title (narrower width)
             doc_title = gr.Textbox(
                 value="Document Title",
-                placeholder="Enter document title",
+                placeholder="Document Title",
                 label=None,
                 show_label=False,
                 elem_id="doc-title-id",
@@ -1186,7 +1270,7 @@ def create_app():
             # Document description (wider width)
             doc_description = gr.TextArea(
                 value="",
-                placeholder="Explain what this document is about. Include specifics such as purpose, audience, style, format, etc.",
+                placeholder="Provide overall guidance for the document generation.\nSpecifics may include purpose, audience, style, format, etc.",
                 label=None,
                 show_label=False,
                 elem_id="doc-description-id",
@@ -1213,13 +1297,66 @@ def create_app():
                 file_upload = gr.File(
                     label="Upload Resources",
                     file_count="multiple",
-                    file_types=[".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx", 
-                                ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", 
-                                ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
-                                ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift",
-                                ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml",
-                                ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less",
-                                ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org"],
+                    file_types=[
+                        ".txt",
+                        ".md",
+                        ".py",
+                        ".c",
+                        ".cpp",
+                        ".h",
+                        ".java",
+                        ".js",
+                        ".ts",
+                        ".jsx",
+                        ".tsx",
+                        ".json",
+                        ".xml",
+                        ".yaml",
+                        ".yml",
+                        ".toml",
+                        ".ini",
+                        ".cfg",
+                        ".conf",
+                        ".sh",
+                        ".bash",
+                        ".zsh",
+                        ".fish",
+                        ".ps1",
+                        ".bat",
+                        ".cmd",
+                        ".rs",
+                        ".go",
+                        ".rb",
+                        ".php",
+                        ".pl",
+                        ".lua",
+                        ".r",
+                        ".m",
+                        ".swift",
+                        ".kt",
+                        ".scala",
+                        ".clj",
+                        ".ex",
+                        ".exs",
+                        ".elm",
+                        ".fs",
+                        ".ml",
+                        ".sql",
+                        ".html",
+                        ".htm",
+                        ".css",
+                        ".scss",
+                        ".sass",
+                        ".less",
+                        ".vue",
+                        ".svelte",
+                        ".astro",
+                        ".tex",
+                        ".rst",
+                        ".adoc",
+                        ".org",
+                        ".csv",
+                    ],
                     elem_classes="upload-file-invisible-btn",
                     visible=False,
                 )
@@ -1233,6 +1370,7 @@ def create_app():
             with gr.Column(scale=1, elem_classes="workspace-col"):
                 with gr.Row(elem_classes="square-btn-row"):
                     ai_btn = gr.Button("+ Add Section", elem_classes="add-section-btn", size="sm")
+                    new_btn = gr.Button("Button Text", elem_classes="secondary-workspace-btn", size="sm")
 
                 # Workspace panel for stacking content blocks
                 with gr.Column(elem_classes="workspace-display"):
@@ -1276,21 +1414,27 @@ def create_app():
                     convert_block_id = gr.Textbox(visible=False, elem_id="convert-block-id")
                     convert_type = gr.Textbox(visible=False, elem_id="convert-type")
                     convert_trigger = gr.Button("Convert", visible=False, elem_id="convert-trigger")
-                    
+
                     # Hidden components for updating block resources
                     update_resources_block_id = gr.Textbox(visible=False, elem_id="update-resources-block-id")
                     update_resources_input = gr.Textbox(visible=False, elem_id="update-resources-input")
-                    update_resources_trigger = gr.Button("Update Resources", visible=False, elem_id="update-resources-trigger")
-                    
+                    update_resources_trigger = gr.Button(
+                        "Update Resources", visible=False, elem_id="update-resources-trigger"
+                    )
+
                     # Hidden components for removing block resources
                     remove_resource_block_id = gr.Textbox(visible=False, elem_id="remove-resource-block-id")
                     remove_resource_path = gr.Textbox(visible=False, elem_id="remove-resource-path")
-                    remove_resource_trigger = gr.Button("Remove Resource", visible=False, elem_id="remove-resource-trigger")
-                    
+                    remove_resource_trigger = gr.Button(
+                        "Remove Resource", visible=False, elem_id="remove-resource-trigger"
+                    )
+
                     # Hidden components for deleting resources from panel
                     delete_panel_resource_path = gr.Textbox(visible=False, elem_id="delete-panel-resource-path")
-                    delete_panel_resource_trigger = gr.Button("Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger")
-                    
+                    delete_panel_resource_trigger = gr.Button(
+                        "Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger"
+                    )
+
                     # Hidden components for updating resource descriptions
                     update_desc_block_id = gr.Textbox(visible=False, elem_id="update-desc-block-id")
                     update_desc_resource_path = gr.Textbox(visible=False, elem_id="update-desc-resource-path")
@@ -1306,12 +1450,12 @@ def create_app():
                         "▷ Generate", elem_classes="generate-btn", variant="primary", size="sm"
                     )
                     save_doc_btn = gr.DownloadButton(
-                        "Download", 
-                        elem_classes="download-btn", 
-                        variant="secondary", 
+                        "Download",
+                        elem_classes="download-btn",
+                        variant="secondary",
                         size="sm",
                         visible=True,
-                        interactive=False  # Disabled until document is generated
+                        interactive=False,  # Disabled until document is generated
                     )
 
                 # Generated document display panel
@@ -1320,7 +1464,6 @@ def create_app():
                         value="*Click 'Generate Document' to see the generated content here*",
                         elem_classes="generated-content",
                     )
-
 
                 # Debug panel for JSON display
                 with gr.Column(elem_classes="debug-panel"):
@@ -1425,32 +1568,54 @@ def create_app():
             inputs=[blocks_state, convert_block_id, convert_type, doc_title, doc_description, resources_state],
             outputs=[blocks_state, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
-        
+
         # Update block resources handler
         update_resources_trigger.click(
             fn=update_block_resources,
-            inputs=[blocks_state, update_resources_block_id, update_resources_input, doc_title, doc_description, resources_state],
+            inputs=[
+                blocks_state,
+                update_resources_block_id,
+                update_resources_input,
+                doc_title,
+                doc_description,
+                resources_state,
+            ],
             outputs=[blocks_state, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
-        
+
         # Remove block resource handler
         remove_resource_trigger.click(
             fn=remove_block_resource,
-            inputs=[blocks_state, remove_resource_block_id, remove_resource_path, doc_title, doc_description, resources_state],
+            inputs=[
+                blocks_state,
+                remove_resource_block_id,
+                remove_resource_path,
+                doc_title,
+                doc_description,
+                resources_state,
+            ],
             outputs=[blocks_state, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
-        
+
         # Delete resource from panel handler
         delete_panel_resource_trigger.click(
             fn=delete_resource_from_panel,
             inputs=[resources_state, delete_panel_resource_path, doc_title, doc_description, blocks_state],
             outputs=[resources_state, blocks_state, resources_display, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
-        
+
         # Update resource description handler - don't re-render blocks to avoid interrupting typing
         update_desc_trigger.click(
             fn=update_resource_description,
-            inputs=[blocks_state, update_desc_block_id, update_desc_resource_path, update_desc_text, doc_title, doc_description, resources_state],
+            inputs=[
+                blocks_state,
+                update_desc_block_id,
+                update_desc_resource_path,
+                update_desc_text,
+                doc_title,
+                doc_description,
+                resources_state,
+            ],
             outputs=[blocks_state, outline_state, json_output],
         )
 
@@ -1470,15 +1635,17 @@ def create_app():
         # Generate document handler - update to return the download button state
         async def handle_generate_and_update_download(title, description, resources, blocks):
             """Generate document and update download button."""
-            json_str, content, file_path, filename = await handle_document_generation(title, description, resources, blocks)
-            
+            json_str, content, file_path, filename = await handle_document_generation(
+                title, description, resources, blocks
+            )
+
             if file_path:
                 download_update = gr.update(value=file_path, interactive=True)
             else:
                 download_update = gr.update(interactive=False)
-            
+
             return json_str, content, download_update
-        
+
         generate_doc_btn.click(
             fn=handle_generate_and_update_download,
             inputs=[doc_title, doc_description, resources_state, blocks_state],
@@ -1487,7 +1654,7 @@ def create_app():
 
         # Save button handler
         save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output, blocks_state], outputs=save_status)
-        
+
         # Import file handler
         import_file.change(
             fn=import_outline,
@@ -1500,13 +1667,9 @@ def create_app():
                 outline_state,
                 json_output,
                 resources_display,
-                import_file  # Add import_file to outputs to clear it
-            ]
-        ).then(
-            fn=render_blocks,
-            inputs=[blocks_state, focused_block_state],
-            outputs=blocks_display
-        )
+                import_file,  # Add import_file to outputs to clear it
+            ],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
     return app
 
