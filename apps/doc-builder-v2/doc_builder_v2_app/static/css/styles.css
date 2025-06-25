@@ -355,12 +355,14 @@
     padding: 4px;
     background-color: #f8f8f8;
     border-radius: 3px;
+    text-align: left;
 }
 
 .dropped-resource-container .dropped-resource {
     display: inline-block;
     width: auto;
     margin-bottom: 4px;
+    text-align: left;
 }
 
 .resource-description {
