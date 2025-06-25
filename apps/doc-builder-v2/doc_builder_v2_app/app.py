@@ -949,11 +949,11 @@ def render_block_resources(block_resources, block_type, block_id):
     """Render the resources inside a block."""
     if block_type == "text":
         # Text blocks always show the drop zone, never show resources
-        return "Drop text resources here"
+        return "Drop text files here to upload content."
 
     # AI blocks show resources or drop zone
     if not block_resources:
-        return f"Drop {block_type} resources here"
+        return "Drop AI reference files here for context."
 
     html = ""
     for resource in block_resources:
@@ -1036,7 +1036,7 @@ def render_blocks(blocks, focused_block_id=None):
                     <button class='convert-btn convert-to-text {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "text")'>T</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='Enter your AI instruction here...'
+                    <textarea placeholder='This text will be used for AI content generation.\nEnter your AI instruction here...'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
@@ -1098,7 +1098,7 @@ def render_blocks(blocks, focused_block_id=None):
                     <button class='convert-btn convert-to-ai {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "ai")'>AI</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='Enter your text here...'
+                    <textarea placeholder='This text will be copied into your document.\nType your text here...'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
@@ -1142,7 +1142,7 @@ def handle_file_upload(files, current_resources, title, description, blocks):
             )
         resources_html = "\n".join(html_items)
     else:
-        resources_html = "<p style='color: #666; font-size: 12px;'>No resources uploaded yet</p>"
+        resources_html = "<p style='color: #666; font-size: 12px;'>No text files uploaded yet.</p>"
 
     # Regenerate outline with new resources
     outline, json_str = regenerate_outline_from_state(title, description, new_resources, blocks)
@@ -1223,7 +1223,7 @@ def create_app():
                         with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
                             gr.HTML("""
                                 <div class="examples-dropdown-item" data-example="1">
-                                    <div class="example-title">README Generator/div>
+                                    <div class="example-title">README Generator</div>
                                     <div class="example-desc">Technical documentation with code</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="2">
@@ -1245,7 +1245,7 @@ def create_app():
                     save_builder_btn = gr.Button(
                         "Save",
                         elem_id="save-builder-btn-id",
-                        variant="primary",
+                        variant="secondary",
                         size="sm",
                         elem_classes="save-builder-btn",
                     )
@@ -1292,7 +1292,7 @@ def create_app():
             with gr.Column(scale=1, elem_classes="resources-col"):
                 # File upload component styled as button
                 upload_resources_btn = gr.Button(
-                    "Upload Resources",
+                    "Upload Reference Files",
                     variant="secondary",
                     size="sm",
                     elem_id="upload-resources-btn-id",
@@ -1300,7 +1300,7 @@ def create_app():
                 )
 
                 file_upload = gr.File(
-                    label="Upload Resources",
+                    label="Upload Reference Files",
                     file_count="multiple",
                     file_types=[
                         ".txt",
@@ -1492,9 +1492,28 @@ def create_app():
             outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
             return blocks, outline, json_str
 
-        # Connect button click to add block
+        # Helper function to add Text block and regenerate outline
+        def handle_add_text_block_top(blocks, _, title, description, resources):
+            blocks = add_text_block(blocks, None)
+            outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
+            return blocks, outline, json_str
+
+        # Connect button click to add AI block
         ai_btn.click(
             fn=handle_add_ai_block_top,
+            inputs=[
+                blocks_state,
+                gr.State(None),
+                doc_title,
+                doc_description,
+                resources_state,
+            ],  # Always pass None for focused_block_id
+            outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
+        # Connect button click to add Text block
+        new_btn.click(
+            fn=handle_add_text_block_top,
             inputs=[
                 blocks_state,
                 gr.State(None),
