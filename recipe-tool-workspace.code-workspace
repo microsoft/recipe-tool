@@ -25,6 +25,10 @@
       "path": "./ai_context"
     },
     {
+      "name": "🖥️ Document Generator App",
+      "path": "./apps/document-generator"
+    },
+    {
       "name": "🖥️ Recipe Executor App",
       "path": "./apps/recipe-executor"
     },
