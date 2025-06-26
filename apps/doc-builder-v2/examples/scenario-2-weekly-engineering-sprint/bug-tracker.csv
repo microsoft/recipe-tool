@@ -1,9 +1,0 @@
-bug_id,severity,status,reporter,assignee,title,created_date,resolved_date,category
-BUG-2341,Critical,Fixed,QA Team,Elena Petrov,Dashboard loading timeout after 30s,2024-11-18,2024-11-20,Performance
-BUG-2342,High,Fixed,Customer Support,David Rodriguez,OAuth login fails for users with special characters,2024-11-18,2024-11-19,Authentication
-BUG-2343,Medium,In Progress,Internal User,Mike Chen,Social login redirects to wrong page,2024-11-19,,Navigation
-BUG-2344,Low,Open,QA Team,Alice Johnson,Minor styling issue on mobile login,2024-11-20,,UI/UX
-BUG-2345,High,Fixed,Production Monitor,Carlos Martinez,WebSocket connection drops after 1 hour,2024-11-19,2024-11-21,Backend
-BUG-2346,Medium,Fixed,Customer Support,Jennifer Liu,Email notifications not sent for password reset,2024-11-18,2024-11-20,Email
-BUG-2347,Critical,Open,Security Audit,Security Team,SQL injection vulnerability in user search,2024-11-21,,Security
-BUG-2348,Low,Fixed,Internal User,Tom Wilson,Inconsistent error messages in forms,2024-11-17,2024-11-19,UI/UX
