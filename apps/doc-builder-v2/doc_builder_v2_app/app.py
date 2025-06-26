@@ -949,11 +949,11 @@ def render_block_resources(block_resources, block_type, block_id):
     """Render the resources inside a block."""
     if block_type == "text":
         # Text blocks always show the drop zone, never show resources
-        return "Drop text files here to upload content."
+        return "Drop reference files here to upload text."
 
     # AI blocks show resources or drop zone
     if not block_resources:
-        return "Drop AI reference files here for context."
+        return "Drop reference files here for AI context."
 
     html = ""
     for resource in block_resources:
@@ -1023,20 +1023,20 @@ def render_blocks(blocks, focused_block_id=None):
             html += f"""
             <div class='content-block ai-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
                 {indent_controls}
+                <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
+                    <span class='collapse-icon'>⌵</span>
+                </button>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>🗑</button>
+                <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
+                <button class='convert-btn convert-to-text' onclick='convertBlock("{block_id}", "text")'>T</button>
                 <div class='block-header'>
-                    <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
-                        <span class='collapse-icon'>{"›" if is_collapsed else "›"}</span>
-                    </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
                            onfocus='setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
-                    <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
-                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
-                    <button class='convert-btn convert-to-text {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "text")'>T</button>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='This text will be used for AI content generation.\nEnter your AI instruction here...'
+                    <textarea placeholder='This text will be used for AI content generation.\nType your AI instruction here...'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
@@ -1048,11 +1048,11 @@ def render_blocks(blocks, focused_block_id=None):
         elif block["type"] == "heading":
             html += f"""
             <div class='content-block heading-block' data-id='{block_id}'>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>🗑</button>
+                <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
                 <div class='block-header heading-header'>
                     <input type='text' value='{block["content"]}'
                            oninput='updateBlockContent("{block_id}", this.value)'/>
-                    <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
-                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
                 </div>
             </div>
             """
@@ -1086,16 +1086,16 @@ def render_blocks(blocks, focused_block_id=None):
             html += f"""
             <div class='content-block text-block {collapsed_class}' data-id='{block_id}' data-indent='{indent_level}'>
                 {indent_controls}
+                <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
+                    <span class='collapse-icon'>⌵</span>
+                </button>
+                <button class='delete-btn' onclick='deleteBlock("{block_id}")'>🗑</button>
+                <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
+                <button class='convert-btn convert-to-ai' onclick='convertBlock("{block_id}", "ai")'>AI</button>
                 <div class='block-header'>
-                    <button class='collapse-btn' onclick='toggleBlockCollapse("{block_id}")'>
-                        <span class='collapse-icon'>{"›" if is_collapsed else "›"}</span>
-                    </button>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
-                    <button class='delete-btn' onclick='deleteBlock("{block_id}")'>×</button>
-                    <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
-                    <button class='convert-btn convert-to-ai {"" if is_collapsed else "show"}' onclick='convertBlock("{block_id}", "ai")'>AI</button>
                 </div>
                 <div class='block-content {content_class}'>
                     <textarea placeholder='This text will be copied into your document.\nType your text here...'
@@ -1223,7 +1223,7 @@ def create_app():
                         with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
                             gr.HTML("""
                                 <div class="examples-dropdown-item" data-example="1">
-                                    <div class="example-title">README Generator</div>
+                                    <div class="example-title">README</div>
                                     <div class="example-desc">Technical documentation with code</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="2">
