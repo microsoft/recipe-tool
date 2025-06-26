@@ -1,0 +1,123 @@
+Career Development Plan - Sarah Chen
+
+Current Level: Senior Software Engineer (Level 4)
+Target Level: Staff Engineer (Level 5) - Target Date: Mid 2025
+
+CAREER PATH OPTIONS:
+
+Option 1: Technical Leadership Track (Staff Engineer → Principal Engineer)
+Focus: Deep technical expertise, architecture decisions, cross-team technical leadership
+
+Skills to Develop:
+- System design and architecture at scale
+- Cross-team technical leadership
+- Technical strategy and roadmap planning
+- Advanced performance optimization
+- Distributed systems knowledge
+
+Growth Activities:
+- Lead architecture reviews and technical RFCs
+- Mentor other senior engineers
+- Drive technical standards across engineering
+- Contribute to hiring and technical interviews
+- Present at engineering conferences
+
+Option 2: Engineering Management Track (Staff Engineer → Engineering Manager)
+Focus: People leadership, team building, project management
+
+Skills to Develop:
+- People management and coaching
+- Project planning and execution
+- Stakeholder communication
+- Performance management
+- Budget and resource planning
+
+Growth Activities:
+- Shadow current engineering managers
+- Lead cross-functional project teams
+- Take on hiring and interview responsibilities
+- Manage junior developer mentorship program
+- Complete management training programs
+
+RECOMMENDED IMMEDIATE DEVELOPMENT AREAS:
+
+1. System Architecture & Design
+- Take AWS Solutions Architect Professional certification
+- Lead design reviews for major system components
+- Study distributed systems patterns and microservices
+- Participate in company-wide architecture planning
+
+2. Technical Leadership
+- Lead a cross-team technical initiative
+- Establish engineering best practices documentation
+- Mentor senior engineers (not just junior developers)
+- Present technical topics at company all-hands
+
+3. Full-Stack Knowledge
+- Learn backend development (Node.js, databases)
+- Understand DevOps and infrastructure basics
+- Gain experience with data engineering concepts
+- Explore mobile development fundamentals
+
+TRAINING & DEVELOPMENT OPPORTUNITIES:
+
+External Training:
+- "System Design for Senior Engineers" course
+- "Technical Leadership" workshop
+- React Advanced Patterns conference
+- AWS re:Invent attendance
+
+Internal Development:
+- Engineering leadership rotation program
+- Cross-team project leadership opportunities
+- Technical mentorship of senior engineers
+- Participation in architecture review board
+
+STRETCH ASSIGNMENTS:
+
+1. Lead migration to new frontend framework (Q2 2025)
+2. Architect customer-facing API documentation platform
+3. Establish engineering internship program
+4. Drive engineering culture and best practices initiative
+
+SUCCESS METRICS:
+
+Short-term (6 months):
+- Complete system design certification
+- Lead one major cross-team project
+- Mentor one senior engineer
+- Present at internal engineering conference
+
+Long-term (12-18 months):
+- Promotion to Staff Engineer
+- Recognition as go-to person for technical architecture
+- Successful delivery of 2+ major technical initiatives
+- Established reputation as technical leader
+
+POTENTIAL CAREER MOVES:
+
+Within Company:
+- Staff Engineer (Frontend specialization)
+- Principal Engineer (Full-stack architecture)
+- Engineering Manager (Team leadership)
+- Technical Product Manager (Product + Engineering)
+
+External Opportunities:
+- Senior Staff Engineer at larger tech company
+- Founding Engineer at early-stage startup
+- Technical Consultant for frontend/React projects
+- Developer Relations / Developer Experience roles
+
+SUPPORT NEEDED:
+
+From Manager:
+- Opportunities to lead larger technical initiatives
+- Budget approval for external training
+- Introduction to senior leadership for visibility
+- Regular career development discussions
+
+From Company:
+- Clear promotion criteria and timeline
+- Access to senior engineer mentorship
+- Conference presentation opportunities
+- Internal mobility options

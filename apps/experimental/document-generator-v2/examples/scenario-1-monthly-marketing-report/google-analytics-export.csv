@@ -1,0 +1,9 @@
+page,sessions,pageviews,avg_time_on_page,bounce_rate,conversion_rate,traffic_source
+/,45890,67820,02:34,45.2,2.8,Organic Search
+/products,28450,89340,03:45,38.9,5.6,Paid Search
+/pricing,18920,23450,04:12,42.1,8.9,Direct
+/blog,15670,28900,05:23,35.6,1.2,Social Media
+/contact,8940,12340,02:18,52.3,12.4,Email
+/about,6780,8920,01:56,48.7,0.8,Referral
+/demo,4560,6780,06:45,28.9,18.7,Paid Search
+/case-studies,3890,5670,07:23,25.4,15.2,Organic Search

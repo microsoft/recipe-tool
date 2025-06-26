@@ -2,10 +2,9 @@
 members = [
     "recipe-tool",
     "recipe-executor",
-    "apps/doc-builder-v2",
-    "apps/doc-constructor",
     "shared/gradio-components",
     "apps/document-generator",
+    "apps/experimental/document-generator-v2",
     "apps/recipe-executor",
     "apps/recipe-tool",
     "mcp-servers/docs-server",

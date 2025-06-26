@@ -1,0 +1,13 @@
+ticket_id,team,title,status,assignee,story_points,priority,type
+ENG-1247,Frontend,Implement OAuth login page,Done,Alice Johnson,5,High,Story
+ENG-1248,Frontend,Add social media login buttons,In Progress,Mike Chen,3,Medium,Story
+ENG-1249,Backend,OAuth API integration,Done,David Rodriguez,8,High,Story
+ENG-1250,Backend,User session management,In Progress,David Rodriguez,5,High,Story
+ENG-1251,DevOps,Configure OAuth providers,Done,Jennifer Liu,3,Medium,Task
+ENG-1252,Frontend,Real-time notification UI,To Do,Alice Johnson,8,High,Story
+ENG-1253,Backend,WebSocket notification service,In Progress,Carlos Martinez,13,High,Story
+ENG-1254,QA,Test OAuth integration,In Progress,Tom Wilson,5,High,Task
+ENG-1255,Backend,Dashboard performance optimization,Done,Elena Petrov,8,Critical,Bug
+ENG-1256,Frontend,Lazy loading components,Done,Mike Chen,5,Medium,Task
+ENG-1257,DevOps,Database indexing optimization,Blocked,Jennifer Liu,8,High,Task
+ENG-1258,Backend,API error handling refactor,In Progress,Carlos Martinez,13,Medium,Story

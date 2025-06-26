@@ -1,0 +1,937 @@
+/* Document Builder Custom Styles */
+
+/* Main gradio container */
+.gradio-container {
+    background-color: #f5f5f5 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+.gradio-container .fillable {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.app-header-col {
+    gap: 7px !important;
+}
+
+
+/* Builder buttons */
+.save-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+}
+.import-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+}
+
+/* Try Examples button - citrus orange tertiary color */
+.try-examples-btn {
+    position: absolute !important;
+    right: 0px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ff9f40 !important;
+    border: 1px solid #ff9f40 !important;
+    color: white !important;
+}
+.try-examples-btn:hover {
+    background-color: #ff8f20 !important;
+    border-color: #ff8f20 !important;
+}
+
+/* Try Examples dropdown container */
+.try-examples-container {
+    position: relative !important;
+    display: inline-block !important;
+    width: auto !important;
+}
+
+/* Examples dropdown styling */
+.examples-dropdown {
+    position: absolute !important;
+    top: 30px !important;
+    right: 0 !important;
+    margin-top: 4px !important;
+    min-width: 280px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1000 !important;
+    display: none !important;
+    padding: 8px !important;
+}
+
+/* Show dropdown on hover */
+.try-examples-container:hover .examples-dropdown {
+    display: block !important;
+}
+
+/* Create invisible bridge to maintain hover state */
+.examples-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: transparent;
+}
+
+/* Individual example items */
+.examples-dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.examples-dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.examples-dropdown-item:hover {
+    background-color: #fff5eb;
+    transform: translateX(4px);
+}
+
+/* Example title */
+.example-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+/* Example description */
+.example-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Active/selected state */
+.examples-dropdown-item:active {
+    background-color: #ffe5cc;
+}
+
+
+/* Header section */
+.header-section {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+}
+.header-section .form {
+    border: 1px solid #ffffff;
+}
+.header-section textarea {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+}
+.header-section textarea:focus,
+.header-section textarea:active,
+.header-section textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.doc-title-box textarea {
+    font-weight: bold !important;
+    font-size: 14px !important;
+}
+.doc-title-box textarea:focus,
+.doc-title-box textarea:active,
+.doc-title-box textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.doc-description-box {
+    position: relative;
+}
+
+.doc-description-box textarea {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    resize: none !important; /* Disable manual resize since we auto-expand */
+    overflow-y: auto !important; /* Show scrollbar when needed */
+    max-height: 200px !important; /* Limit maximum height */
+    transition: height 0.1s ease;
+}
+
+.doc-description-box textarea:focus,
+.doc-description-box textarea:active,
+.doc-description-box textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Collapsed textarea state */
+.doc-description-box.collapsed textarea {
+    overflow: hidden !important;
+    cursor: text !important;
+}
+
+/* Description expand/collapse button */
+.desc-expand-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 20px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.desc-expand-btn:hover {
+    color: #666;
+}
+
+.desc-expand-btn:focus {
+    outline: none;
+}
+
+
+/* Download button */
+.download-generated-doc {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Save status message */
+.save-status-message {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.save-status-message p {
+    margin: 0;
+    color: #4CAF50;
+}
+
+/* Debug Panel */
+.debug-panel {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.debug-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.json-debug-output {
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.json-debug-output pre {
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+/* Resources */
+.resources-col {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    margin-right: 5px !important;
+    gap: 10px !important;
+}
+.upload-resources-btn {
+    width: 100% !important;
+    height: 30px !important;
+}
+.resources-display-area .html-container {
+    padding: 0px !important;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px;
+    margin-bottom: 4px;
+    background-color: white;
+    border: 1px solid;
+    border-color: #4a9d9e !important;
+    border-radius: 4px;
+    font-size: 11px;
+    word-break: break-all;
+    gap: 4px;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.2s ease;
+    position: relative;
+}
+.resource-item:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.resource-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+/* Delete button for resources in panel */
+.resource-delete {
+    cursor: pointer;
+    padding: 0 4px;
+    font-weight: bold;
+    color: #999;
+    transition: color 0.2s ease;
+    opacity: 0;
+}
+
+.resource-item:hover .resource-delete {
+    opacity: 1;
+}
+
+.resource-delete:hover {
+    color: #ff5252;
+}
+
+/* Drag and drop styles */
+.block-resources.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+}
+
+.block-resources .dropped-resource {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    background-color: #4a9d9e;
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    position: relative;
+}
+
+.block-resources .dropped-resource:hover {
+    background-color: #3a8d8e;
+}
+
+.block-resources .dropped-resource .remove-resource {
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.block-resources .dropped-resource:hover .remove-resource {
+    opacity: 1;
+}
+
+/* Load resource button */
+.load-resource-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.load-resource-btn:hover {
+    opacity: 1;
+}
+
+/* Resource container for AI blocks with descriptions */
+.dropped-resource-container {
+    margin-bottom: 8px;
+    padding: 4px;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    text-align: left;
+}
+
+.dropped-resource-container .dropped-resource {
+    display: inline-block;
+    width: auto;
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+.resource-description {
+    width: 100%;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 11px;
+    font-style: italic;
+    background-color: white;
+    transition: border-color 0.2s ease;
+}
+
+.resource-description:focus {
+    outline: none;
+    border-color: #4a9d9e;
+}
+
+.resource-description::placeholder {
+    color: #999;
+}
+
+
+/* Workspace */
+.workspace-col {
+    width: 100% !important;
+    min-width: 500px !important;
+    max-width: 100% !important;
+    margin-left: 5px !important;
+    margin-right: 5px !important;
+    gap: 10px !important;
+}
+.workspace-display {
+    height: 680px !important;
+    color: #bbbbc2 !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 8px !important;
+    overflow-y: scroll; /* Always show scroll area */
+    overflow-x: hidden;
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.workspace-display::-webkit-scrollbar {
+    width: 0 !important;
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Also apply to any nested containers that might have scrollbars */
+.workspace-display * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.workspace-display *::-webkit-scrollbar {
+    width: 0 !important;
+    display: none !important;
+}
+
+/* Workspace - Content block add buttons */
+.add-section-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+.add-section-btn:hover {
+    background-color: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+}
+
+/* Secondary workspace button - white with grey border */
+.secondary-workspace-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #666666 !important;
+    font-weight: bold !important;
+}
+.secondary-workspace-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+    color: #555555 !important;
+}
+
+/* Workspace - Content block styling */
+.blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.blocks-container .html-container {
+    padding: 40px !important;
+    font-style: italic !important;
+}
+
+.content-block {
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    position: relative;
+    transition: box-shadow 0.2s ease, margin-left 0.2s ease, width 0.2s ease, background-color 0.2s ease;
+}
+
+.content-block:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Indentation levels - using margin for visual indent but keeping arrows fixed */
+.content-block[data-indent="0"] {
+    margin-left: 0;
+    width: 100%;
+}
+.content-block[data-indent="1"] {
+    margin-left: 30px;
+    width: calc(100% - 30px);
+}
+.content-block[data-indent="2"] {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+}
+.content-block[data-indent="3"] {
+    margin-left: 90px;
+    width: calc(100% - 90px);
+}
+.content-block[data-indent="4"] {
+    margin-left: 120px;
+    width: calc(100% - 120px);
+}
+.content-block[data-indent="5"] {
+    margin-left: 150px;
+    width: calc(100% - 150px);
+}
+
+/* Indent controls */
+.indent-controls {
+    position: absolute;
+    top: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 2px;
+}
+
+/* Adjust indent control position based on indent level to keep them fixed */
+.content-block[data-indent="0"] .indent-controls { left: -35px; padding-right: 35px;}
+.content-block[data-indent="1"] .indent-controls { left: -65px; padding-right: 65px;}
+.content-block[data-indent="2"] .indent-controls { left: -95px; padding-right: 95px;}
+.content-block[data-indent="3"] .indent-controls { left: -125px; padding-right: 125px;}
+.content-block[data-indent="4"] .indent-controls { left: -155px; padding-right: 155px;}
+.content-block[data-indent="5"] .indent-controls { left: -185px; padding-right: 185px;}
+
+.content-block:hover .indent-controls {
+    opacity: 1;
+}
+
+.indent-btn {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.indent-btn:hover {
+    background-color: #e0e0e0;
+    outline: none;
+}
+
+.indent-btn:focus {
+    outline: none;
+}
+
+.indent-btn.outdent {
+    color: #666;
+}
+
+.indent-btn.indent {
+    color: #666;
+}
+
+/* Placeholder to maintain spacing when button is hidden */
+.indent-btn-placeholder {
+    width: 20px;
+    height: 20px;
+}
+
+.ai-block {
+    border-left: 3px solid #4a9d9e !important;
+}
+.ai-block textarea {
+    width: 100%;
+    min-height: 80px;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    padding-top: 0px;
+    font-size: 14px;
+    resize: none; /* Disable manual resize since we auto-expand */
+    background: transparent;
+    outline: none;
+    overflow-y: hidden; /* Hide vertical scrollbars */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
+}
+.ai-block .block-resources {
+    margin-top: 10px;
+    min-height: 40px;
+    border: 1px dashed #4a9d9e;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+}
+
+.text-block {
+    border-left: 3px solid #b8b8b8 !important;
+}
+.text-block textarea {
+    width: 100%;
+    min-height: 80px;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    padding-top: 0px;
+    font-size: 14px;
+    resize: none; /* Disable manual resize since we auto-expand */
+    background: transparent;
+    outline: none;
+    overflow-y: hidden; /* Hide vertical scrollbars */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
+}
+.text-block .block-resources {
+    margin-top: 10px;
+    min-height: 40px;
+    border: 1px dashed #d0d0d0;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+}
+
+/* Heading input styles for AI and Text blocks - inline version */
+.block-heading-inline {
+    flex: 1;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 4px 8px;
+    margin: 0 8px 0 0;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.block-heading-inline:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.block-heading-inline::placeholder {
+    color: #bbbbc2;
+    font-weight: normal;
+}
+
+/* Update block header to use flexbox for proper alignment */
+.block-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 36px;
+    position: relative;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 6px;
+    right: -30px; /* Move outside the block into the margin */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.add-btn {
+    position: absolute;
+    top: 30px;  /* 10px (delete button top) + 20px (delete button height) + 5px gap */
+    right: -30px; /* Same as delete button - outside the block */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.content-block:hover .delete-btn,
+.content-block:hover .add-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background-color: #ff6b6b;
+    border-color: #ff5252;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+.convert-btn {
+    position: absolute;
+    top: 6px;  /* Same as the old collapse button position */
+    right: 6px; /* Same as chevron button - inside the block */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.content-block:hover .convert-btn {
+    opacity: 1;
+}
+
+.convert-btn.convert-to-text:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+.convert-btn.convert-to-ai {
+    color: #4a9d9e;
+}
+
+.convert-btn.convert-to-ai:hover {
+    background-color: #4a9d9e;
+    border-color: #4a9d9e;
+    color: white;
+}
+
+/* Empty blocks message */
+.empty-blocks-message {
+    color: #bbbbc2;
+    text-align: left;
+
+}
+
+/* Collapsible blocks */
+.collapse-btn {
+    position: absolute;
+    top: 30px;  /* Old convert button position - below the convert button */
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2e2e2e;
+}
+
+.content-block:hover .collapse-btn {
+    opacity: 1;
+}
+
+.collapse-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+    color: #333;
+}
+
+.collapse-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    position: relative;
+    top: 1px;  /* Fine-tune vertical position */
+}
+
+.collapsed .collapse-icon {
+    transform: rotate(0deg);  /* Point down when collapsed */
+    top: -1px;
+    font-weight: 400;
+}
+
+.content-block:not(.collapsed) .collapse-icon {
+    transform: rotate(180deg);  /* Point up when expanded */
+}
+
+.content-block.collapsed {
+    min-height: auto;
+}
+
+.content-block.collapsed .block-content {
+    display: none;
+}
+
+.block-content {
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.block-content.show {
+    display: block;
+}
+
+.block-content textarea::placeholder {
+    color: #999999;
+}
+
+/* Generate Document */
+.generate-col {
+    width: 100% !important;
+    min-width: 400px !important;
+    max-width: 100% !important;
+    margin-left: 5px !important;
+    gap: 10px !important;
+}
+.generate-display {
+    height: 680px !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 8px !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 40px !important;
+    font-size: 14px !important;
+    color: #bbbbc2 !important;
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+.generate-display::-webkit-scrollbar {
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Also hide scrollbars in any nested containers within generate-display */
+.generate-display * {
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.generate-display *::-webkit-scrollbar {
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Specific targeting for generated content */
+.generated-content {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.generated-content em {
+    color: #bbbbc2;
+}
+
+.generated-content::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* Generate Document - buttons*/
+.generate-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.generate-btn:hover {
+    background-color: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+}
+
+.download-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+
+}
+

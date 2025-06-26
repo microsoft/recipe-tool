@@ -20,7 +20,7 @@ endef
 else
 define list_commands
 	@echo "Available project commands:"
-	@ls .venv/bin/ 2>/dev/null | grep -E "(recipe|document|doc|app)" | sed 's/^/  /' || echo "  (run 'make install' first)"
+	@ls .venv/bin/ 2>/dev/null | grep -E "(recipe|document|app)" | sed 's/^/  /' || echo "  (run 'make install' first)"
 	@echo ""
 endef
 
