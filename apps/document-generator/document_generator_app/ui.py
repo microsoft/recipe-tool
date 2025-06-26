@@ -5,8 +5,8 @@ Following "ruthless simplicity" principle.
 
 import gradio as gr
 import json
-import tempfile
 import os
+import uuid
 from typing import Dict, Any, List, Optional, Tuple
 
 from .models.outline import Outline, Resource, Section, validate_outline
@@ -24,6 +24,7 @@ def create_initial_state() -> Dict[str, Any]:
         "outline": Outline(title="", general_instruction=""),
         "selected_type": None,  # "resource" or "section"
         "selected_id": None,  # e.g., "resource_0" or "section_1_2"
+        "session_id": str(uuid.uuid4()),  # Unique session ID for this UI instance
     }
 
 
@@ -87,7 +88,7 @@ def remove_section_at_path(sections: List[Section], path: List[int]) -> None:
 # ============================================================================
 
 
-def create_resource_editor() -> Dict[str, gr.components.Component]:
+def create_resource_editor() -> Dict[str, Any]:
     """Create the resource editor form components."""
     with gr.Column(visible=False) as container:
         gr.Markdown("### Edit Resource")
@@ -96,11 +97,12 @@ def create_resource_editor() -> Dict[str, gr.components.Component]:
         description = gr.TextArea(label="Description", placeholder="Describe what this resource contains...", lines=3)
 
         gr.Markdown("#### File Source")
-        file = gr.File(label="Upload File", file_types=None)
-        gr.Markdown("*OR*")
-        path = gr.Textbox(label="File Path / URL", placeholder="/path/to/file.txt or https://example.com/data")
+        with gr.Tabs() as file_source_tabs:
+            with gr.TabItem("Upload File", id="upload_file"):
+                file = gr.File(label="Upload File", file_types=None)
 
-        merge_mode = gr.Radio(label="Merge Mode", choices=["concat", "dict"], value="concat")
+            with gr.TabItem("File Path / URL", id="file_path"):
+                path = gr.Textbox(label="File Path / URL", placeholder="/path/to/file.txt or https://example.com/data")
 
     return {
         "container": container,
@@ -108,39 +110,35 @@ def create_resource_editor() -> Dict[str, gr.components.Component]:
         "description": description,
         "file": file,
         "path": path,
-        "merge_mode": merge_mode,
+        "file_source_tabs": file_source_tabs,
     }
 
 
-def create_section_editor() -> Dict[str, gr.components.Component]:
+def create_section_editor() -> Dict[str, Any]:
     """Create the section editor form components."""
     with gr.Column(visible=False) as container:
         gr.Markdown("### Edit Section")
 
         title = gr.Textbox(label="Title *", placeholder="Section Title")
 
-        mode = gr.Radio(label="Content Mode", choices=["Prompt", "Static"], value="Prompt")
+        with gr.Tabs() as content_mode_tabs:
+            with gr.TabItem("Prompt", id="prompt_mode") as prompt_tab:
+                prompt = gr.TextArea(label="Prompt", placeholder="Instructions for generating this section...", lines=4)
+                # Note: We'll populate choices dynamically
+                refs = gr.Dropdown(label="Referenced Resources", choices=[], multiselect=True, interactive=True)
 
-        # Prompt mode inputs
-        with gr.Column(visible=True) as prompt_container:
-            prompt = gr.TextArea(label="Prompt", placeholder="Instructions for generating this section...", lines=4)
-
-            # Note: We'll populate choices dynamically
-            refs = gr.Dropdown(label="Resource References", choices=[], multiselect=True, interactive=True)
-
-        # Static mode inputs
-        with gr.Column(visible=False) as static_container:
-            resource_key = gr.Dropdown(label="Resource Key", choices=[], interactive=True)
+            with gr.TabItem("Static", id="static_mode") as static_tab:
+                resource_key = gr.Dropdown(label="Resource Key", choices=[], interactive=True)
 
     return {
         "container": container,
         "title": title,
-        "mode": mode,
         "prompt": prompt,
         "refs": refs,
         "resource_key": resource_key,
-        "prompt_container": prompt_container,
-        "static_container": static_container,
+        "content_mode_tabs": content_mode_tabs,
+        "prompt_tab": prompt_tab,
+        "static_tab": static_tab,
     }
 
 
@@ -238,7 +236,7 @@ def select_item(item_id: str, item_type: str, state: Dict[str, Any]) -> Dict[str
 
 def add_resource(state: Dict[str, Any]) -> Dict[str, Any]:
     """Add new resource and select it."""
-    state["outline"].resources.append(Resource(key="", path="", description="", merge_mode="concat"))
+    state["outline"].resources.append(Resource(key="", path="", description=""))
     state["selected_id"] = f"resource_{len(state['outline'].resources) - 1}"
     state["selected_type"] = "resource"
     return state
@@ -329,12 +327,14 @@ def start_generation() -> List[Any]:
 async def handle_generate(current_state: Dict[str, Any]) -> List[Any]:
     """Generate document from outline."""
     try:
-        content = await generate_document(current_state["outline"])
+        content = await generate_document(current_state["outline"], current_state.get("session_id"))
 
         # Save content to a temporary file for download
         filename = f"{current_state['outline'].title}.md" if current_state["outline"].title else "document.md"
-        temp_dir = tempfile.mkdtemp()
-        file_path = os.path.join(temp_dir, filename)
+        from .session import session_manager
+
+        session_dir = session_manager.get_session_dir(current_state.get("session_id"))
+        file_path = os.path.join(session_dir, filename)
         with open(file_path, "w") as f:
             f.write(content)
 
@@ -394,8 +394,18 @@ def build_editor() -> gr.Blocks:
         with gr.Row():
             # Left Column - Lists
             with gr.Column(scale=3, min_width=300):
-                # Upload button
-                upload_btn = gr.UploadButton("Upload Outline", file_types=[".json"], variant="secondary", size="sm")
+                # Input options
+                with gr.Tabs():
+                    with gr.TabItem("Upload Outline"):
+                        upload_btn = gr.UploadButton("Upload Outline JSON", file_types=[".json"], variant="secondary")
+
+                    with gr.TabItem("Examples"):
+                        # Create dropdown choices from example outlines
+                        from .config import settings
+
+                        example_choices = [(ex.name, idx) for idx, ex in enumerate(settings.example_outlines)]
+                        example_dropdown = gr.Dropdown(choices=example_choices, label="Example Outlines", type="index")
+                        load_example_btn = gr.Button("Load Example", variant="secondary")
 
                 # Document metadata
                 title = gr.Textbox(label="Document Title", placeholder="Enter your document title...")
@@ -419,7 +429,7 @@ def build_editor() -> gr.Blocks:
 
                 # Sections section
                 with gr.Column(elem_classes="section-block"):
-                    gr.Markdown("### Sections")
+                    gr.Markdown("### Document Structure")
                     gr.Markdown(
                         "*Note: Changing resource keys may require re-selecting sections that reference them*",
                         elem_classes=["markdown-small"],
@@ -457,8 +467,14 @@ def build_editor() -> gr.Blocks:
                 download_doc_btn = gr.DownloadButton("Download Document", visible=False)
 
                 # Live JSON preview
-                with gr.Accordion("JSON Preview", open=False):
-                    json_preview = gr.Code(label=None, language="json", interactive=False, wrap_lines=True, lines=20)
+                with gr.Accordion("Outline Preview (JSON)", open=False):
+                    json_preview = gr.Code(
+                        label="Download File to Upload Later",
+                        language="json",
+                        interactive=False,
+                        wrap_lines=True,
+                        lines=20,
+                    )
 
         # Output area
         output_container = gr.Column(visible=False, elem_classes="preview-block")
@@ -506,12 +522,12 @@ def build_editor() -> gr.Blocks:
                     "",
                     "",
                     "",
-                    "concat",
                     "",
-                    "Prompt",
                     "",
                     [],
                     "",
+                    gr.update(selected="upload_file"),
+                    gr.update(selected="prompt_mode"),
                 ]
 
             # Update state
@@ -525,9 +541,7 @@ def build_editor() -> gr.Blocks:
             res_key = ""
             res_desc = ""
             res_path = ""
-            res_merge = "concat"
             sec_title = ""
-            sec_mode = "Prompt"
             sec_prompt = ""
             sec_refs = []
             sec_resource_key = ""
@@ -540,23 +554,32 @@ def build_editor() -> gr.Blocks:
                     res_key = res.key or ""
                     res_desc = res.description or ""
                     res_path = res.path or ""
-                    res_merge = res.merge_mode or "concat"
 
-            # Update section editor values
+            # Determine which file source tab should be selected
+            file_source_tab_selected = "file_path" if show_resource and res_path else "upload_file"
+
+            # Update section editor values and determine content mode tab
+            sec = None
+            content_mode_tab_selected = "prompt_mode"  # default
             if show_section:
                 path = [int(p) for p in selected_id.split("_")[1:]]
                 sec = get_section_at_path(new_state["outline"].sections, path)
                 if sec:
                     sec_title = sec.title or ""
-                    # Determine mode based on current data
-                    sec_mode = "Static" if sec.resource_key else "Prompt"
-                    # Update the section's mode for proper serialization
-                    sec._mode = sec_mode
                     sec_prompt = sec.prompt or ""
                     # Filter out refs that no longer exist
                     valid_keys = [r.key for r in new_state["outline"].resources if r.key]
                     sec_refs = [ref for ref in (sec.refs or []) if ref in valid_keys]
                     sec_resource_key = sec.resource_key or ""
+
+                    # Set mode based on current data if not already set
+                    if not hasattr(sec, "_mode") or sec._mode is None:
+                        sec._mode = "Static" if sec_resource_key and not sec_prompt else "Prompt"
+
+                    # Determine which content mode tab should be selected based on section mode
+                    content_mode_tab_selected = (
+                        "static_mode" if getattr(sec, "_mode", None) == "Static" else "prompt_mode"
+                    )
 
             # Update radio choices
             resource_choices = generate_resource_choices(new_state)
@@ -576,9 +599,7 @@ def build_editor() -> gr.Blocks:
                 res_key,
                 res_desc,
                 res_path,
-                res_merge,
                 sec_title,
-                sec_mode,
                 sec_prompt,
                 gr.update(
                     choices=[r.key for r in new_state["outline"].resources if r.key], value=sec_refs if sec_refs else []
@@ -589,6 +610,8 @@ def build_editor() -> gr.Blocks:
                     if sec_resource_key and sec_resource_key in [r.key for r in new_state["outline"].resources if r.key]
                     else None,
                 ),
+                gr.update(selected=file_source_tab_selected),
+                gr.update(selected=content_mode_tab_selected),
             ]
 
         def handle_resource_click(val, current_state):
@@ -683,21 +706,17 @@ def build_editor() -> gr.Blocks:
                 json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
                 return current_state, gr.update(), gr.update(), json_str, validation_msg, generate_btn_update
 
-            # Special handling for mode changes
-            if field_name == "mode":
-                section._mode = value  # Track the mode for serialization
-                if value == "Prompt":
-                    # Ensure we have a prompt when switching to Prompt mode
-                    if not section.prompt:
-                        section.prompt = ""
-                else:  # Static
-                    # Ensure we have a resource_key when switching to Static mode
-                    if not section.resource_key:
-                        # Try to use the first available resource
-                        if current_state["outline"].resources and current_state["outline"].resources[0].key:
-                            section.resource_key = current_state["outline"].resources[0].key
-            else:
-                setattr(section, field_name, value)
+            # Set the field value
+            setattr(section, field_name, value)
+
+            # Only update mode if not explicitly set or if there's a clear indication
+            if not hasattr(section, "_mode") or section._mode is None:
+                # Auto-detect mode based on field values for new sections
+                if hasattr(section, "resource_key") and hasattr(section, "prompt"):
+                    if section.resource_key and not section.prompt:
+                        section._mode = "Static"
+                    else:
+                        section._mode = "Prompt"
 
             # Update radio choices to reflect new labels
             resource_choices = generate_resource_choices(current_state)
@@ -762,13 +781,53 @@ def build_editor() -> gr.Blocks:
                 ]
             return [current_state] + [gr.update()] * 10
 
-        def toggle_section_mode(mode):
-            """Toggle between prompt and static mode."""
-            is_prompt = mode == "Prompt"
-            return {
-                section_editor["prompt_container"]: gr.update(visible=is_prompt),
-                section_editor["static_container"]: gr.update(visible=not is_prompt),
-            }
+        def handle_load_example(example_idx, current_state):
+            """Load an example outline."""
+            if example_idx is None:
+                return [current_state] + [gr.update()] * 10
+
+            try:
+                from .config import settings
+                from pathlib import Path
+
+                # Get the example configuration
+                example = settings.example_outlines[example_idx]
+
+                # Get the directory where this module is located
+                module_dir = Path(__file__).parent.parent
+                example_path = module_dir / example.path
+
+                # Load the JSON file
+                with open(example_path, "r") as f:
+                    content = f.read()
+                data = json.loads(content)
+
+                # Update state with loaded outline
+                current_state["outline"] = Outline.from_dict(data)
+                current_state["selected_id"] = None
+                current_state["selected_type"] = None
+
+                # Update UI
+                resource_choices, section_choices = update_lists(current_state)
+                json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+
+                return [
+                    current_state,
+                    current_state["outline"].title,
+                    current_state["outline"].general_instruction,
+                    resource_choices,
+                    section_choices,
+                    gr.update(visible=True),
+                    gr.update(visible=False),
+                    gr.update(visible=False),
+                    json_str,
+                    validation_msg,
+                    generate_btn_update,
+                ]
+            except Exception as e:
+                # If loading fails, return current state with error
+                print(f"Error loading example: {str(e)}")
+                return [current_state] + [gr.update()] * 10
 
         # ====================================================================
         # Connect Event Handlers
@@ -788,12 +847,12 @@ def build_editor() -> gr.Blocks:
                 resource_editor["key"],
                 resource_editor["description"],
                 resource_editor["path"],
-                resource_editor["merge_mode"],
                 section_editor["title"],
-                section_editor["mode"],
                 section_editor["prompt"],
                 section_editor["refs"],
                 section_editor["resource_key"],
+                resource_editor["file_source_tabs"],
+                section_editor["content_mode_tabs"],
             ],
         )
 
@@ -810,12 +869,12 @@ def build_editor() -> gr.Blocks:
                 resource_editor["key"],
                 resource_editor["description"],
                 resource_editor["path"],
-                resource_editor["merge_mode"],
                 section_editor["title"],
-                section_editor["mode"],
                 section_editor["prompt"],
                 section_editor["refs"],
                 section_editor["resource_key"],
+                resource_editor["file_source_tabs"],
+                section_editor["content_mode_tabs"],
             ],
         )
 
@@ -846,12 +905,12 @@ def build_editor() -> gr.Blocks:
                 resource_editor["key"],
                 resource_editor["description"],
                 resource_editor["path"],
-                resource_editor["merge_mode"],
                 section_editor["title"],
-                section_editor["mode"],
                 section_editor["prompt"],
                 section_editor["refs"],
                 section_editor["resource_key"],
+                resource_editor["file_source_tabs"],
+                section_editor["content_mode_tabs"],
             ],
         )
 
@@ -868,12 +927,12 @@ def build_editor() -> gr.Blocks:
                 resource_editor["key"],
                 resource_editor["description"],
                 resource_editor["path"],
-                resource_editor["merge_mode"],
                 section_editor["title"],
-                section_editor["mode"],
                 section_editor["prompt"],
                 section_editor["refs"],
                 section_editor["resource_key"],
+                resource_editor["file_source_tabs"],
+                section_editor["content_mode_tabs"],
             ],
         )
 
@@ -890,12 +949,12 @@ def build_editor() -> gr.Blocks:
                 resource_editor["key"],
                 resource_editor["description"],
                 resource_editor["path"],
-                resource_editor["merge_mode"],
                 section_editor["title"],
-                section_editor["mode"],
                 section_editor["prompt"],
                 section_editor["refs"],
                 section_editor["resource_key"],
+                resource_editor["file_source_tabs"],
+                section_editor["content_mode_tabs"],
             ],
         )
 
@@ -958,27 +1017,11 @@ def build_editor() -> gr.Blocks:
             outputs=[state, resource_radio, section_radio, json_preview, validation_message, generate_btn],
         )
 
-        resource_editor["merge_mode"].change(
-            lambda v, s: auto_save_resource_field("merge_mode", v, s),
-            inputs=[resource_editor["merge_mode"], state],
-            outputs=[state, resource_radio, section_radio, json_preview, validation_message, generate_btn],
-        )
-
         # Auto-save section fields
         section_editor["title"].change(
             lambda v, s: auto_save_section_field("title", v, s),
             inputs=[section_editor["title"], state],
             outputs=[state, resource_radio, section_radio, json_preview, validation_message, generate_btn],
-        )
-
-        section_editor["mode"].change(
-            lambda v, s: auto_save_section_field("mode", v, s),
-            inputs=[section_editor["mode"], state],
-            outputs=[state, resource_radio, section_radio, json_preview, validation_message, generate_btn],
-        ).then(
-            toggle_section_mode,
-            inputs=[section_editor["mode"]],
-            outputs=[section_editor["prompt_container"], section_editor["static_container"]],
         )
 
         section_editor["prompt"].change(
@@ -999,10 +1042,137 @@ def build_editor() -> gr.Blocks:
             outputs=[state, resource_radio, section_radio, json_preview, validation_message, generate_btn],
         )
 
+        # Handle content mode tab changes via individual tab events
+        def handle_prompt_tab_select(current_state):
+            """Handle switching to prompt mode tab."""
+            if not current_state["selected_id"] or current_state["selected_type"] != "section":
+                json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+                return (
+                    current_state,
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    json_str,
+                    validation_msg,
+                    generate_btn_update,
+                )
+
+            # Get current section
+            path = [int(p) for p in current_state["selected_id"].split("_")[1:]]
+            section = get_section_at_path(current_state["outline"].sections, path)
+
+            if not section:
+                json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+                return (
+                    current_state,
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    json_str,
+                    validation_msg,
+                    generate_btn_update,
+                )
+
+            # Set prompt mode (but keep all field values)
+            section._mode = "Prompt"
+            # Ensure prompt fields exist
+            if not section.prompt:
+                section.prompt = ""
+
+            # Update UI (don't clear fields, just update choices and JSON)
+            resource_choices = generate_resource_choices(current_state)
+            section_choices = generate_section_choices(current_state)
+            json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+
+            return (
+                current_state,
+                gr.update(choices=resource_choices),
+                gr.update(choices=section_choices, value=current_state["selected_id"]),
+                gr.update(),  # Keep current resource_key value (don't change UI)
+                json_str,
+                validation_msg,
+                generate_btn_update,
+            )
+
+        def handle_static_tab_select(current_state):
+            """Handle switching to static mode tab."""
+            if not current_state["selected_id"] or current_state["selected_type"] != "section":
+                json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+                return (
+                    current_state,
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    json_str,
+                    validation_msg,
+                    generate_btn_update,
+                )
+
+            # Get current section
+            path = [int(p) for p in current_state["selected_id"].split("_")[1:]]
+            section = get_section_at_path(current_state["outline"].sections, path)
+
+            if not section:
+                json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+                return (
+                    current_state,
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    gr.update(),
+                    json_str,
+                    validation_msg,
+                    generate_btn_update,
+                )
+
+            # Set static mode (but keep all field values)
+            section._mode = "Static"
+            # Set to first available resource if no resource is selected
+            if not section.resource_key and current_state["outline"].resources:
+                available_resources = [r.key for r in current_state["outline"].resources if r.key]
+                if available_resources:
+                    section.resource_key = available_resources[0]
+
+            # Update UI (don't clear fields, just update choices and JSON)
+            resource_choices = generate_resource_choices(current_state)
+            section_choices = generate_section_choices(current_state)
+            json_str, validation_msg, generate_btn_update = validate_and_preview(current_state)
+
+            return (
+                current_state,
+                gr.update(choices=resource_choices),
+                gr.update(choices=section_choices, value=current_state["selected_id"]),
+                gr.update(),  # Keep current prompt value (don't change UI)
+                gr.update(),  # Keep current refs value (don't change UI)
+                json_str,
+                validation_msg,
+                generate_btn_update,
+            )
+
         # Upload handler
         upload_btn.upload(
             handle_upload,
             inputs=[upload_btn, state],
+            outputs=[
+                state,
+                title,
+                instructions,
+                resource_radio,
+                section_radio,
+                empty_state,
+                resource_editor["container"],
+                section_editor["container"],
+                json_preview,
+                validation_message,
+                generate_btn,
+            ],
+        )
+
+        # Example load handler
+        load_example_btn.click(
+            handle_load_example,
+            inputs=[example_dropdown, state],
             outputs=[
                 state,
                 title,
@@ -1025,6 +1195,36 @@ def build_editor() -> gr.Blocks:
             handle_generate,
             inputs=[state],
             outputs=[generate_btn, generation_status, output_container, output_markdown, download_doc_btn],
+        )
+
+        # Tab change handlers for content mode
+        section_editor["prompt_tab"].select(
+            handle_prompt_tab_select,
+            inputs=[state],
+            outputs=[
+                state,
+                resource_radio,
+                section_radio,
+                section_editor["resource_key"],
+                json_preview,
+                validation_message,
+                generate_btn,
+            ],
+        )
+
+        section_editor["static_tab"].select(
+            handle_static_tab_select,
+            inputs=[state],
+            outputs=[
+                state,
+                resource_radio,
+                section_radio,
+                section_editor["prompt"],
+                section_editor["refs"],
+                json_preview,
+                validation_message,
+                generate_btn,
+            ],
         )
 
         # Initial validation on load

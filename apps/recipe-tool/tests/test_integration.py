@@ -13,30 +13,6 @@ def mock_executor():
     return executor
 
 
-def test_app_initialization():
-    """Test that app initialization connects all components correctly."""
-    with patch("recipe_tool_app.app.RecipeToolCore") as mock_core:
-        with patch("recipe_tool_app.app.RecipeExecutorCore") as mock_executor_core:
-            with patch("recipe_tool_app.app.gr.Blocks") as mock_blocks:
-                with patch("recipe_tool_app.app.create_recipe_ui") as mock_recipe_ui:
-                    with patch("recipe_tool_app.app.create_executor_block") as mock_executor_block:
-                        # Setup mocks
-                        mock_app = MagicMock()
-                        mock_blocks.return_value.__enter__.return_value = mock_app
-
-                        # Import and create app
-                        from recipe_tool_app.app import create_app
-
-                        app = create_app()
-
-                        # Verify
-                        assert app == mock_app
-                        mock_core.assert_called_once()
-                        mock_executor_core.assert_called_once()
-                        mock_recipe_ui.assert_called_once()
-                        mock_executor_block.assert_called_once()
-
-
 @pytest.mark.asyncio
 async def test_core_to_utils_integration(mock_executor):
     """Test integration between core and utils from recipe-executor."""

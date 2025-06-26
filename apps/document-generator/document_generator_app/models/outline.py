@@ -3,7 +3,7 @@ Data models for the Document Generator app.
 Defines Resource, Section, and Outline dataclasses with serialization utilities.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from jsonschema import validate
 
@@ -13,7 +13,18 @@ class Resource:
     key: str
     path: str
     description: str
-    merge_mode: str
+    merge_mode: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dict, excluding None merge_mode."""
+        result = {
+            "key": self.key,
+            "path": self.path,
+            "description": self.description,
+        }
+        if self.merge_mode is not None:
+            result["merge_mode"] = self.merge_mode
+        return result
 
 
 @dataclass
@@ -26,14 +37,17 @@ class Section:
     _mode: Optional[str] = field(default=None, init=False, repr=False)  # Internal mode tracking
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dict, excluding None values and empty refs to match schema."""
-        result = {"title": self.title}
+        """Convert to dict, using mode to determine which fields to include."""
+        result: Dict[str, Any] = {"title": self.title}
 
-        # Use mode to determine which fields to include
-        if self._mode == "Static" and self.resource_key is not None:
-            result["resource_key"] = self.resource_key
+        # Use explicit mode if set, otherwise infer from data
+        mode = getattr(self, "_mode", None)
+        if mode == "Static" or (mode is None and self.resource_key is not None and self.prompt is None):
+            # Static mode - include resource_key
+            if self.resource_key is not None:
+                result["resource_key"] = self.resource_key
         else:
-            # Default to prompt mode
+            # Prompt mode (default) - include prompt and refs
             if self.prompt is not None:
                 result["prompt"] = self.prompt
             if self.refs:  # Only include refs if not empty
@@ -73,7 +87,7 @@ class Outline:
         return {
             "title": self.title,
             "general_instruction": self.general_instruction,
-            "resources": [asdict(r) for r in self.resources],
+            "resources": [r.to_dict() for r in self.resources],
             "sections": [s.to_dict() for s in self.sections],
         }
 
@@ -86,7 +100,7 @@ class Outline:
                     key=r.get("key", ""),
                     path=r.get("path", ""),
                     description=r.get("description", ""),
-                    merge_mode=r.get("merge_mode", "concat"),
+                    merge_mode=r.get("merge_mode"),
                 )
             )
         sec_list: List[Section] = [section_from_dict(s) for s in data.get("sections", [])]
@@ -114,7 +128,7 @@ OUTLINE_SCHEMA = {
                     "key": {"type": "string"},
                     "path": {"type": "string"},
                     "description": {"type": "string"},
-                    "merge_mode": {"type": "string", "enum": ["concat", "dict"]},
+                    "merge_mode": {"oneOf": [{"type": "string", "enum": ["concat", "dict"]}, {"type": "null"}]},
                 },
                 "required": ["key", "path", "description"],
                 "additionalProperties": False,

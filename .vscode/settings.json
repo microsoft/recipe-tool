@@ -103,8 +103,10 @@
   // === SPELL CHECKER CONFIGURATION ===
   // (Only include if using Code Spell Checker extension)
   "cSpell.ignorePaths": [
+    ".claude",
     ".devcontainer",
     ".git",
+    ".github",
     ".gitignore",
     ".vscode",
     ".venv",

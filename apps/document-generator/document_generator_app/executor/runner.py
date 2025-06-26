@@ -3,7 +3,6 @@ Headless generation runner: invoke the document-generator recipe.
 """
 
 import json
-import tempfile
 from pathlib import Path
 
 from recipe_executor.context import Context
@@ -11,10 +10,11 @@ from recipe_executor.executor import Executor
 from recipe_executor.logger import init_logger
 
 from ..models.outline import Outline
+from ..session import session_manager
 from typing import Optional
 
 
-async def generate_document(outline: Optional[Outline]) -> str:
+async def generate_document(outline: Optional[Outline], session_id: Optional[str] = None) -> str:
     """
     Run the document-generator recipe with the given outline and return the generated Markdown.
     """
@@ -28,7 +28,12 @@ async def generate_document(outline: Optional[Outline]) -> str:
     RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
     RECIPE_ROOT = RECIPE_PATH.parent
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    # Use session-scoped temp directory
+    session_dir = session_manager.get_session_dir(session_id)
+    tmpdir = str(session_dir / "execution")
+    Path(tmpdir).mkdir(exist_ok=True)
+
+    try:
         # Resolve resource paths: download URLs or locate local files
         for res in outline.resources:
             if res.path:
@@ -56,6 +61,7 @@ async def generate_document(outline: Optional[Outline]) -> str:
             artifacts={
                 "outline_file": str(outline_path),
                 "recipe_root": str(RECIPE_ROOT),
+                "output_root": str(session_dir),  # Use session directory for output
             }
         )
         executor = Executor(logger)
@@ -71,3 +77,5 @@ async def generate_document(outline: Optional[Outline]) -> str:
             return document_path.read_text()
         except FileNotFoundError:
             return f"Generated file not found: {document_path}"
+    except Exception as e:
+        return f"Error generating document: {str(e)}"
