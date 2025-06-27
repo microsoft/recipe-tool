@@ -10,7 +10,3 @@ test:
 pytest:
 	@echo "Pytest disabled for document-generator-v2"
 	@true
-
-type-check:
-	@echo "Type checking disabled for document-generator-v2"
-	@true
