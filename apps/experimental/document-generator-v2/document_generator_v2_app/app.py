@@ -275,6 +275,7 @@ def save_inline_resources(blocks, output_dir):
 
 async def handle_document_generation(title, description, resources, blocks):
     """Generate document using the recipe executor."""
+    json_str = ""  # Initialize json_str before the try block
     try:
         # Create temporary directory for inline resources
         temp_dir = tempfile.mkdtemp()
@@ -990,7 +991,6 @@ def render_blocks(blocks, focused_block_id=None):
         block_id = block["id"]
         is_collapsed = block.get("collapsed", False)
         collapsed_class = "collapsed" if is_collapsed else ""
-        preview_class = "show" if is_collapsed else ""
         content_class = "" if is_collapsed else "show"
 
         if block["type"] == "ai":
@@ -1170,7 +1170,6 @@ def create_app():
         # State to track resources and blocks
         resources_state = gr.State([])
         focused_block_state = gr.State(None)
-        generated_file_path = gr.State(None)  # State to store generated file path
 
         # Initialize with default blocks
         initial_blocks = [
@@ -1212,7 +1211,7 @@ def create_app():
                     gr.HTML("<div style='flex: 1;'></div>")
                     # Try Examples button with dropdown container
                     with gr.Column(elem_classes="try-examples-container"):
-                        try_examples_btn = gr.Button(
+                        gr.Button(
                             "Try Examples",
                             elem_id="try-examples-btn-id",
                             variant="secondary",
@@ -1235,7 +1234,7 @@ def create_app():
                                     <div class="example-desc">Marketing analysis and strategy</div>
                                 </div>
                             """)
-                    import_builder_btn = gr.Button(
+                    gr.Button(
                         "Import",
                         elem_id="import-builder-btn-id",
                         variant="secondary",
@@ -1291,7 +1290,7 @@ def create_app():
             # Resources column: Upload Resources button
             with gr.Column(scale=1, elem_classes="resources-col"):
                 # File upload component styled as button
-                upload_resources_btn = gr.Button(
+                gr.Button(
                     "Upload References",
                     variant="secondary",
                     size="sm",
