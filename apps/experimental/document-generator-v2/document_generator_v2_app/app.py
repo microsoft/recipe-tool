@@ -635,9 +635,9 @@ def load_example(example_id, session_id=None):
     # Map example IDs to file paths - now using .docpack files
     examples_dir = Path(__file__).parent.parent / "examples"
     example_files = {
-        "1": examples_dir / "readme-generation.docpack",
-        "2": examples_dir / "launch-documentation.docpack",
-        "3": examples_dir / "marketing-report.docpack",
+        "1": examples_dir / "readme-generation" / "readme.docpack",
+        "2": examples_dir / "launch-documentation" / "launch-documentation.docpack",
+        "3": examples_dir / "marketing-report.docpack",  # This one might not exist yet
     }
 
     file_path = example_files.get(example_id)
@@ -936,20 +936,19 @@ def import_outline(file_path, session_id=None):
 
 
 def save_outline(title, outline_json, blocks):
-    """Save the outline as a .docpack file with all resources bundled."""
+    """Create a .docpack file with all resources bundled and return for download."""
     from datetime import datetime
     import shutil
 
     try:
-        # Create output directory if it doesn't exist
-        output_dir = Path("output")
-        output_dir.mkdir(exist_ok=True)
-
         # Create filename from title and timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
         docpack_name = f"{safe_title}_{timestamp}.docpack"
-        docpack_path = output_dir / docpack_name
+        
+        # Create a temporary file for the docpack
+        temp_dir = Path(tempfile.gettempdir())
+        docpack_path = temp_dir / docpack_name
 
         # Parse the current JSON
         current_json = json.loads(outline_json)
@@ -977,12 +976,13 @@ def save_outline(title, outline_json, blocks):
             resource_key_map=resource_key_map
         )
 
-        # Return success (hidden message)
-        return gr.update(visible=False)
+        # Return the file path for download
+        return gr.update(value=str(docpack_path), visible=True, interactive=True)
 
     except Exception as e:
-        error_msg = f"Error saving docpack: {str(e)}"
-        return gr.update(value=error_msg, visible=True)
+        error_msg = f"Error creating docpack: {str(e)}"
+        print(error_msg)
+        return gr.update(value=None, visible=False)
 
 
 def render_block_resources(block_resources, block_type, block_id):
@@ -1294,16 +1294,14 @@ def create_app():
                         size="sm",
                         elem_classes="import-builder-btn",
                     )
-                    save_builder_btn = gr.Button(
+                    save_builder_btn = gr.DownloadButton(
                         "Save",
                         elem_id="save-builder-btn-id",
                         variant="secondary",
                         size="sm",
                         elem_classes="save-builder-btn",
+                        visible=True,
                     )
-
-                # Status message for save operation
-                save_status = gr.Markdown(visible=False, elem_classes="save-status-message")
 
                 # Hidden file component for import
                 import_file = gr.File(
@@ -1733,7 +1731,7 @@ def create_app():
         )
 
         # Save button handler
-        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output, blocks_state], outputs=save_status)
+        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output, blocks_state], outputs=save_builder_btn)
 
         # Import file handler
         import_file.change(
