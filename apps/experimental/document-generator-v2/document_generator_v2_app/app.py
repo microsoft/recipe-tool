@@ -637,7 +637,7 @@ def load_example(example_id, session_id=None):
     example_files = {
         "1": examples_dir / "readme-generation" / "readme.docpack",
         "2": examples_dir / "launch-documentation" / "launch-documentation.docpack",
-        "3": examples_dir / "marketing-report.docpack",  # This one might not exist yet
+        "3": examples_dir / "scenario-4-annual-performance-review" / "Annual Employee Performance Review_20250701_133228.docpack",
     }
 
     file_path = example_files.get(example_id)
@@ -933,6 +933,8 @@ def import_outline(file_path, session_id=None):
         print(error_msg)
         # Return current values on error (including None for import_file and session_id)
         return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None, session_id
+
+
 
 
 def save_outline(title, outline_json, blocks):
@@ -1283,8 +1285,8 @@ def create_app():
                                     <div class="example-desc">Product research and strategy</div>
                                 </div>
                                 <div class="examples-dropdown-item" data-example="3">
-                                    <div class="example-title">Business Report</div>
-                                    <div class="example-desc">Marketing analysis and strategy</div>
+                                    <div class="example-title">Annual Performance Review</div>
+                                    <div class="example-desc">Employee evaluation and feedback</div>
                                 </div>
                             """)
                     gr.Button(
