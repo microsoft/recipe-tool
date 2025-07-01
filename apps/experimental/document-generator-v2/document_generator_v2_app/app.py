@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 from .executor.runner import generate_document
 from .models.outline import Outline, Resource, Section
+from .session import session_manager
+from .package_handler import DocpackHandler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -273,12 +275,16 @@ def save_inline_resources(blocks, output_dir):
     return saved_resources
 
 
-async def handle_document_generation(title, description, resources, blocks):
+async def handle_document_generation(title, description, resources, blocks, session_id=None):
     """Generate document using the recipe executor."""
     json_str = ""  # Initialize json_str before the try block
     try:
-        # Create temporary directory for inline resources
-        temp_dir = tempfile.mkdtemp()
+        # Get or create session ID
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            
+        # Use session temp directory for inline resources and output
+        temp_dir = session_manager.get_temp_dir(session_id)
 
         # Generate the JSON with inline resources saved to temp directory
         json_str = generate_document_json(title, description, resources, blocks, save_inline=True, inline_dir=temp_dir)
@@ -621,32 +627,47 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
     return new_resources, blocks, gr.update(value=resources_html), outline, json_str
 
 
-def load_example(example_id):
+def load_example(example_id, session_id=None):
     """Load a predefined example based on the example ID."""
     if not example_id:
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), session_id
 
-    # Map example IDs to file paths
+    # Map example IDs to file paths - now using .docpack files
     examples_dir = Path(__file__).parent.parent / "examples"
     example_files = {
-        "1": examples_dir / "readme-generation" / "readme.json",
-        "2": examples_dir / "launch-documentation" / "launch-documentation.json",
-        "3": examples_dir / "scenario-1-monthly-marketing-report" / "MADE Marketing Report_20250625_140525.json",
+        "1": examples_dir / "readme-generation.docpack",
+        "2": examples_dir / "launch-documentation.docpack",
+        "3": examples_dir / "marketing-report.docpack",
     }
 
     file_path = example_files.get(example_id)
     if not file_path or not file_path.exists():
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        # If docpack doesn't exist, show error message
+        error_msg = f"Example file not found: {file_path.name if file_path else 'Unknown'}"
+        return (
+            gr.update(),  # title
+            gr.update(),  # description  
+            gr.update(),  # resources
+            gr.update(),  # blocks
+            gr.update(),  # outline
+            json.dumps({"error": error_msg}, indent=2),  # json_output
+            gr.update(),  # resources_display
+            session_id,  # session_id
+        )
 
     # Use the import_outline function to load the example
-    return import_outline(str(file_path))
+    return import_outline(str(file_path), session_id)
 
 
-def import_outline(file_path):
-    """Import an outline from a JSON file and convert it to blocks format."""
+def import_outline(file_path, session_id=None):
+    """Import an outline from a .docpack file and convert to blocks format."""
     if not file_path:
-        # Return 8 values: title, description, resources, blocks, outline, json, resources_display, import_file
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
+        # Return 9 values: title, description, resources, blocks, outline, json, resources_display, import_file, session_id
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None, session_id
+    
+    # Get or create session ID
+    if not session_id:
+        session_id = str(uuid.uuid4())
 
     # Define allowed text file extensions
     ALLOWED_EXTENSIONS = {
@@ -711,9 +732,28 @@ def import_outline(file_path):
     }
 
     try:
-        # Read and parse the JSON file
-        with open(file_path, "r") as f:
-            json_data = json.load(f)
+        file_path = Path(file_path)
+        
+        # Only accept .docpack files
+        if file_path.suffix.lower() != ".docpack":
+            error_msg = "Import failed: Only .docpack files are supported. Please use a .docpack file created by the Save function."
+            return (
+                gr.update(),  # title
+                gr.update(),  # description
+                gr.update(),  # resources
+                gr.update(),  # blocks
+                gr.update(),  # outline
+                json.dumps({"error": error_msg}, indent=2),  # json_output
+                gr.update(),  # resources_display
+                None,  # import_file
+                session_id,  # session_id
+            )
+        
+        # Use session directory for extraction
+        session_dir = session_manager.get_session_dir(session_id)
+        
+        # Extract the docpack to session directory
+        json_data, extracted_files = DocpackHandler.extract_package(file_path, session_dir)
 
         # Extract title and description
         title = json_data.get("title", "Document Title")
@@ -885,64 +925,63 @@ def import_outline(file_path):
         else:
             resources_html = "<p style='color: #666; font-size: 12px'>No resources uploaded yet</p>"
 
-        # Return None for import_file to clear it
-        return title, description, resources, blocks, outline, json_str, gr.update(value=resources_html), None
+        # Return None for import_file to clear it, and include session_id
+        return title, description, resources, blocks, outline, json_str, gr.update(value=resources_html), None, session_id
 
     except Exception as e:
         error_msg = f"Error importing file: {str(e)}"
         print(error_msg)
-        # Return current values on error (including None for import_file)
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None
+        # Return current values on error (including None for import_file and session_id)
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), None, session_id
 
 
 def save_outline(title, outline_json, blocks):
-    """Save the outline JSON to the output directory specified in the recipe."""
+    """Save the outline as a .docpack file with all resources bundled."""
     from datetime import datetime
+    import shutil
 
     try:
-        # Get the recipe path and load it to find output location
-        REPO_ROOT = Path(__file__).resolve().parents[4]
-        RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
-
-        # Load the recipe to get default output_root
-        with open(RECIPE_PATH, "r") as f:
-            recipe_data = json.load(f)
-
-        # Get the default output_root from recipe inputs
-        output_root = "output"  # Default fallback
-        if "inputs" in recipe_data and "output_root" in recipe_data["inputs"]:
-            output_root = recipe_data["inputs"]["output_root"].get("default", "output")
-
         # Create output directory if it doesn't exist
-        output_dir = Path(output_root)
+        output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
 
         # Create filename from title and timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
-        base_name = f"{safe_title}_{timestamp}"
+        docpack_name = f"{safe_title}_{timestamp}.docpack"
+        docpack_path = output_dir / docpack_name
 
-        # Create a subdirectory for this save
-        save_dir = output_dir / base_name
-        save_dir.mkdir(exist_ok=True)
-
-        # Parse the current JSON - keep absolute paths for inline resources
+        # Parse the current JSON
         current_json = json.loads(outline_json)
 
-        # Just remove is_inline flags if present, but keep the absolute paths
+        # Collect all resource files and create key mapping
+        resource_files = []
+        resource_key_map = {}
+        
+        for res in current_json.get("resources", []):
+            resource_path = Path(res["path"])
+            if resource_path.exists():
+                resource_files.append(resource_path)
+                resource_key_map[str(resource_path.resolve())] = res["key"]
+
+        # Remove is_inline flags before saving
         for res in current_json.get("resources", []):
             if "is_inline" in res:
                 del res["is_inline"]
 
-        # Save the updated outline JSON
-        outline_path = save_dir / f"{base_name}.json"
-        outline_path.write_text(json.dumps(current_json, indent=2))
+        # Create the docpack with conflict-safe naming
+        DocpackHandler.create_package(
+            outline_data=current_json,
+            resource_files=resource_files,
+            output_path=docpack_path,
+            resource_key_map=resource_key_map
+        )
 
-        # Don't show success message
+        # Return success (hidden message)
         return gr.update(visible=False)
 
     except Exception as e:
-        error_msg = f"Error saving outline: {str(e)}"
+        error_msg = f"Error saving docpack: {str(e)}"
         return gr.update(value=error_msg, visible=True)
 
 
@@ -1111,21 +1150,34 @@ def render_blocks(blocks, focused_block_id=None):
     return html
 
 
-def handle_file_upload(files, current_resources, title, description, blocks):
+def handle_file_upload(files, current_resources, title, description, blocks, session_id=None):
     """Handle uploaded files and return HTML display of file names."""
     if not files:
-        return current_resources, gr.update(), None, gr.update(), gr.update()
+        return current_resources, gr.update(), None, gr.update(), gr.update(), session_id
+    
+    # Get or create session ID
+    if not session_id:
+        session_id = str(uuid.uuid4())
 
     # Add new files to resources
     new_resources = current_resources.copy() if current_resources else []
+    
+    # Get session files directory
+    files_dir = session_manager.get_files_dir(session_id)
 
     for file_path in files:
-        if file_path and file_path not in [r["path"] for r in new_resources]:
-            import os
-
+        if file_path:
+            import shutil
             file_name = os.path.basename(file_path)
-            # All uploaded files are text files now
-            new_resources.append({"path": file_path, "name": file_name, "type": "text"})
+            
+            # Copy file to session directory
+            session_file_path = files_dir / file_name
+            shutil.copy2(file_path, session_file_path)
+            
+            # Check if already in resources (by name)
+            if not any(r["name"] == file_name for r in new_resources):
+                # All uploaded files are text files now
+                new_resources.append({"path": str(session_file_path), "name": file_name, "type": "text"})
 
     # Generate HTML for resources display
     if new_resources:
@@ -1147,7 +1199,7 @@ def handle_file_upload(files, current_resources, title, description, blocks):
     # Regenerate outline with new resources
     outline, json_str = regenerate_outline_from_state(title, description, new_resources, blocks)
 
-    return new_resources, gr.update(value=resources_html), None, outline, json_str  # Return None to clear file upload
+    return new_resources, gr.update(value=resources_html), None, outline, json_str, session_id  # Return None to clear file upload
 
 
 def create_app():
@@ -1170,6 +1222,7 @@ def create_app():
         # State to track resources and blocks
         resources_state = gr.State([])
         focused_block_state = gr.State(None)
+        session_state = gr.State(None)  # Track session ID
 
         # Initialize with default blocks
         initial_blocks = [
@@ -1254,7 +1307,7 @@ def create_app():
 
                 # Hidden file component for import
                 import_file = gr.File(
-                    label="Import JSON", file_types=[".json"], visible=False, elem_id="import-file-input"
+                    label="Import Docpack", file_types=[".docpack"], visible=False, elem_id="import-file-input"
                 )
 
         # Document title and description
@@ -1481,8 +1534,8 @@ def create_app():
         # Handle file uploads (defined after json_output is created)
         file_upload.change(
             handle_file_upload,
-            inputs=[file_upload, resources_state, doc_title, doc_description, blocks_state],
-            outputs=[resources_state, resources_display, file_upload, outline_state, json_output],
+            inputs=[file_upload, resources_state, doc_title, doc_description, blocks_state, session_state],
+            outputs=[resources_state, resources_display, file_upload, outline_state, json_output, session_state],
         )
 
         # Helper function to add AI block and regenerate outline
@@ -1660,10 +1713,10 @@ def create_app():
         )
 
         # Generate document handler - update to return the download button state
-        async def handle_generate_and_update_download(title, description, resources, blocks):
+        async def handle_generate_and_update_download(title, description, resources, blocks, session_id):
             """Generate document and update download button."""
             json_str, content, file_path, filename = await handle_document_generation(
-                title, description, resources, blocks
+                title, description, resources, blocks, session_id
             )
 
             if file_path:
@@ -1675,7 +1728,7 @@ def create_app():
 
         generate_doc_btn.click(
             fn=handle_generate_and_update_download,
-            inputs=[doc_title, doc_description, resources_state, blocks_state],
+            inputs=[doc_title, doc_description, resources_state, blocks_state, session_state],
             outputs=[json_output, generated_content, save_doc_btn],
         )
 
@@ -1685,7 +1738,7 @@ def create_app():
         # Import file handler
         import_file.change(
             fn=import_outline,
-            inputs=import_file,
+            inputs=[import_file, session_state],
             outputs=[
                 doc_title,
                 doc_description,
@@ -1695,13 +1748,14 @@ def create_app():
                 json_output,
                 resources_display,
                 import_file,  # Add import_file to outputs to clear it
+                session_state,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Load example handler
         load_example_trigger.click(
             fn=load_example,
-            inputs=[example_id_input],
+            inputs=[example_id_input, session_state],
             outputs=[
                 doc_title,
                 doc_description,
@@ -1710,6 +1764,7 @@ def create_app():
                 outline_state,
                 json_output,
                 resources_display,
+                session_state,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
