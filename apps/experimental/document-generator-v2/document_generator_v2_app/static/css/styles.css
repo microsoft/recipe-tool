@@ -13,10 +13,30 @@
     max-width: 100% !important;
 }
 
+.doc-title-box, .doc-description-box {
+    background: white !important;
+}
+
 .app-header-col {
     gap: 7px !important;
 }
 
+/* Override dark theme */
+textarea::placeholder, input::placeholder {
+    color: #bbbbc2 !important; /* Neutral 400 color */
+}
+textarea, input, span, h1, p, .text {
+    color: #27272a !important; /* Neutral 800 color */
+}
+.secondary {
+    border: #e4e4e7 !important;
+    background: #e4e4e7 !important;
+    color: black !important;
+}
+.header-section .form {
+    border: 1px solid #ffffff !important;
+    background-color: #ffffff !important;
+}
 
 /* Builder buttons */
 .save-builder-btn {
@@ -903,7 +923,7 @@
 }
 
 .generated-content em {
-    color: #bbbbc2;
+    color: #bbbbc2;  /* --neutral-400: #bbbbc2 used for placeholders in gradio */
 }
 
 .generated-content::-webkit-scrollbar {
