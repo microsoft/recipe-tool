@@ -299,7 +299,7 @@ async def handle_document_generation(title, description, resources, blocks, sess
         outline = json_to_outline(json_data)
 
         # Generate the document
-        generated_content = await generate_document(outline)
+        generated_content = await generate_document(outline, session_id)
 
         # Save to temporary file for download
         filename = f"{title}.md" if title else "document.md"
@@ -658,7 +658,10 @@ def load_example(example_id, session_id=None):
         )
 
     # Use the import_outline function to load the example
-    return import_outline(str(file_path), session_id)
+    result = import_outline(str(file_path), session_id)
+    # import_outline returns 9 values (including import_file), but load_example only needs 8
+    # Return: title, description, resources, blocks, outline, json, resources_display, session_id
+    return result[:7] + (result[8],)  # Skip import_file (index 7), keep session_id (index 8)
 
 
 def import_outline(file_path, session_id=None):
@@ -1808,11 +1811,33 @@ def create_app():
     return app
 
 
+def check_deployment_status():
+    """Quick deployment status check."""
+    # Verify essential configuration
+    app_root = Path(__file__).resolve().parents[1]
+    bundled_recipe_path = app_root / "document_generator_v2_app" / "recipes" / "document_generator_recipe.json"
+
+    print("Document Generator starting...")
+    print(f"Recipe source: {'bundled' if bundled_recipe_path.exists() else 'development'}")
+
+    # Show LLM provider configuration
+    provider = os.getenv("LLM_PROVIDER", "openai")
+    model = os.getenv("DEFAULT_MODEL", "gpt-4o")
+    print(f"LLM: {provider}/{model}")
+
+
 def main():
     """Main entry point for the Document Builder app."""
+    # Load environment variables from .env file
+    load_dotenv()
+
+    # Run diagnostic check
+    check_deployment_status()
+
     # Configuration for hosting - Azure App Service uses PORT environment variable
     server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")
     server_port = int(os.getenv("PORT", os.getenv("GRADIO_SERVER_PORT", "8000")))
+    print(f"Server: {server_name}:{server_port}")
 
     app = create_app()
     app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True)

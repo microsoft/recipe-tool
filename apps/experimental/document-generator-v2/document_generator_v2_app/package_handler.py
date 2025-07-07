@@ -15,13 +15,13 @@ class DocpackHandler:
 
     @staticmethod
     def create_package(
-        outline_data: Dict[str, Any], 
-        resource_files: List[Path], 
+        outline_data: Dict[str, Any],
+        resource_files: List[Path],
         output_path: Path,
-        resource_key_map: Optional[Dict[str, str]] = None
+        resource_key_map: Optional[Dict[str, str]] = None,
     ) -> None:
         """Create a .docpack file from outline data and resource files.
-        
+
         This version handles filename conflicts by using resource keys as prefixes.
 
         Args:
@@ -33,15 +33,15 @@ class DocpackHandler:
         # Track used archive names to ensure uniqueness
         used_names = set()
         path_to_archive_name = {}
-        
+
         with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
             # Process resources to handle potential filename conflicts
             for i, resource_file in enumerate(resource_files):
                 if not resource_file.exists():
                     continue
-                    
+
                 original_path_str = str(resource_file)
-                
+
                 # Determine archive name with conflict resolution
                 if resource_key_map and original_path_str in resource_key_map:
                     # Use resource key as prefix
@@ -49,8 +49,8 @@ class DocpackHandler:
                     archive_name = f"{resource_key}_{resource_file.name}"
                 else:
                     # Fallback: use index as prefix if no key available
-                    archive_name = f"resource_{i+1}_{resource_file.name}"
-                
+                    archive_name = f"resource_{i + 1}_{resource_file.name}"
+
                 # Ensure uniqueness (shouldn't happen with keys, but just in case)
                 base_name = archive_name
                 counter = 1
@@ -59,13 +59,13 @@ class DocpackHandler:
                     suffix = Path(base_name).suffix
                     archive_name = f"{stem}_{counter}{suffix}"
                     counter += 1
-                
+
                 used_names.add(archive_name)
                 path_to_archive_name[original_path_str] = archive_name
-                
+
                 # Add file to archive
                 zf.write(resource_file, archive_name)
-            
+
             # Update outline data with new archive names
             updated_outline = outline_data.copy()
             if "resources" in updated_outline:
@@ -78,7 +78,7 @@ class DocpackHandler:
                         else:
                             # Fallback: just use filename if not found in map
                             resource["path"] = Path(resource["path"]).name
-            
+
             # Always include outline.json
             zf.writestr("outline.json", json.dumps(updated_outline, indent=2))
 
@@ -151,15 +151,15 @@ class DocpackHandler:
     @staticmethod
     def list_package_contents(package_path: Path) -> Dict[str, List[str]]:
         """List contents of a docpack without extracting.
-        
+
         Args:
             package_path: Path to the .docpack file
-            
+
         Returns:
             Dictionary with 'outline' and 'resources' lists
         """
         contents = {"outline": [], "resources": []}
-        
+
         try:
             with zipfile.ZipFile(package_path, "r") as zf:
                 for filename in zf.namelist():

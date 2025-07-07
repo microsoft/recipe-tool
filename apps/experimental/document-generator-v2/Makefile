@@ -10,3 +10,9 @@ test:
 pytest:
 	@echo "Pytest disabled for document-generator-v2"
 	@true
+
+# Build deployment package
+.PHONY: build
+build:
+	@echo "Building deployment package..."
+	@python scripts/build_deployment.py
