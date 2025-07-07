@@ -479,6 +479,15 @@ def regenerate_outline_from_state(title, description, resources, blocks):
         json_str = generate_document_json(title, description, resources, blocks)
         json_data = json.loads(json_str)
         outline = json_to_outline(json_data)
+        
+        # Update global state whenever outline is regenerated
+        global current_document_state
+        current_document_state = {
+            "title": title,
+            "outline_json": json_str,
+            "blocks": blocks
+        }
+        
         return outline, json_str
     except Exception as e:
         # Return None outline and error message in JSON
@@ -1019,6 +1028,63 @@ def save_outline(title, outline_json, blocks):
         return gr.update(value=None, visible=False)
 
 
+def create_docpack_from_current_state():
+    """Create a docpack using the current global document state."""
+    from datetime import datetime
+    
+    global current_document_state
+    
+    if not current_document_state:
+        return None
+        
+    try:
+        title = current_document_state.get("title", "Document")
+        outline_json = current_document_state.get("outline_json", "{}")
+        
+        # Create filename from title and timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
+        docpack_name = f"{safe_title}_{timestamp}.docpack"
+
+        # Create a temporary file for the docpack
+        temp_dir = Path(tempfile.gettempdir())
+        docpack_path = temp_dir / docpack_name
+
+        # Parse the current JSON
+        current_json = json.loads(outline_json)
+
+        # Collect all resource files and create key mapping
+        resource_files = []
+        resource_key_map = {}
+
+        for res in current_json.get("resources", []):
+            resource_path = Path(res["path"])
+            if resource_path.exists():
+                resource_files.append(resource_path)
+                resource_key_map[str(resource_path.resolve())] = res["key"]
+
+        # Remove is_inline flags before saving
+        for res in current_json.get("resources", []):
+            if "is_inline" in res:
+                del res["is_inline"]
+
+        # Create the docpack with conflict-safe naming
+        DocpackHandler.create_package(
+            outline_data=current_json,
+            resource_files=resource_files,
+            output_path=docpack_path,
+            resource_key_map=resource_key_map,
+        )
+
+        # Return just the file path
+        return str(docpack_path)
+
+    except Exception as e:
+        error_msg = f"Error creating docpack: {str(e)}"
+        print(error_msg)
+        return None
+
+
 def render_block_resources(block_resources, block_type, block_id):
     """Render the resources inside a block."""
     if block_type == "text":
@@ -1244,6 +1310,13 @@ def handle_file_upload(files, current_resources, title, description, blocks, ses
     )  # Return None to clear file upload
 
 
+# Global variable to store current document state for download
+current_document_state = {
+    "title": "Document Title",
+    "outline_json": "{}",
+    "blocks": []
+}
+
 def create_app():
     """Create and return the Document Builder Gradio app."""
 
@@ -1343,6 +1416,8 @@ def create_app():
                         size="sm",
                         elem_classes="save-builder-btn",
                         visible=True,
+                        value=create_docpack_from_current_state,
+                        every=0  # Ensure fresh file creation on each click
                     )
 
                 # Hidden file component for import
@@ -1772,8 +1847,7 @@ def create_app():
             outputs=[json_output, generated_content, save_doc_btn],
         )
 
-        # Save button handler
-        save_builder_btn.click(fn=save_outline, inputs=[doc_title, json_output, blocks_state], outputs=save_builder_btn)
+        # Save button is handled directly by DownloadButton with create_docpack_from_current_state
 
         # Import file handler
         import_file.change(
