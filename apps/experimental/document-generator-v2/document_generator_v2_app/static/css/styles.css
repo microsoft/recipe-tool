@@ -364,6 +364,12 @@ textarea, input, span, h1, p, .text {
     color: #27272a !important;
 }
 
+.cm-line {
+    background-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+    color: #27272a !important;
+}
+
 /* Resources */
 .resources-col {
     width: 190px !important;
