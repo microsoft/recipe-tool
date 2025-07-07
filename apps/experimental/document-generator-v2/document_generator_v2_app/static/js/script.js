@@ -1,5 +1,27 @@
 // Document Builder JavaScript
 
+// Toggle debug panel visibility
+function toggleDebugPanel() {
+    const content = document.getElementById('debug-panel-content');
+    const icon = document.getElementById('debug-collapse-icon');
+    
+    if (content) {
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            if (icon) {
+                icon.textContent = '⌵';
+                icon.style.transform = 'rotate(180deg)';  // Rotate down chevron to point up
+            }
+        } else {
+            content.style.display = 'none';
+            if (icon) {
+                icon.textContent = '⌵';
+                icon.style.transform = 'rotate(0deg)';  // Normal down chevron
+            }
+        }
+    }
+}
+
 function setupUploadResource() {
     // Try multiple selectors
     const uploadBtn = document.querySelector('.upload-resources-btn')

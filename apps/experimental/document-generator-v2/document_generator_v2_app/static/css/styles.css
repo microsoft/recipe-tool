@@ -1,5 +1,62 @@
 /* Document Builder Custom Styles */
 
+/* Debug Panel Accordion Styles */
+.debug-panel {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    margin-top: 10px;
+}
+
+.debug-panel-header {
+    padding: 0;
+    margin: 0;
+}
+
+.debug-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    transition: background-color 0.2s;
+}
+
+.debug-panel-title:hover {
+    background: #e9ecef;
+}
+
+.debug-collapse-icon {
+    margin-left: 8px;
+    font-size: 16px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.debug-panel-title:hover .debug-collapse-icon {
+    color: #333;
+}
+
+.debug-panel-content {
+    border-top: 1px solid #ddd;
+    padding: 0 !important;
+}
+
+.debug-panel-content > div {
+    margin: 0 !important;
+}
+
+.json-debug-output {
+    border-radius: 0 0 8px 8px !important;
+    margin: 0 !important;
+}
+
 /* Main gradio container */
 .gradio-container {
     background-color: #f5f5f5 !important;
@@ -273,11 +330,38 @@ textarea, input, span, h1, p, .text {
     max-height: 400px;
     overflow-y: auto;
     font-size: 12px;
+    color: #27272a !important;
+    border: 1px solid #ffffff !important;
+    background-color: #ffffff !important;
 }
 
-.json-debug-output pre {
+.json-debug-output label{
+    color: #27272a !important;
+    border: 1px solid #ffffff !important;
     background-color: #ffffff !important;
-    border: 1px solid #e0e0e0 !important;
+}
+
+.json-debug-output pre{
+    background-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+}
+
+.cm-gutters {
+    background-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+    color: #27272a !important;
+}
+
+.icon-button-wrapper {
+    background-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+    color: #27272a !important;
+}
+
+.icon-button-wrapper button{
+    background-color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+    color: #27272a !important;
 }
 
 /* Resources */

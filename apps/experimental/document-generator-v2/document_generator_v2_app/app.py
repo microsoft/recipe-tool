@@ -479,15 +479,11 @@ def regenerate_outline_from_state(title, description, resources, blocks):
         json_str = generate_document_json(title, description, resources, blocks)
         json_data = json.loads(json_str)
         outline = json_to_outline(json_data)
-        
+
         # Update global state whenever outline is regenerated
         global current_document_state
-        current_document_state = {
-            "title": title,
-            "outline_json": json_str,
-            "blocks": blocks
-        }
-        
+        current_document_state = {"title": title, "outline_json": json_str, "blocks": blocks}
+
         return outline, json_str
     except Exception as e:
         # Return None outline and error message in JSON
@@ -1031,16 +1027,16 @@ def save_outline(title, outline_json, blocks):
 def create_docpack_from_current_state():
     """Create a docpack using the current global document state."""
     from datetime import datetime
-    
+
     global current_document_state
-    
+
     if not current_document_state:
         return None
-        
+
     try:
         title = current_document_state.get("title", "Document")
         outline_json = current_document_state.get("outline_json", "{}")
-        
+
         # Create filename from title and timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
@@ -1311,11 +1307,8 @@ def handle_file_upload(files, current_resources, title, description, blocks, ses
 
 
 # Global variable to store current document state for download
-current_document_state = {
-    "title": "Document Title",
-    "outline_json": "{}",
-    "blocks": []
-}
+current_document_state = {"title": "Document Title", "outline_json": "{}", "blocks": []}
+
 
 def create_app():
     """Create and return the Document Builder Gradio app."""
@@ -1409,7 +1402,7 @@ def create_app():
                         size="sm",
                         elem_classes="import-builder-btn",
                     )
-                    save_builder_btn = gr.DownloadButton(
+                    gr.DownloadButton(
                         "Save",
                         elem_id="save-builder-btn-id",
                         variant="secondary",
@@ -1417,7 +1410,7 @@ def create_app():
                         elem_classes="save-builder-btn",
                         visible=True,
                         value=create_docpack_from_current_state,
-                        every=0  # Ensure fresh file creation on each click
+                        every=0,  # Ensure fresh file creation on each click
                     )
 
                 # Hidden file component for import
@@ -1641,10 +1634,18 @@ def create_app():
                         elem_classes="generated-content",
                     )
 
-                # Debug panel for JSON display
-                with gr.Column(elem_classes="debug-panel"):
-                    gr.Markdown("### Debug Panel (JSON Output)")
-                    json_output = gr.Code(value=initial_json, language="json", elem_classes="json-debug-output")
+                # Debug panel for JSON display (collapsible)
+                with gr.Column(elem_classes="debug-panel", elem_id="debug-panel-container"):
+                    with gr.Row(elem_classes="debug-panel-header"):
+                        gr.HTML("""
+                            <div class="debug-panel-title" onclick="toggleDebugPanel()">
+                                <span>Debug Panel (JSON Output)</span>
+                                <span class="debug-collapse-icon" id="debug-collapse-icon">⌵</span>
+                            </div>
+                        """)
+
+                    with gr.Column(elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=False):
+                        json_output = gr.Code(value=initial_json, language="json", elem_classes="json-debug-output")
 
         # Handle file uploads (defined after json_output is created)
         file_upload.change(
