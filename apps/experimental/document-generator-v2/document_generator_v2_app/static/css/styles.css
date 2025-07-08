@@ -392,12 +392,12 @@
 .resource-item {
     padding: 6px;
     margin-bottom: 4px;
-    background-color: white;
+    background-color: #f5f5f5; /* Light gray background */
     border: 1px solid;
-    border-color: #4a9d9e !important;
+    border-color: #4a9d9e !important; /* Keep teal-green border */
     border-radius: 4px;
     font-size: 11px;
-    cursor: grab;
+    cursor: default;
     user-select: none;
     transition: transform 0.2s ease;
     position: relative;
@@ -405,9 +405,6 @@
 
 .resource-content {
     width: 100%;
-}
-.resource-item:hover {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .resource-item.dragging {
     opacity: 0.5;
@@ -425,8 +422,8 @@
 /* Resource title input field */
 .resource-title-input {
     flex: 1;
-    background: transparent;
-    border: none;
+    background: white;
+    border: 1px solid #e0e0e0;
     font-size: 11px;
     padding: 2px 4px;
     margin: 0;
@@ -434,18 +431,17 @@
     cursor: text;
     user-select: text;
     font-family: inherit;
+    border-radius: 2px;
+    font-weight: bold;
 }
 
 .resource-title-input:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 2px;
+    border-color: #ccc;
 }
 
 .resource-title-input:focus {
-    background-color: white;
-    border: 1px solid #4a9d9e;
-    border-radius: 2px;
-    padding: 1px 3px; /* Adjust for border */
+    border-color: #e0e0e0; /* Keep same border color as default */
+    /* No padding change to prevent size shift */
 }
 
 /* Delete button for resources in panel */
@@ -454,6 +450,7 @@
     padding: 0 4px;
     font-weight: bold;
     color: #999;
+    font-size: 16px; /* Bigger trash can icon */
     transition: color 0.2s ease;
     opacity: 0;
     flex-shrink: 0;
@@ -538,7 +535,7 @@
 
 .resource-panel-description:focus {
     outline: none;
-    border-color: #4a9d9e;
+    border-color: #e0e0e0; /* Keep same border color as default */
 }
 
 .resource-panel-description::placeholder {
@@ -597,33 +594,59 @@
     border-width: 1px !important;
 }
 
-.block-resources .dropped-resource {
-    display: inline-block;
+/* Dropped resource styles */
+.dropped-resource {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 4px 8px;
     margin: 2px;
     background-color: #4a9d9e;
+    border: 1px solid #4a9d9e;
+    border-radius: 4px;
+    font-size: 12px;
     color: white;
+    cursor: default;
+}
+
+/* Remove hover effect on the dropped resource itself */
+.dropped-resource:hover {
+    background-color: #4a9d9e; /* Keep same as default */
+    border-color: #4a9d9e; /* Keep same as default */
+}
+
+/* Style for the remove button */
+.dropped-resource .remove-resource {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 4px;
+    background-color: white;
+    border: 1px solid #ddd; /* Light gray border to make white button visible */
     border-radius: 3px;
-    font-size: 11px;
+    color: #333;
+    font-size: 16px;
+    font-weight: normal;
+    font-style: normal;
     cursor: pointer;
-    position: relative;
 }
 
-.block-resources .dropped-resource:hover {
-    background-color: #3a8d8e;
-}
-
-.block-resources .dropped-resource .remove-resource {
-    margin-left: 5px;
+/* Hover effect on X button - matches delete button behavior */
+.dropped-resource .remove-resource:hover {
+    background-color: #ff6b6b;
+    border-color: #ff5252;
+    color: white;
     cursor: pointer;
-    font-weight: bold;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
 }
 
-.block-resources .dropped-resource:hover .remove-resource {
-    opacity: 1;
+.block-resources .dropped-resource {
+    /* Remove all overrides - use main .dropped-resource styles */
 }
+
+
 
 /* Load resource button */
 .load-resource-btn {

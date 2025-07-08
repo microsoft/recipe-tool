@@ -42,23 +42,17 @@ class DocpackHandler:
 
                 original_path_str = str(resource_file)
 
-                # Determine archive name with conflict resolution
-                if resource_key_map and original_path_str in resource_key_map:
-                    # Use resource key as prefix
-                    resource_key = resource_key_map[original_path_str]
-                    archive_name = f"{resource_key}_{resource_file.name}"
-                else:
-                    # Fallback: use index as prefix if no key available
-                    archive_name = f"resource_{i + 1}_{resource_file.name}"
-
-                # Ensure uniqueness (shouldn't happen with keys, but just in case)
-                base_name = archive_name
-                counter = 1
-                while archive_name in used_names:
-                    stem = Path(base_name).stem
-                    suffix = Path(base_name).suffix
-                    archive_name = f"{stem}_{counter}{suffix}"
-                    counter += 1
+                # Keep original filename, handle conflicts with counter suffix only if needed
+                archive_name = resource_file.name
+                
+                # Only add suffix if there's a conflict
+                if archive_name in used_names:
+                    base_stem = resource_file.stem
+                    suffix = resource_file.suffix
+                    counter = 1
+                    while archive_name in used_names:
+                        archive_name = f"{base_stem}_{counter}{suffix}"
+                        counter += 1
 
                 used_names.add(archive_name)
                 path_to_archive_name[original_path_str] = archive_name
@@ -104,7 +98,7 @@ class DocpackHandler:
             if "outline.json" in zf.namelist():
                 zf.extract("outline.json", extract_dir)
 
-            # Extract all other files to files/ subdirectory
+            # First pass: extract files
             for file_info in zf.filelist:
                 if file_info.filename != "outline.json":
                     # Extract to files directory with original archive name

@@ -970,9 +970,8 @@ function updateResourceTitle(resourcePath, newTitle) {
             // Extract the path from the onclick attribute
             const onclickAttr = removeBtn.getAttribute('onclick');
             if (onclickAttr && onclickAttr.includes(resourcePath.replace(/'/g, "\\'"))) {
-                // Update the text content (keeping the icon)
-                const icon = dropped.innerText.substring(0, 2); // Get the emoji icon
-                dropped.childNodes[0].textContent = icon + ' ' + newTitle + ' ';
+                // Update the text content (no icon anymore)
+                dropped.childNodes[0].textContent = newTitle + ' ';
             }
         }
     });

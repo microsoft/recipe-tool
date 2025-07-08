@@ -597,7 +597,10 @@ def update_resource_description(blocks, block_id, resource_path, description_tex
 def generate_resource_html(resources):
     """Generate HTML for resource panel display."""
     if not resources:
-        return "<p style='color: #666; font-size: 12px;'>No text files uploaded yet.</p>"
+        return ("<p style='color: #666; font-size: 12px'>Upload text files here.</p>"
+                "<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
+                "<br>"
+                "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>")
 
     html_items = []
     for idx, resource in enumerate(resources):
@@ -613,10 +616,10 @@ def generate_resource_html(resources):
             f'data-resource-title="{title}" data-resource-type="text" data-resource-path="{resource["path"]}">'
             f'<div class="resource-content">'
             f'<div class="resource-header">'
-            f'{icon} <input type="text" class="resource-title-input" value="{title}" '
+            f'<input type="text" class="resource-title-input" value="{title}" '
             f"oninput=\"updateResourceTitle('{path}', this.value)\" "
             f'onclick="event.stopPropagation()" />'
-            f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
+            f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">🗑</span>'
             f"</div>"
             f'<div class="resource-description-container">'
             f'<textarea class="resource-panel-description" '
@@ -699,7 +702,7 @@ def load_example(example_id, session_id=None):
         "2": examples_dir / "launch-documentation" / "launch-documentation.docpack",
         "3": examples_dir
         / "scenario-4-annual-performance-review"
-        / "Annual Employee Performance Review_20250701_133228.docpack",
+        / "Annual Employee Performance Review_20250708_160552.docpack",
     }
 
     file_path = example_files.get(example_id)
@@ -859,6 +862,7 @@ def import_outline(file_path, session_id=None):
                 "key": res_data.get("key", ""),  # Preserve original key
                 "path": resource_path,
                 "name": resource_name,
+                "title": res_data.get("title", resource_name),  # Preserve title or default to filename
                 "type": "text",  # All are text files now
                 "description": res_data.get("description", ""),
             })
@@ -983,22 +987,8 @@ def import_outline(file_path, session_id=None):
         # Regenerate outline and JSON
         outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
 
-        # Generate resources HTML
-        if resources:
-            html_items = []
-            for resource in resources:
-                icon = "🖼️" if resource.get("type") == "image" else "📄"
-                css_class = f"resource-item {resource.get('type', 'file')}"
-                path = resource["path"].replace("'", "\\'")  # Escape single quotes
-                html_items.append(
-                    f'<div class="{css_class}" draggable="true" data-resource-name="{resource["name"]}" data-resource-type="text" data-resource-path="{resource["path"]}">'
-                    f"{icon} {resource['name']}"
-                    f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
-                    f"</div>"
-                )
-            resources_html = "\n".join(html_items)
-        else:
-            resources_html = "<p style='color: #666; font-size: 12px'>No resources uploaded yet</p>"
+        # Generate resources HTML using the proper function
+        resources_html = generate_resource_html(resources)
 
         # Return None for import_file to clear it, and include session_id
         return (
@@ -1153,10 +1143,10 @@ def render_block_resources(block_resources, block_type, block_id):
         display_name = resource.get("title", resource.get("name", "Unknown"))
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
 
-        # For AI blocks, show resource without description input
+        # For AI blocks, show resource without description input and without icon
         html += f"""
         <div class="dropped-resource">
-            {icon} {display_name}
+            {display_name}
             <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
         </div>
         """
