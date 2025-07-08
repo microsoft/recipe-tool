@@ -1207,8 +1207,18 @@ function setupResourceDescriptions() {
                 const actualScrollHeight = this.scrollHeight;
                 this.style.height = currentHeight;
                 
-                // Show button only if content actually exceeds 2 lines
-                if (this.value.trim() && actualScrollHeight > computedTwoLinesHeight) {
+                // Count actual lines of text
+                const lines = this.value.split('\n');
+                let actualLineCount = 0;
+                for (let line of lines) {
+                    // Count wrapped lines too - approximate based on line length
+                    // Resource panel is about 170px wide, ~15-20 chars per line at 11px font
+                    actualLineCount += 1 + Math.floor(line.length / 20);
+                }
+                
+                // Show button only when starting the 3rd line (similar to doc description)
+                // Don't use trim() - count empty lines too
+                if (actualLineCount > 2) {
                     button.style.display = 'block';
                 } else {
                     button.style.display = 'none';

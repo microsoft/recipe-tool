@@ -29,7 +29,7 @@ def json_to_outline(json_data: Dict[str, Any]) -> Outline:
         if not title:
             # Extract filename from path as default title
             title = os.path.basename(res_data["path"])
-        
+
         resource = Resource(
             key=res_data["key"],
             path=res_data["path"],
@@ -598,7 +598,7 @@ def generate_resource_html(resources):
     """Generate HTML for resource panel display."""
     if not resources:
         return "<p style='color: #666; font-size: 12px;'>No text files uploaded yet.</p>"
-    
+
     html_items = []
     for idx, resource in enumerate(resources):
         icon = "📄"  # Always use text file icon
@@ -607,28 +607,28 @@ def generate_resource_html(resources):
         title = resource.get("title", resource["name"])
         description = resource.get("description", "")
         resource_id = f"resource-{idx}"  # Unique ID for each resource
-        
+
         html_items.append(
             f'<div class="{css_class}" id="{resource_id}" draggable="true" data-resource-name="{resource["name"]}" '
             f'data-resource-title="{title}" data-resource-type="text" data-resource-path="{resource["path"]}">'
             f'<div class="resource-content">'
             f'<div class="resource-header">'
             f'{icon} <input type="text" class="resource-title-input" value="{title}" '
-            f'oninput="updateResourceTitle(\'{path}\', this.value)" '
+            f"oninput=\"updateResourceTitle('{path}', this.value)\" "
             f'onclick="event.stopPropagation()" />'
             f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">×</span>'
-            f'</div>'
+            f"</div>"
             f'<div class="resource-description-container">'
             f'<textarea class="resource-panel-description" '
             f'placeholder="Add a description for this resource..." '
-            f'oninput="updateResourcePanelDescription(\'{path}\', this.value)" '
+            f"oninput=\"updateResourcePanelDescription('{path}', this.value)\" "
             f'onclick="event.stopPropagation()">{description}</textarea>'
             f'<button class="desc-expand-btn" onclick="toggleResourceDescription(\'{resource_id}\')">⌵</button>'
-            f'</div>'
-            f'</div>'
+            f"</div>"
+            f"</div>"
             f"</div>"
         )
-    
+
     return "\n".join(html_items)
 
 
@@ -666,10 +666,10 @@ def update_resource_title(resources, resource_path, new_title, doc_title, doc_de
         if resource.get("path") == resource_path:
             resource["title"] = new_title
             break
-    
+
     # Regenerate outline with updated resources (for JSON display)
     outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
-    
+
     return resources, outline, json_str
 
 
@@ -680,10 +680,10 @@ def update_resource_panel_description(resources, resource_path, new_description,
         if resource.get("path") == resource_path:
             resource["description"] = new_description
             break
-    
+
     # Regenerate outline with updated resources (for JSON display)
     outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
-    
+
     return resources, outline, json_str
 
 
@@ -1154,12 +1154,12 @@ def render_block_resources(block_resources, block_type, block_id):
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
 
         # For AI blocks, show resource without description input
-        html += f'''
+        html += f"""
         <div class="dropped-resource">
             {icon} {display_name}
             <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
         </div>
-        '''
+        """
 
     return html
 
@@ -1323,10 +1323,10 @@ def handle_file_upload(files, current_resources, title, description, blocks, ses
             if not any(r["name"] == file_name for r in new_resources):
                 # All uploaded files are text files now
                 new_resources.append({
-                    "path": str(session_file_path), 
-                    "name": file_name, 
+                    "path": str(session_file_path),
+                    "name": file_name,
                     "title": file_name,  # Default title is the filename
-                    "type": "text"
+                    "type": "text",
                 })
 
     # Generate HTML for resources display
@@ -1566,7 +1566,10 @@ def create_app():
                 )
 
                 resources_display = gr.HTML(
-                    value="<p style='color: #666; font-size: 12px'>No text files uploaded yet.</p>",
+                    value="<p style='color: #666; font-size: 12px'>Upload text files here.</p>"
+                    "<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
+                    "<br>"
+                    "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>",
                     elem_classes="resources-display-area",
                 )
 
@@ -1648,14 +1651,16 @@ def create_app():
                     # Hidden components for loading examples
                     example_id_input = gr.Textbox(visible=False, elem_id="example-id-input")
                     load_example_trigger = gr.Button("Load Example", visible=False, elem_id="load-example-trigger")
-                    
+
                     # Hidden components for updating resource titles
                     update_title_resource_path = gr.Textbox(visible=False, elem_id="update-title-resource-path")
                     update_title_text = gr.Textbox(visible=False, elem_id="update-title-text")
                     update_title_trigger = gr.Button("Update Title", visible=False, elem_id="update-title-trigger")
-                    
+
                     # Hidden button for updating resource panel descriptions
-                    update_panel_desc_trigger = gr.Button("Update Panel Description", visible=False, elem_id="update-panel-desc-trigger")
+                    update_panel_desc_trigger = gr.Button(
+                        "Update Panel Description", visible=False, elem_id="update-panel-desc-trigger"
+                    )
 
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
@@ -1935,18 +1940,32 @@ def create_app():
                 session_state,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
-        
+
         # Update resource title handler - don't re-render resources to avoid interrupting typing
         update_title_trigger.click(
             fn=update_resource_title,
-            inputs=[resources_state, update_title_resource_path, update_title_text, doc_title, doc_description, blocks_state],
+            inputs=[
+                resources_state,
+                update_title_resource_path,
+                update_title_text,
+                doc_title,
+                doc_description,
+                blocks_state,
+            ],
             outputs=[resources_state, outline_state, json_output],
         )
-        
+
         # Update resource panel description handler - reuse the same inputs
         update_panel_desc_trigger.click(
             fn=update_resource_panel_description,
-            inputs=[resources_state, update_title_resource_path, update_title_text, doc_title, doc_description, blocks_state],
+            inputs=[
+                resources_state,
+                update_title_resource_path,
+                update_title_text,
+                doc_title,
+                doc_description,
+                blocks_state,
+            ],
             outputs=[resources_state, outline_state, json_output],
         )
 

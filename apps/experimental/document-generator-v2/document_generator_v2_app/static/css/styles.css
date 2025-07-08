@@ -245,6 +245,7 @@
     width: 16px !important;
     /* Total width including "padding" */
     display: block !important;
+    cursor: default !important;
 }
 
 .doc-description-box textarea.scrollable::-webkit-scrollbar-track {
@@ -256,19 +257,24 @@
     border-radius: 8px;
     margin-top: 15px;
     margin-right: 5px;
+    cursor: default !important;
 }
 
 .doc-description-box textarea.scrollable::-webkit-scrollbar-thumb {
-    background: #888;
+    background: #999999;
     border: 3px solid transparent;
     /* Creates 3px padding on each side */
     background-clip: content-box;
     /* Key property - clips background to content box */
     border-radius: 8px;
+    cursor: default !important;
 }
 
 .doc-description-box textarea.scrollable::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #7a7a7a;
+    cursor: default !important;
+    border: 3px solid transparent !important;
+    background-clip: content-box !important;
 }
 
 .doc-description-box textarea:focus,
@@ -489,7 +495,45 @@
 /* Show scrollbar only when content exceeds max-height */
 .resource-panel-description.scrollable {
     overflow-y: auto !important;
+    scrollbar-width: auto !important; /* Firefox - normal width */
+    -ms-overflow-style: auto !important; /* IE */
+}
 
+/* Ensure webkit scrollbar is visible for resource description */
+.resource-panel-description.scrollable::-webkit-scrollbar {
+    width: 16px !important; /* Slightly narrower than doc description */
+    display: block !important;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 3px solid transparent; /* Less padding than doc description */
+    background-clip: content-box;
+    border-radius: 8px;
+    margin-top: 15px; /* Leave space for chevron */
+    margin-right: 3px;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-thumb {
+    background: #999999;
+    border: 3px solid transparent; /* Less padding than doc description */
+    background-clip: content-box;
+    border-radius: 8px;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a;
+    cursor: default !important;
+    border:3px solid transparent !important;
+    background-clip: content-box !important;
+}
+
+/* Remove scrollbar buttons (arrows) */
+.resource-panel-description.scrollable::-webkit-scrollbar-button {
+    display: none;
 }
 
 .resource-panel-description:focus {
@@ -511,9 +555,9 @@
 /* Description expand button in resource panel */
 .resource-description-container .desc-expand-btn {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 16px;
+    top: 2px;
+    right: 3px;
+    width: 14px;
     height: 16px;
     padding: 0;
     background: transparent;
@@ -542,12 +586,9 @@
 .resource-description-container.collapsed .desc-expand-btn {
     transform: rotate(0deg);
     /* Add your custom positioning here */
+    top: -1px;
 }
 
-/* Adjust chevron position when scrollbar is visible */
-.resource-description-container.has-scrollbar .desc-expand-btn {
-    right: 18px; /* Move left to avoid scrollbar */
-}
 
 /* Drag and drop styles */
 .block-resources.drag-over {
