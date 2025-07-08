@@ -78,22 +78,6 @@
     gap: 7px !important;
 }
 
-/* Override dark theme */
-textarea::placeholder, input::placeholder {
-    color: #bbbbc2 !important; /* Neutral 400 color */
-}
-textarea, input, span, h1, p, .text {
-    color: #27272a !important; /* Neutral 800 color */
-}
-.secondary {
-    border: #e4e4e7 !important;
-    background: #e4e4e7 !important;
-    color: black !important;
-}
-.header-section .form {
-    border: 1px solid #ffffff !important;
-    background-color: #ffffff !important;
-}
 
 /* Builder buttons */
 .save-builder-btn {
@@ -330,44 +314,6 @@ textarea, input, span, h1, p, .text {
     max-height: 400px;
     overflow-y: auto;
     font-size: 12px;
-    color: #27272a !important;
-    border: 1px solid #ffffff !important;
-    background-color: #ffffff !important;
-}
-
-.json-debug-output label{
-    color: #27272a !important;
-    border: 1px solid #ffffff !important;
-    background-color: #ffffff !important;
-}
-
-.json-debug-output pre{
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-}
-
-.cm-gutters {
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    color: #27272a !important;
-}
-
-.icon-button-wrapper {
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    color: #27272a !important;
-}
-
-.icon-button-wrapper button{
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    color: #27272a !important;
-}
-
-.cm-line {
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    color: #27272a !important;
 }
 
 /* Resources */
