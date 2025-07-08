@@ -228,9 +228,47 @@
     font-size: 13px !important;
     line-height: 1.4 !important;
     resize: none !important; /* Disable manual resize since we auto-expand */
-    overflow-y: auto !important; /* Show scrollbar when needed */
-    max-height: 200px !important; /* Limit maximum height */
+    overflow-y: hidden; /* Hide scrollbar by default */
+    max-height: 190px !important; /* ~10 lines with 13px * 1.4 line-height + padding */
     transition: height 0.1s ease;
+}
+
+/* Show scrollbar only when content exceeds max-height */
+.doc-description-box textarea.scrollable {
+    overflow-y: auto !important;
+    scrollbar-width: auto !important; /* Firefox - normal width */
+    -ms-overflow-style: auto !important; /* IE */
+}
+
+/* Ensure webkit scrollbar is visible for doc description */
+.doc-description-box textarea.scrollable::-webkit-scrollbar {
+    width: 16px !important;
+    /* Total width including "padding" */
+    display: block !important;
+}
+
+.doc-description-box textarea.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 3px solid transparent;
+    /* Creates 3px padding on each side */
+    background-clip: content-box;
+    /* Key property - clips background to content box */
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-right: 5px;
+}
+
+.doc-description-box textarea.scrollable::-webkit-scrollbar-thumb {
+    background: #888;
+    border: 3px solid transparent;
+    /* Creates 3px padding on each side */
+    background-clip: content-box;
+    /* Key property - clips background to content box */
+    border-radius: 8px;
+}
+
+.doc-description-box textarea.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .doc-description-box textarea:focus,
@@ -251,15 +289,15 @@
 /* Description expand/collapse button */
 .desc-expand-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 20px;
+    top: 0px;
+    right: 3px;
+    width: 14px;
     height: 20px;
     padding: 0;
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 12px;
     line-height: 20px;
     color: #999;
     display: none; /* Hidden by default */
@@ -273,6 +311,19 @@
 .desc-expand-btn:focus {
     outline: none;
 }
+
+/* Rotate chevron for document description to match content blocks */
+.doc-description-box:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+}
+
+.doc-description-box.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    top: -2px;
+    /* Add your custom positioning here */
+}
+
+/* Remove chevron adjustment - it should stay in fixed position */
 
 
 /* Download button */
@@ -333,9 +384,6 @@
 }
 
 .resource-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     padding: 6px;
     margin-bottom: 4px;
     background-color: white;
@@ -343,12 +391,14 @@
     border-color: #4a9d9e !important;
     border-radius: 4px;
     font-size: 11px;
-    word-break: break-all;
-    gap: 4px;
     cursor: grab;
     user-select: none;
     transition: transform 0.2s ease;
     position: relative;
+}
+
+.resource-content {
+    width: 100%;
 }
 .resource-item:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -356,6 +406,40 @@
 .resource-item.dragging {
     opacity: 0.5;
     cursor: grabbing;
+}
+
+/* Resource header for title and controls */
+.resource-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+}
+
+/* Resource title input field */
+.resource-title-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-size: 11px;
+    padding: 2px 4px;
+    margin: 0;
+    outline: none;
+    cursor: text;
+    user-select: text;
+    font-family: inherit;
+}
+
+.resource-title-input:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+}
+
+.resource-title-input:focus {
+    background-color: white;
+    border: 1px solid #4a9d9e;
+    border-radius: 2px;
+    padding: 1px 3px; /* Adjust for border */
 }
 
 /* Delete button for resources in panel */
@@ -366,6 +450,7 @@
     color: #999;
     transition: color 0.2s ease;
     opacity: 0;
+    flex-shrink: 0;
 }
 
 .resource-item:hover .resource-delete {
@@ -374,6 +459,94 @@
 
 .resource-delete:hover {
     color: #ff5252;
+}
+
+/* Resource description container */
+.resource-description-container {
+    position: relative;
+    margin-top: 4px;
+}
+
+/* Resource panel description textarea */
+.resource-panel-description {
+    width: 100%;
+    min-height: 32px; /* About 2 lines */
+    max-height: 180px; /* About 10 lines with 11px font and 1.4 line height */
+    padding: 4px 24px 4px 6px; /* Extra padding on right for button */
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1.4 !important; /* Match document description */
+    font-family: inherit;
+    resize: none;
+    overflow-y: hidden; /* Hide scrollbar by default */
+    background: white;
+    transition: height 0.1s ease;
+    cursor: text;
+    user-select: text;
+}
+
+/* Show scrollbar only when content exceeds max-height */
+.resource-panel-description.scrollable {
+    overflow-y: auto !important;
+
+}
+
+.resource-panel-description:focus {
+    outline: none;
+    border-color: #4a9d9e;
+}
+
+.resource-panel-description::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+/* Collapsed state for resource description */
+.resource-description-container.collapsed .resource-panel-description {
+    overflow: hidden !important;
+    max-height: 32px !important; /* Exactly 2 lines */
+}
+
+/* Description expand button in resource panel */
+.resource-description-container .desc-expand-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 16px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.resource-description-container .desc-expand-btn:hover {
+    color: #666;
+}
+
+.resource-description-container .desc-expand-btn:focus {
+    outline: none;
+}
+
+/* Rotate chevron for expanded state to match content blocks */
+.resource-description-container:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+}
+
+.resource-description-container.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    /* Add your custom positioning here */
+}
+
+/* Adjust chevron position when scrollbar is visible */
+.resource-description-container.has-scrollbar .desc-expand-btn {
+    right: 18px; /* Move left to avoid scrollbar */
 }
 
 /* Drag and drop styles */
@@ -491,16 +664,7 @@
     display: none !important;  /* Chrome, Safari and Opera */
 }
 
-/* Also apply to any nested containers that might have scrollbars */
-.workspace-display * {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-}
-
-.workspace-display *::-webkit-scrollbar {
-    width: 0 !important;
-    display: none !important;
-}
+/* Remove the rules that hide all scrollbars inside workspace - we want to show them when needed */
 
 /* Workspace - Content block add buttons */
 .add-section-btn {

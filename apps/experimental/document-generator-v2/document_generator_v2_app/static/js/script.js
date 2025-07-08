@@ -187,9 +187,27 @@ function autoExpandTextarea(textarea) {
     // Check if this is the description textarea
     const isDescription = textarea.closest('#doc-description-id');
     if (isDescription) {
-        // For description, cap at max-height (200px)
-        const maxHeight = 200;
-        textarea.style.height = Math.min(newHeight, maxHeight) + 'px';
+        // Calculate max height for 10 lines
+        const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
+        const padding = parseInt(window.getComputedStyle(textarea).paddingTop) +
+                       parseInt(window.getComputedStyle(textarea).paddingBottom);
+        const tenLinesHeight = (lineHeight * 10) + padding;
+        
+        // First check if content would exceed 10 lines (show scrollbar when starting 11th line)
+        const wouldExceedTenLines = newHeight > tenLinesHeight;
+        
+        // Set max-height to exactly 10 lines
+        textarea.style.maxHeight = tenLinesHeight + 'px';
+        
+        // Set height to min of scrollHeight or 10 lines height
+        textarea.style.height = Math.min(newHeight, tenLinesHeight) + 'px';
+        
+        // Add scrollable class if content exceeds 10 lines
+        if (wouldExceedTenLines) {
+            textarea.classList.add('scrollable');
+        } else {
+            textarea.classList.remove('scrollable');
+        }
     } else {
         textarea.style.height = newHeight + 'px';
     }
@@ -294,6 +312,7 @@ const observer = new MutationObserver(function(mutations) {
             setupAutoExpand();
             setupDescriptionToggle();
             setupExampleSelection();
+            setupResourceDescriptions();
         }, 100);
     }
 });
@@ -588,11 +607,15 @@ function setupDescriptionToggle() {
     // Create expand/collapse button
     const button = document.createElement('button');
     button.className = 'desc-expand-btn';
-    button.innerHTML = '⌄'; // Down chevron
+    button.innerHTML = '⌵'; // Down chevron
     button.title = 'Collapse';
 
-    // Insert button
-    container.appendChild(button);
+    // Find the input container (parent of textarea) and insert button there
+    const inputContainer = textarea.parentElement;
+    if (inputContainer) {
+        inputContainer.style.position = 'relative'; // Ensure container is positioned
+        inputContainer.appendChild(button);
+    }
 
     // Track collapsed state and full text
     let isCollapsed = false;
@@ -612,7 +635,7 @@ function setupDescriptionToggle() {
         return firstTwo;
     }
 
-    // Function to check if button should be visible
+    // Function to check if button should be visible and handle scrollbar
     function checkButtonVisibility() {
         const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
         const padding = parseInt(window.getComputedStyle(textarea).paddingTop) +
@@ -624,6 +647,15 @@ function setupDescriptionToggle() {
             button.style.display = 'block';
         } else if (!isCollapsed) {
             button.style.display = 'none';
+        }
+        
+        // Add scrollable class if content exceeds 10 lines
+        const tenLinesHeight = (lineHeight * 10) + padding;
+        // Check if we're starting the 11th line
+        if (!isCollapsed && textarea.scrollHeight > tenLinesHeight) {
+            textarea.classList.add('scrollable');
+        } else {
+            textarea.classList.remove('scrollable');
         }
     }
 
@@ -638,16 +670,26 @@ function setupDescriptionToggle() {
             // Expand - restore full text
             textarea.value = fullText;
             textarea.style.height = 'auto';
-            textarea.style.maxHeight = '200px';
+            // Calculate 10 lines height
+            const calcLineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
+            const calcPadding = parseInt(window.getComputedStyle(textarea).paddingTop) +
+                               parseInt(window.getComputedStyle(textarea).paddingBottom);
+            const tenLinesHeight = (calcLineHeight * 10) + calcPadding;
+            
+            textarea.style.maxHeight = tenLinesHeight + 'px';
             textarea.style.overflow = '';  // Reset to CSS default
             container.classList.remove('collapsed');
-            button.innerHTML = '⌄';
+            button.innerHTML = '⌵';
             button.title = 'Collapse';
             isCollapsed = false;
+            textarea.classList.remove('scrollable'); // Remove scrollable class first
             autoExpandTextarea(textarea);
-            // Focus at the end
+            // Check if scrollbar is needed after expansion
+            if (textarea.scrollHeight > tenLinesHeight) {
+                textarea.classList.add('scrollable');
+            }
+            // Keep focus without moving cursor
             textarea.focus();
-            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 
             // Trigger input event to update Gradio's state
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -659,9 +701,10 @@ function setupDescriptionToggle() {
             textarea.style.maxHeight = twoLinesHeight + 'px';
             textarea.style.overflow = 'hidden';
             container.classList.add('collapsed');
-            button.innerHTML = '⌃';  // Up chevron
+            button.innerHTML = '⌵';  // Same chevron, will rotate with CSS
             button.title = 'Expand';
             isCollapsed = true;
+            textarea.classList.remove('scrollable'); // Remove scrollable class when collapsed
             // Remove focus to prevent scrolling
             textarea.blur();
         }
@@ -677,8 +720,13 @@ function setupDescriptionToggle() {
     // Click on collapsed textarea to expand
     textarea.addEventListener('click', (e) => {
         if (isCollapsed) {
-            e.preventDefault();
+            // Get cursor position before expanding
+            const cursorPos = textarea.selectionStart;
             toggleCollapse();
+            // Restore cursor position after expanding
+            setTimeout(() => {
+                textarea.setSelectionRange(cursorPos, cursorPos);
+            }, 0);
         }
     });
 
@@ -769,6 +817,7 @@ let draggedResource = null;
 function handleDragStart(e) {
     draggedResource = {
         name: e.target.dataset.resourceName,
+        title: e.target.dataset.resourceTitle || e.target.dataset.resourceName, // Include title
         path: e.target.dataset.resourcePath,
         type: e.target.dataset.resourceType
     };
@@ -891,6 +940,309 @@ function setupExampleSelection() {
     });
 }
 
+// Debounce timer for resource titles
+let titleDebounceTimers = {};
+
+// Update resource title function with debouncing
+function updateResourceTitle(resourcePath, newTitle) {
+    // Create unique key for this input
+    const timerKey = resourcePath;
+    
+    // Clear existing timer for this input
+    if (titleDebounceTimers[timerKey]) {
+        clearTimeout(titleDebounceTimers[timerKey]);
+    }
+    
+    // Update data attributes on the resource item for dragging
+    const resourceItems = document.querySelectorAll('.resource-item');
+    resourceItems.forEach(item => {
+        if (item.getAttribute('data-resource-path') === resourcePath) {
+            item.setAttribute('data-resource-title', newTitle);
+        }
+    });
+    
+    // Immediately update all dropped resources in AI blocks with this path
+    const droppedResources = document.querySelectorAll('.dropped-resource');
+    droppedResources.forEach(dropped => {
+        // Find the remove button which contains the resource path
+        const removeBtn = dropped.querySelector('.remove-resource');
+        if (removeBtn) {
+            // Extract the path from the onclick attribute
+            const onclickAttr = removeBtn.getAttribute('onclick');
+            if (onclickAttr && onclickAttr.includes(resourcePath.replace(/'/g, "\\'"))) {
+                // Update the text content (keeping the icon)
+                const icon = dropped.innerText.substring(0, 2); // Get the emoji icon
+                dropped.childNodes[0].textContent = icon + ' ' + newTitle + ' ';
+            }
+        }
+    });
+    
+    // Set new timer with 50ms delay (0.05 seconds after user stops typing)
+    titleDebounceTimers[timerKey] = setTimeout(() => {
+        // Set the values in hidden inputs
+        const pathInput = document.getElementById('update-title-resource-path');
+        const titleInput = document.getElementById('update-title-text');
+        
+        if (pathInput && titleInput) {
+            const pathTextarea = pathInput.querySelector('textarea');
+            const titleTextarea = titleInput.querySelector('textarea');
+            
+            if (pathTextarea && titleTextarea) {
+                pathTextarea.value = resourcePath;
+                titleTextarea.value = newTitle;
+                
+                // Dispatch input events
+                pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                titleTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Trigger the update button
+                setTimeout(() => {
+                    const updateBtn = document.getElementById('update-title-trigger');
+                    if (updateBtn) {
+                        updateBtn.click();
+                    }
+                }, 100);
+            }
+        }
+        
+        // Clean up timer reference
+        delete titleDebounceTimers[timerKey];
+    }, 50); // Wait 50ms after user stops typing
+}
+
+// Debounce timer for resource panel descriptions
+let panelDescriptionDebounceTimers = {};
+
+// Update resource description from panel with debouncing
+function updateResourcePanelDescription(resourcePath, newDescription) {
+    // Create unique key for this input
+    const timerKey = `panel-${resourcePath}`;
+    
+    // Clear existing timer for this input
+    if (panelDescriptionDebounceTimers[timerKey]) {
+        clearTimeout(panelDescriptionDebounceTimers[timerKey]);
+    }
+    
+    // Set new timer with 50ms delay
+    panelDescriptionDebounceTimers[timerKey] = setTimeout(() => {
+        // Set the values in hidden inputs - reusing the title inputs as per Python code
+        const pathInput = document.getElementById('update-title-resource-path');
+        const descInput = document.getElementById('update-title-text');
+        
+        if (pathInput && descInput) {
+            const pathTextarea = pathInput.querySelector('textarea');
+            const descTextarea = descInput.querySelector('textarea');
+            
+            if (pathTextarea && descTextarea) {
+                pathTextarea.value = resourcePath;
+                descTextarea.value = newDescription;
+                
+                // Dispatch input events
+                pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                descTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Trigger the update button for description
+                setTimeout(() => {
+                    const updateBtn = document.getElementById('update-panel-desc-trigger');
+                    if (updateBtn) {
+                        updateBtn.click();
+                    }
+                }, 100);
+            }
+        }
+        
+        // Clean up timer reference
+        delete panelDescriptionDebounceTimers[timerKey];
+    }, 50);
+}
+
+// Toggle resource description collapse/expand
+function toggleResourceDescription(resourceId) {
+    const resourceItem = document.getElementById(resourceId);
+    if (resourceItem) {
+        const container = resourceItem.querySelector('.resource-description-container');
+        const textarea = container.querySelector('.resource-panel-description');
+        const button = container.querySelector('.desc-expand-btn');
+        
+        const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
+        const padding = 8; // 4px top + 4px bottom
+        const twoLinesHeight = (lineHeight * 2) + padding;
+        
+        // Function to get first two lines with ellipsis
+        function getFirstTwoLinesWithEllipsis(text) {
+            if (!text) return '';
+            const lines = text.split('\n');
+            let firstTwo = lines.slice(0, 2).join('\n');
+            
+            // Add ellipsis if there's more content
+            if (lines.length > 2 || (lines.length === 2 && lines[1].length > 20)) {
+                firstTwo += '...';
+            }
+            return firstTwo;
+        }
+        
+        if (container.classList.contains('collapsed')) {
+            // Expand - restore original text
+            container.classList.remove('collapsed');
+            button.innerHTML = '⌵';
+            button.title = 'Collapse';
+            textarea.value = textarea.dataset.originalValue || textarea.value.replace(/\.\.\.$/,'');
+            textarea.style.height = 'auto';
+            textarea.style.maxHeight = '180px';
+            textarea.style.overflow = ''; // Reset to CSS default
+            textarea.classList.remove('scrollable');
+            container.classList.remove('has-scrollbar');
+            
+            // Recalculate height and scrollability
+            const scrollHeight = textarea.scrollHeight;
+            textarea.style.height = Math.min(scrollHeight, 180) + 'px';
+            if (scrollHeight > 180) {
+                textarea.classList.add('scrollable');
+                container.classList.add('has-scrollbar');
+            }
+            
+            // Restore cursor position if available
+            if (textarea.dataset.cursorPos) {
+                const cursorPos = parseInt(textarea.dataset.cursorPos);
+                textarea.focus();
+                textarea.setSelectionRange(cursorPos, cursorPos);
+                delete textarea.dataset.cursorPos;
+            } else {
+                textarea.focus();
+            }
+        } else {
+            // Collapse - save original and show first 2 lines with ellipsis
+            textarea.dataset.originalValue = textarea.value;
+            container.classList.add('collapsed');
+            button.innerHTML = '⌵';
+            button.title = 'Expand';
+            textarea.value = getFirstTwoLinesWithEllipsis(textarea.dataset.originalValue);
+            textarea.style.height = twoLinesHeight + 'px';
+            textarea.style.maxHeight = twoLinesHeight + 'px';
+            textarea.style.overflow = 'hidden';
+            textarea.classList.remove('scrollable');
+            container.classList.remove('has-scrollbar');
+            textarea.blur();
+        }
+    }
+}
+
+// Setup auto-expand for resource descriptions
+function setupResourceDescriptions() {
+    const descTextareas = document.querySelectorAll('.resource-panel-description');
+    
+    descTextareas.forEach(textarea => {
+        // Store original value without ellipsis
+        if (!textarea.dataset.originalValue) {
+            textarea.dataset.originalValue = textarea.value;
+        }
+        
+        // Set minimum height for 2 lines
+        const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
+        const padding = 8; // 4px top + 4px bottom
+        const minHeight = (lineHeight * 2) + padding;
+        textarea.style.minHeight = minHeight + 'px';
+        
+        // Function to get first two lines with ellipsis
+        function getFirstTwoLinesWithEllipsis(text) {
+            if (!text) return '';
+            const lines = text.split('\n');
+            let firstTwo = lines.slice(0, 2).join('\n');
+            
+            // Add ellipsis if there's more content
+            if (lines.length > 2 || (lines.length === 2 && lines[1].length > 20)) {
+                firstTwo += '...';
+            }
+            return firstTwo;
+        }
+        
+        // Auto-expand handler
+        const autoExpand = function() {
+            const container = this.closest('.resource-description-container');
+            const button = container.querySelector('.desc-expand-btn');
+            const isCollapsed = container.classList.contains('collapsed');
+            
+            // Store original value if typing
+            if (!isCollapsed && this === document.activeElement) {
+                this.dataset.originalValue = this.value;
+            }
+            
+            if (!isCollapsed) {
+                // Reset height to auto to get correct scrollHeight
+                this.style.height = 'auto';
+                const scrollHeight = this.scrollHeight;
+                
+                // Set height to scrollHeight, capped at max-height (180px)
+                const newHeight = Math.min(scrollHeight, 180);
+                this.style.height = newHeight + 'px';
+                
+                // Add scrollable class only if content exceeds 10 lines
+                // Check against newHeight (before capping) to show scrollbar when starting 11th line
+                const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
+                const padding = 8; // 4px top + 4px bottom
+                const tenLinesHeight = (lineHeight * 10) + padding;
+                
+                if (this.style.height === 'auto' && this.scrollHeight > tenLinesHeight) {
+                    this.classList.add('scrollable');
+                    container.classList.add('has-scrollbar');
+                } else if (parseFloat(this.style.height) >= 180) {
+                    // Also check if we're at max height
+                    this.classList.add('scrollable');
+                    container.classList.add('has-scrollbar');
+                } else {
+                    this.classList.remove('scrollable');
+                    container.classList.remove('has-scrollbar');
+                }
+                
+                // Check button visibility - moved inside the !isCollapsed block
+                // Get actual computed line height and padding
+                const computedLineHeight = parseFloat(window.getComputedStyle(this).lineHeight);
+                const computedPadding = parseInt(window.getComputedStyle(this).paddingTop) +
+                                       parseInt(window.getComputedStyle(this).paddingBottom);
+                const computedTwoLinesHeight = (computedLineHeight * 2) + computedPadding;
+                
+                // Reset height temporarily to get accurate scrollHeight
+                const currentHeight = this.style.height;
+                this.style.height = 'auto';
+                const actualScrollHeight = this.scrollHeight;
+                this.style.height = currentHeight;
+                
+                // Show button only if content actually exceeds 2 lines
+                if (this.value.trim() && actualScrollHeight > computedTwoLinesHeight) {
+                    button.style.display = 'block';
+                } else {
+                    button.style.display = 'none';
+                    container.classList.remove('collapsed');
+                }
+            }
+        };
+        
+        // Add event listeners
+        textarea.addEventListener('input', autoExpand);
+        textarea.addEventListener('paste', function() {
+            setTimeout(() => autoExpand.call(this), 10);
+        });
+        
+        // Click to expand when collapsed
+        textarea.addEventListener('click', function(e) {
+            const container = this.closest('.resource-description-container');
+            if (container.classList.contains('collapsed')) {
+                // Get cursor position before expanding
+                const cursorPos = this.selectionStart;
+                const resourceId = container.closest('.resource-item').id;
+                
+                // Store cursor position in dataset to use after expansion
+                this.dataset.cursorPos = cursorPos;
+                
+                toggleResourceDescription(resourceId);
+            }
+        });
+        
+        // Initial sizing
+        autoExpand.call(textarea);
+    });
+}
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
     refresh();
@@ -900,5 +1252,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delay initial drag and drop setup
     setTimeout(() => {
         setupDragAndDrop();
+        setupResourceDescriptions();
     }, 100);
 });

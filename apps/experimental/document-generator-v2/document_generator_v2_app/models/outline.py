@@ -12,6 +12,7 @@ from jsonschema import validate
 class Resource:
     key: str
     path: str
+    title: str
     description: str
     merge_mode: str
 
@@ -85,6 +86,7 @@ class Outline:
                 Resource(
                     key=r.get("key", ""),
                     path=r.get("path", ""),
+                    title=r.get("title", ""),
                     description=r.get("description", ""),
                     merge_mode=r.get("merge_mode", "concat"),
                 )
@@ -113,10 +115,11 @@ OUTLINE_SCHEMA = {
                 "properties": {
                     "key": {"type": "string"},
                     "path": {"type": "string"},
+                    "title": {"type": "string"},
                     "description": {"type": "string"},
                     "merge_mode": {"type": "string", "enum": ["concat", "dict"]},
                 },
-                "required": ["key", "path", "description"],
+                "required": ["key", "path", "title", "description"],
                 "additionalProperties": False,
             },
         },
