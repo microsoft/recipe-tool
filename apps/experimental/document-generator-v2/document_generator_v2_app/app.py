@@ -1629,10 +1629,12 @@ def create_app():
 
                 # Generated document display panel
                 with gr.Column(elem_classes="generate-display"):
-                    generated_content = gr.Markdown(
-                        value="*Click 'Generate Document' to see the generated content here.*",
+                    generated_content_html = gr.HTML(
+                        value="<em>Click 'Generate Document' to see the generated content here.</em><br><br><br>",
                         elem_classes="generated-content",
+                        visible=True,
                     )
+                    generated_content = gr.Markdown(visible=False)
 
                 # Debug panel for JSON display (collapsible)
                 with gr.Column(elem_classes="debug-panel", elem_id="debug-panel-container"):
@@ -1835,17 +1837,21 @@ def create_app():
                 title, description, resources, blocks, session_id
             )
 
+            # Hide HTML component and show Markdown component
+            html_update = gr.update(visible=False)
+            markdown_update = gr.update(value=content, visible=True)
+
             if file_path:
                 download_update = gr.update(value=file_path, interactive=True)
             else:
                 download_update = gr.update(interactive=False)
 
-            return json_str, content, download_update
+            return json_str, markdown_update, html_update, download_update
 
         generate_doc_btn.click(
             fn=handle_generate_and_update_download,
             inputs=[doc_title, doc_description, resources_state, blocks_state, session_state],
-            outputs=[json_output, generated_content, save_doc_btn],
+            outputs=[json_output, generated_content, generated_content_html, save_doc_btn],
         )
 
         # Save button is handled directly by DownloadButton with create_docpack_from_current_state
