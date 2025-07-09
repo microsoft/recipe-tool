@@ -1707,8 +1707,7 @@ def create_app():
             # Workspace column: AI, H, T buttons (aligned left)
             with gr.Column(scale=1, elem_classes="workspace-col"):
                 with gr.Row(elem_classes="square-btn-row"):
-                    ai_btn = gr.Button("+ Add AI", elem_classes="add-section-btn", size="sm")
-                    new_btn = gr.Button("+ Add Text", elem_classes="secondary-workspace-btn", size="sm")
+                    ai_btn = gr.Button("+ Add Section", elem_classes="add-section-btn", size="sm")
 
                 # Workspace panel for stacking content blocks
                 with gr.Column(elem_classes="workspace-display"):
@@ -1936,17 +1935,6 @@ def create_app():
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Connect button click to add Text block
-        new_btn.click(
-            fn=handle_add_text_block_top,
-            inputs=[
-                blocks_state,
-                gr.State(None),
-                doc_title,
-                doc_description,
-                resources_state,
-            ],  # Always pass None for focused_block_id
-            outputs=[blocks_state, outline_state, json_output],
-        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Connect New document button to reset everything
         new_doc_btn.click(
