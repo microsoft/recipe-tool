@@ -818,19 +818,65 @@ function setupFileUploadDragAndDrop() {
     setTimeout(() => observer.disconnect(), 5000);
 
     // Add drag-over class when dragging files over the upload zone
-    fileUploadZone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('drag-over');
+    let dragCounter = 0;
+
+    function addDragListeners(element) {
+        element.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            dragCounter++;
+            fileUploadZone.classList.add('drag-over');
+        });
+
+        element.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadZone.classList.add('drag-over');
+        });
+
+        element.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                fileUploadZone.classList.remove('drag-over');
+            }
+        });
+
+        element.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dragCounter = 0;
+            fileUploadZone.classList.remove('drag-over');
+        });
+    }
+
+    // Add listeners to the main zone
+    addDragListeners(fileUploadZone);
+
+    // Also add to all child elements to ensure we catch all events
+    const allChildren = fileUploadZone.querySelectorAll('*');
+    allChildren.forEach(child => {
+        addDragListeners(child);
     });
 
-    fileUploadZone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
+    // Watch for new elements being added and attach listeners
+    const dragObserver = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) { // Element node
+                    addDragListeners(node);
+                    const newChildren = node.querySelectorAll('*');
+                    newChildren.forEach(child => addDragListeners(child));
+                }
+            });
+        });
     });
 
-    fileUploadZone.addEventListener('drop', function(e) {
-        this.classList.remove('drag-over');
+    dragObserver.observe(fileUploadZone, {
+        childList: true,
+        subtree: true
     });
+
+    // Stop observing after 5 seconds
+    setTimeout(() => dragObserver.disconnect(), 5000);
 }
 
 // Drag and drop functionality for resources
