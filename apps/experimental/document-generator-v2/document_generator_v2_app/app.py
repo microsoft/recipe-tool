@@ -1957,12 +1957,23 @@ def create_app():
             else:
                 download_update = gr.update(interactive=False)
 
-            return json_str, markdown_update, html_update, download_update
+            # Re-enable the generate button
+            generate_btn_update = gr.update(interactive=True)
+
+            return json_str, markdown_update, html_update, download_update, generate_btn_update
 
         generate_doc_btn.click(
+            fn=lambda: [
+                gr.update(interactive=False),  # Disable generate button
+                gr.update(visible=False),  # Hide markdown content
+                gr.update(value="<em></em><br><br><br>", visible=True),  # Show HTML with empty content but structure intact
+                gr.update(interactive=False),  # Disable download button
+            ],
+            outputs=[generate_doc_btn, generated_content, generated_content_html, save_doc_btn],
+        ).then(
             fn=handle_generate_and_update_download,
             inputs=[doc_title, doc_description, resources_state, blocks_state, session_state],
-            outputs=[json_output, generated_content, generated_content_html, save_doc_btn],
+            outputs=[json_output, generated_content, generated_content_html, save_doc_btn, generate_doc_btn],
         )
 
         # Save button is handled directly by DownloadButton with create_docpack_from_current_state
