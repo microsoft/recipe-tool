@@ -446,6 +446,7 @@ const observer = new MutationObserver(function(mutations) {
             setupDescriptionToggle();
             setupExampleSelection();
             setupResourceDescriptions();
+            setupResourceUploadZones();
             preventResourceDrops();
         }, 100);
     }
@@ -1588,22 +1589,68 @@ function preventResourceDrops() {
             }
         });
     });
+}
+
+// Setup drag and drop for resource upload zones
+function setupResourceUploadZones() {
+    const uploadZones = document.querySelectorAll('.resource-upload-zone');
     
-    // Also prevent drops on resource upload zones
-    const resourceUploadZones = document.querySelectorAll('.resource-upload-zone');
-    resourceUploadZones.forEach(zone => {
+    uploadZones.forEach(zone => {
+        let dragCounter = 0;
+        
+        zone.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            // Only show drag-over effect if NOT dragging a resource
+            if (!draggedResource) {
+                dragCounter++;
+                this.classList.add('drag-over');
+            }
+        });
+        
         zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            // If dragging a resource, show "not allowed" cursor
             if (draggedResource) {
-                e.preventDefault();
                 e.dataTransfer.dropEffect = 'none';
+            } else {
+                // For external files, show "copy" cursor
+                e.dataTransfer.dropEffect = 'copy';
+            }
+        });
+        
+        zone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                this.classList.remove('drag-over');
             }
         });
         
         zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = 0;
+            this.classList.remove('drag-over');
+            
+            // Block resource drops completely
             if (draggedResource) {
-                e.preventDefault();
-                e.stopPropagation();
                 return false;
+            }
+            
+            // Handle external file drops
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const fileInput = this.querySelector('.resource-file-input');
+                const resourcePath = this.getAttribute('data-resource-path');
+                
+                if (fileInput && resourcePath) {
+                    // Create a new DataTransfer to set files on input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(e.dataTransfer.files[0]);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger the change event
+                    handleResourceFileUpload(resourcePath, fileInput);
+                }
             }
         });
     });
@@ -1619,6 +1666,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         setupDragAndDrop();
         setupResourceDescriptions();
+        setupResourceUploadZones();
         preventResourceDrops();
     }, 100);
 });
