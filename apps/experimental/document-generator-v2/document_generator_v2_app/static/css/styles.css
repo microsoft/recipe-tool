@@ -891,7 +891,7 @@
 .ai-block textarea {
     width: 100%;
     min-height: 80px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #4a9d9e;
     border-radius: 4px;
     padding: 10px;
     font-size: 14px;
@@ -1053,16 +1053,22 @@
     margin-right: -1px; /* Overlap borders */
 }
 
+.block-tab.active:first-child {
+    background-color: #4a9d9e;
+    border-color: #4a9d9e;
+    border-bottom: 2px solid #4a9d9e;
+    color: white;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
 .block-tab:first-child {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     margin-bottom: 0;
-}
-
-.block-tab:last-child {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    margin-right: 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-left: 5px;
 }
 
 .block-tab:hover:not(.active) {
@@ -1070,29 +1076,30 @@
     color: #333;
 }
 
-.block-tab.active:first-child {
-    background-color: white;
-    border-color: #4a9d9e;
-    border-bottom: 2px solid white;
-    color: #4a9d9e;
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
-}
-
 .block-tab.active:last-child {
     background-color: white;
     border: 1px solid #e0e0e0;
-    border-bottom: 2px solid white;
+    border-bottom: 1px solid white;
     color: #666;
     font-weight: 600;
     position: relative;
     z-index: 1;
 }
+
+.block-tab:last-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 0;
+    border-bottom: 1px solid #4a9d9e;
+}
+.block-tab:last-child:hover:not(.active) {
+    background-color: #eeeeee;
+    color: #333;
+}
+
 /* Update textarea styling to connect with tabs */
 .ai-block .block-tabs + textarea,
 .text-block .block-tabs + textarea {
-    border-top-left-radius: 0;
     margin-top: -1px;
 }
 
@@ -1106,7 +1113,7 @@
 /* Collapsible blocks */
 .collapse-btn {
     position: absolute;
-    top: 30px;  /* Old convert button position - below the convert button */
+    top: 6px;
     right: 6px;
     width: 20px;
     height: 20px;
