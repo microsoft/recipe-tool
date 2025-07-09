@@ -170,6 +170,43 @@ function toggleBlockCollapse(blockId) {
     }
 }
 
+// Expand block if collapsed when heading is focused
+function expandBlockOnHeadingFocus(blockId) {
+    // Find the block element using data-id attribute
+    const block = document.querySelector(`[data-id="${blockId}"]`);
+    if (block && block.classList.contains('collapsed')) {
+        // Store reference to the heading input and cursor position
+        const headingInput = block.querySelector('.block-heading-inline');
+        const cursorPosition = headingInput ? headingInput.selectionStart : 0;
+        
+        // If the block is collapsed, expand it
+        toggleBlockCollapse(blockId);
+        
+        // Use a longer delay and multiple attempts to ensure focus is restored
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const restoreFocus = () => {
+            attempts++;
+            const updatedBlock = document.querySelector(`[data-id="${blockId}"]`);
+            const updatedHeading = updatedBlock ? updatedBlock.querySelector('.block-heading-inline') : null;
+            
+            if (updatedHeading && !updatedBlock.classList.contains('collapsed')) {
+                // Block has expanded, restore focus
+                updatedHeading.focus();
+                // Restore cursor position
+                updatedHeading.setSelectionRange(cursorPosition, cursorPosition);
+            } else if (attempts < maxAttempts) {
+                // Try again after a short delay
+                setTimeout(restoreFocus, 100);
+            }
+        };
+        
+        // Start trying after initial delay
+        setTimeout(restoreFocus, 200);
+    }
+}
+
 // Auto-expand textarea function
 function autoExpandTextarea(textarea) {
     // Store current scroll position of workspace

@@ -1249,7 +1249,7 @@ def render_blocks(blocks, focused_block_id=None):
                 <div class='block-header'>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
-                           onfocus='setFocusedBlock("{block_id}", true)'
+                           onfocus='expandBlockOnHeadingFocus("{block_id}"); setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>
@@ -1312,6 +1312,7 @@ def render_blocks(blocks, focused_block_id=None):
                 <div class='block-header'>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
+                           onfocus='expandBlockOnHeadingFocus("{block_id}"); setFocusedBlock("{block_id}", true)'
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>

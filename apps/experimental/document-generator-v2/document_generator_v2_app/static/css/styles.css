@@ -1138,12 +1138,15 @@
 }
 
 .block-content {
-    display: none;
-    transition: all 0.3s ease;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
 }
 
 .block-content.show {
-    display: block;
+    max-height: 2000px; /* Large enough for most content */
+    opacity: 1;
 }
 
 .block-content textarea::placeholder {
