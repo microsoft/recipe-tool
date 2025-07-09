@@ -668,6 +668,7 @@
 }
 
 
+
 /* Drag and drop styles */
 .block-resources.drag-over {
     border-color: #4a9d9e !important;
@@ -972,7 +973,6 @@
     box-sizing: border-box;
 }
 .ai-block .block-resources {
-    margin-top: 10px;
     min-height: 40px;
     border: 1px dashed #4a9d9e;
     border-radius: 4px;
@@ -1002,7 +1002,6 @@
     box-sizing: border-box;
 }
 .text-block .block-resources {
-    margin-top: 10px;
     min-height: 40px;
     border: 1px dashed #d0d0d0;
     border-radius: 4px;
