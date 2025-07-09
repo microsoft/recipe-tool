@@ -192,16 +192,16 @@ function autoExpandTextarea(textarea) {
         const padding = parseInt(window.getComputedStyle(textarea).paddingTop) +
                        parseInt(window.getComputedStyle(textarea).paddingBottom);
         const tenLinesHeight = (lineHeight * 10) + padding;
-        
+
         // First check if content would exceed 10 lines (show scrollbar when starting 11th line)
         const wouldExceedTenLines = newHeight > tenLinesHeight;
-        
+
         // Set max-height to exactly 10 lines
         textarea.style.maxHeight = tenLinesHeight + 'px';
-        
+
         // Set height to min of scrollHeight or 10 lines height
         textarea.style.height = Math.min(newHeight, tenLinesHeight) + 'px';
-        
+
         // Add scrollable class if content exceeds 10 lines
         if (wouldExceedTenLines) {
             textarea.classList.add('scrollable');
@@ -648,7 +648,7 @@ function setupDescriptionToggle() {
         } else if (!isCollapsed) {
             button.style.display = 'none';
         }
-        
+
         // Add scrollable class if content exceeds 10 lines
         const tenLinesHeight = (lineHeight * 10) + padding;
         // Check if we're starting the 11th line
@@ -675,7 +675,7 @@ function setupDescriptionToggle() {
             const calcPadding = parseInt(window.getComputedStyle(textarea).paddingTop) +
                                parseInt(window.getComputedStyle(textarea).paddingBottom);
             const tenLinesHeight = (calcLineHeight * 10) + calcPadding;
-            
+
             textarea.style.maxHeight = tenLinesHeight + 'px';
             textarea.style.overflow = '';  // Reset to CSS default
             container.classList.remove('collapsed');
@@ -947,12 +947,12 @@ let titleDebounceTimers = {};
 function updateResourceTitle(resourcePath, newTitle) {
     // Create unique key for this input
     const timerKey = resourcePath;
-    
+
     // Clear existing timer for this input
     if (titleDebounceTimers[timerKey]) {
         clearTimeout(titleDebounceTimers[timerKey]);
     }
-    
+
     // Update data attributes on the resource item for dragging
     const resourceItems = document.querySelectorAll('.resource-item');
     resourceItems.forEach(item => {
@@ -960,7 +960,7 @@ function updateResourceTitle(resourcePath, newTitle) {
             item.setAttribute('data-resource-title', newTitle);
         }
     });
-    
+
     // Immediately update all dropped resources in AI blocks with this path
     const droppedResources = document.querySelectorAll('.dropped-resource');
     droppedResources.forEach(dropped => {
@@ -975,25 +975,25 @@ function updateResourceTitle(resourcePath, newTitle) {
             }
         }
     });
-    
+
     // Set new timer with 50ms delay (0.05 seconds after user stops typing)
     titleDebounceTimers[timerKey] = setTimeout(() => {
         // Set the values in hidden inputs
         const pathInput = document.getElementById('update-title-resource-path');
         const titleInput = document.getElementById('update-title-text');
-        
+
         if (pathInput && titleInput) {
             const pathTextarea = pathInput.querySelector('textarea');
             const titleTextarea = titleInput.querySelector('textarea');
-            
+
             if (pathTextarea && titleTextarea) {
                 pathTextarea.value = resourcePath;
                 titleTextarea.value = newTitle;
-                
+
                 // Dispatch input events
                 pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
                 titleTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-                
+
                 // Trigger the update button
                 setTimeout(() => {
                     const updateBtn = document.getElementById('update-title-trigger');
@@ -1003,7 +1003,7 @@ function updateResourceTitle(resourcePath, newTitle) {
                 }, 100);
             }
         }
-        
+
         // Clean up timer reference
         delete titleDebounceTimers[timerKey];
     }, 50); // Wait 50ms after user stops typing
@@ -1016,30 +1016,30 @@ let panelDescriptionDebounceTimers = {};
 function updateResourcePanelDescription(resourcePath, newDescription) {
     // Create unique key for this input
     const timerKey = `panel-${resourcePath}`;
-    
+
     // Clear existing timer for this input
     if (panelDescriptionDebounceTimers[timerKey]) {
         clearTimeout(panelDescriptionDebounceTimers[timerKey]);
     }
-    
+
     // Set new timer with 50ms delay
     panelDescriptionDebounceTimers[timerKey] = setTimeout(() => {
         // Set the values in hidden inputs - reusing the title inputs as per Python code
         const pathInput = document.getElementById('update-title-resource-path');
         const descInput = document.getElementById('update-title-text');
-        
+
         if (pathInput && descInput) {
             const pathTextarea = pathInput.querySelector('textarea');
             const descTextarea = descInput.querySelector('textarea');
-            
+
             if (pathTextarea && descTextarea) {
                 pathTextarea.value = resourcePath;
                 descTextarea.value = newDescription;
-                
+
                 // Dispatch input events
                 pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
                 descTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-                
+
                 // Trigger the update button for description
                 setTimeout(() => {
                     const updateBtn = document.getElementById('update-panel-desc-trigger');
@@ -1049,7 +1049,7 @@ function updateResourcePanelDescription(resourcePath, newDescription) {
                 }, 100);
             }
         }
-        
+
         // Clean up timer reference
         delete panelDescriptionDebounceTimers[timerKey];
     }, 50);
@@ -1062,24 +1062,24 @@ function toggleResourceDescription(resourceId) {
         const container = resourceItem.querySelector('.resource-description-container');
         const textarea = container.querySelector('.resource-panel-description');
         const button = container.querySelector('.desc-expand-btn');
-        
+
         const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
         const padding = 8; // 4px top + 4px bottom
         const twoLinesHeight = (lineHeight * 2) + padding;
-        
+
         // Function to get first two lines with ellipsis
         function getFirstTwoLinesWithEllipsis(text) {
             if (!text) return '';
             const lines = text.split('\n');
             let firstTwo = lines.slice(0, 2).join('\n');
-            
+
             // Add ellipsis if there's more content
             if (lines.length > 2 || (lines.length === 2 && lines[1].length > 20)) {
                 firstTwo += '...';
             }
             return firstTwo;
         }
-        
+
         if (container.classList.contains('collapsed')) {
             // Expand - restore original text
             container.classList.remove('collapsed');
@@ -1091,7 +1091,7 @@ function toggleResourceDescription(resourceId) {
             textarea.style.overflow = ''; // Reset to CSS default
             textarea.classList.remove('scrollable');
             container.classList.remove('has-scrollbar');
-            
+
             // Recalculate height and scrollability
             const scrollHeight = textarea.scrollHeight;
             textarea.style.height = Math.min(scrollHeight, 180) + 'px';
@@ -1099,7 +1099,7 @@ function toggleResourceDescription(resourceId) {
                 textarea.classList.add('scrollable');
                 container.classList.add('has-scrollbar');
             }
-            
+
             // Restore cursor position if available
             if (textarea.dataset.cursorPos) {
                 const cursorPos = parseInt(textarea.dataset.cursorPos);
@@ -1129,58 +1129,58 @@ function toggleResourceDescription(resourceId) {
 // Setup auto-expand for resource descriptions
 function setupResourceDescriptions() {
     const descTextareas = document.querySelectorAll('.resource-panel-description');
-    
+
     descTextareas.forEach(textarea => {
         // Store original value without ellipsis
         if (!textarea.dataset.originalValue) {
             textarea.dataset.originalValue = textarea.value;
         }
-        
+
         // Set minimum height for 2 lines
         const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
         const padding = 8; // 4px top + 4px bottom
         const minHeight = (lineHeight * 2) + padding;
         textarea.style.minHeight = minHeight + 'px';
-        
+
         // Function to get first two lines with ellipsis
         function getFirstTwoLinesWithEllipsis(text) {
             if (!text) return '';
             const lines = text.split('\n');
             let firstTwo = lines.slice(0, 2).join('\n');
-            
+
             // Add ellipsis if there's more content
             if (lines.length > 2 || (lines.length === 2 && lines[1].length > 20)) {
                 firstTwo += '...';
             }
             return firstTwo;
         }
-        
+
         // Auto-expand handler
         const autoExpand = function() {
             const container = this.closest('.resource-description-container');
             const button = container.querySelector('.desc-expand-btn');
             const isCollapsed = container.classList.contains('collapsed');
-            
+
             // Store original value if typing
             if (!isCollapsed && this === document.activeElement) {
                 this.dataset.originalValue = this.value;
             }
-            
+
             if (!isCollapsed) {
                 // Reset height to auto to get correct scrollHeight
                 this.style.height = 'auto';
                 const scrollHeight = this.scrollHeight;
-                
+
                 // Set height to scrollHeight, capped at max-height (180px)
                 const newHeight = Math.min(scrollHeight, 180);
                 this.style.height = newHeight + 'px';
-                
+
                 // Add scrollable class only if content exceeds 10 lines
                 // Check against newHeight (before capping) to show scrollbar when starting 11th line
                 const lineHeight = 11 * 1.4; // 11px font * 1.4 line-height
                 const padding = 8; // 4px top + 4px bottom
                 const tenLinesHeight = (lineHeight * 10) + padding;
-                
+
                 if (this.style.height === 'auto' && this.scrollHeight > tenLinesHeight) {
                     this.classList.add('scrollable');
                     container.classList.add('has-scrollbar');
@@ -1192,20 +1192,20 @@ function setupResourceDescriptions() {
                     this.classList.remove('scrollable');
                     container.classList.remove('has-scrollbar');
                 }
-                
+
                 // Check button visibility - moved inside the !isCollapsed block
                 // Get actual computed line height and padding
                 const computedLineHeight = parseFloat(window.getComputedStyle(this).lineHeight);
                 const computedPadding = parseInt(window.getComputedStyle(this).paddingTop) +
                                        parseInt(window.getComputedStyle(this).paddingBottom);
                 const computedTwoLinesHeight = (computedLineHeight * 2) + computedPadding;
-                
+
                 // Reset height temporarily to get accurate scrollHeight
                 const currentHeight = this.style.height;
                 this.style.height = 'auto';
                 const actualScrollHeight = this.scrollHeight;
                 this.style.height = currentHeight;
-                
+
                 // Count actual lines of text
                 const lines = this.value.split('\n');
                 let actualLineCount = 0;
@@ -1214,7 +1214,7 @@ function setupResourceDescriptions() {
                     // Resource panel is about 170px wide, ~15-20 chars per line at 11px font
                     actualLineCount += 1 + Math.floor(line.length / 20);
                 }
-                
+
                 // Show button only when starting the 3rd line (similar to doc description)
                 // Don't use trim() - count empty lines too
                 if (actualLineCount > 2) {
@@ -1225,13 +1225,13 @@ function setupResourceDescriptions() {
                 }
             }
         };
-        
+
         // Add event listeners
         textarea.addEventListener('input', autoExpand);
         textarea.addEventListener('paste', function() {
             setTimeout(() => autoExpand.call(this), 10);
         });
-        
+
         // Click to expand when collapsed
         textarea.addEventListener('click', function(e) {
             const container = this.closest('.resource-description-container');
@@ -1239,14 +1239,14 @@ function setupResourceDescriptions() {
                 // Get cursor position before expanding
                 const cursorPos = this.selectionStart;
                 const resourceId = container.closest('.resource-item').id;
-                
+
                 // Store cursor position in dataset to use after expansion
                 this.dataset.cursorPos = cursorPos;
-                
+
                 toggleResourceDescription(resourceId);
             }
         });
-        
+
         // Initial sizing
         autoExpand.call(textarea);
     });

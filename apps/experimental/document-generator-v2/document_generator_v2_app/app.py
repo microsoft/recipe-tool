@@ -597,10 +597,12 @@ def update_resource_description(blocks, block_id, resource_path, description_tex
 def generate_resource_html(resources):
     """Generate HTML for resource panel display."""
     if not resources:
-        return ("<p style='color: #666; font-size: 12px'>Upload text files here.</p>"
-                "<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
-                "<br>"
-                "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>")
+        return (
+            "<p style='color: #666; font-size: 12px'>Upload text files here.</p>"
+            "<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
+            "<br>"
+            "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>"
+        )
 
     html_items = []
     for idx, resource in enumerate(resources):
