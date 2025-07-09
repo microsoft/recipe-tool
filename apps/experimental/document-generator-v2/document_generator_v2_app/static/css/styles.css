@@ -410,7 +410,7 @@
     border-color: #4a9d9e !important; /* Keep teal-green border */
     border-radius: 4px;
     font-size: 11px;
-    cursor: default;
+    cursor: grab;
     user-select: none;
     transition: transform 0.2s ease;
     position: relative;
