@@ -797,9 +797,9 @@
 .resource-upload-zone {
     margin-top: 8px;
     padding: 8px;
-    border: 1px dashed #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    border: 1px dashed #4a9d9e;
+    border-radius: 8px;
+    background-color: #f8fafa;
     text-align: center;
     position: relative;
     min-height: 32px;
@@ -808,14 +808,14 @@
 }
 
 .resource-upload-zone:hover {
-    background-color: #f0f0f0;
-    border-color: #999;
+    border-color: #3a8d8e;
+    background-color: #f0f9f9;
 }
 
 .resource-upload-zone.drag-over {
-    background-color: #e8f4f8;
     border-color: #4a9d9e;
-    border-width: 2px;
+    background-color: #e8f5f5;
+    border-width: 1px;
 }
 
 .resource-upload-zone .upload-text {

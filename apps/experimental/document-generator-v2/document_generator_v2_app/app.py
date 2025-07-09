@@ -665,6 +665,7 @@ def generate_resource_html(resources):
             f'<div class="resource-content">'
             f'<div class="resource-header">'
             f'<input type="text" class="resource-title-input" value="{title}" '
+            f'placeholder="Title" '
             f"oninput=\"updateResourceTitle('{path}', this.value)\" "
             f'onclick="event.stopPropagation()" />'
             f'<span class="resource-delete" onclick="deleteResourceFromPanel(\'{path}\')">🗑</span>'
@@ -763,12 +764,10 @@ def replace_resource_file(resources, old_resource_path, new_file_path, doc_title
     # Update the resource and all blocks that use it
     for resource in resources:
         if resource.get("path") == old_resource_path:
-            # Keep the same key, title, and description, just update the path and name
+            # Keep the same key and description, just update the path and name
             resource["path"] = str(session_file_path)
             resource["name"] = new_file_name
-            # Update title if it was the old filename
-            if resource.get("title") == os.path.basename(old_resource_path):
-                resource["title"] = new_file_name
+            # Keep the existing title - don't update it
             break
     
     # Update all blocks that reference this resource
@@ -778,9 +777,7 @@ def replace_resource_file(resources, old_resource_path, new_file_path, doc_title
                 if block_resource.get("path") == old_resource_path:
                     block_resource["path"] = str(session_file_path)
                     block_resource["name"] = new_file_name
-                    # Update title if it was the old filename
-                    if block_resource.get("title") == os.path.basename(old_resource_path):
-                        block_resource["title"] = new_file_name
+                    # Keep the existing title - don't update it
     
     # Generate HTML for resources display
     resources_html = generate_resource_html(resources)
