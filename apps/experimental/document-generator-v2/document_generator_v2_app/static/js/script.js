@@ -446,6 +446,7 @@ const observer = new MutationObserver(function(mutations) {
             setupDescriptionToggle();
             setupExampleSelection();
             setupResourceDescriptions();
+            preventResourceDrops();
         }, 100);
     }
 });
@@ -949,14 +950,22 @@ function setupFileUploadDragAndDrop() {
     function addDragListeners(element) {
         element.addEventListener('dragenter', function(e) {
             e.preventDefault();
-            dragCounter++;
-            fileUploadZone.classList.add('drag-over');
+            // Only show drag-over effect if not dragging a resource
+            if (!draggedResource) {
+                dragCounter++;
+                fileUploadZone.classList.add('drag-over');
+            }
         });
 
         element.addEventListener('dragover', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            fileUploadZone.classList.add('drag-over');
+            // If dragging a resource, show "not allowed" cursor
+            if (draggedResource) {
+                e.dataTransfer.dropEffect = 'none';
+            } else {
+                fileUploadZone.classList.add('drag-over');
+            }
         });
 
         element.addEventListener('dragleave', function(e) {
@@ -971,6 +980,11 @@ function setupFileUploadDragAndDrop() {
             e.preventDefault();
             dragCounter = 0;
             fileUploadZone.classList.remove('drag-over');
+            // Block resource drops completely
+            if (draggedResource) {
+                e.stopPropagation();
+                return false;
+            }
         });
     }
 
@@ -1058,7 +1072,8 @@ function handleDragStart(e) {
     console.log('Started dragging resource:', draggedResource);
     e.target.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('text/plain', 'resource'); // Set some data to make it a valid drag
+    // Don't set text/plain data to prevent dropping text into textareas
+    e.dataTransfer.setData('application/x-resource', 'resource'); // Custom data type
 }
 
 function handleDragEnd(e) {
@@ -1552,6 +1567,48 @@ function handleResourceFileUpload(resourcePath, fileInput) {
     fileInput.value = '';
 }
 
+// Prevent drops on resource textareas and inputs
+function preventResourceDrops() {
+    // Prevent drops on all textareas and inputs within resource items
+    const resourceInputs = document.querySelectorAll('.resource-item input, .resource-item textarea');
+    
+    resourceInputs.forEach(element => {
+        element.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (draggedResource) {
+                e.dataTransfer.dropEffect = 'none';
+            }
+        });
+        
+        element.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (draggedResource) {
+                e.stopPropagation();
+                return false;
+            }
+        });
+    });
+    
+    // Also prevent drops on resource upload zones
+    const resourceUploadZones = document.querySelectorAll('.resource-upload-zone');
+    resourceUploadZones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            if (draggedResource) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'none';
+            }
+        });
+        
+        zone.addEventListener('drop', function(e) {
+            if (draggedResource) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+    });
+}
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
     refresh();
@@ -1562,5 +1619,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         setupDragAndDrop();
         setupResourceDescriptions();
+        preventResourceDrops();
     }, 100);
 });
