@@ -1022,8 +1022,8 @@
 }
 .ai-block textarea {
     width: 100%;
-    min-height: 80px;
-    border: 1px solid #4a9d9e;
+    min-height: 120px;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 10px;
     font-size: 14px;
@@ -1051,7 +1051,7 @@
 }
 .text-block textarea {
     width: 100%;
-    min-height: 80px;
+    min-height: 120px;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 10px;
@@ -1183,11 +1183,12 @@
     margin-right: -1px; /* Overlap borders */
 }
 
+
 .block-tab.active:first-child {
-    background-color: #4a9d9e;
-    border-color: #4a9d9e;
-    border-bottom: 2px solid #4a9d9e;
-    color: white;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-bottom: 1px solid white;
+    color: #4a9d9e;
     font-weight: 600;
     position: relative;
     z-index: 1;
@@ -1198,13 +1199,19 @@
     border-top-right-radius: 4px;
     margin-bottom: 0;
     border-bottom: 1px solid #e0e0e0;
-    margin-left: 5px;
+    color: #4a9d9e;
 }
 
 .block-tab:hover:not(.active) {
     background-color: #eeeeee;
     color: #333;
 }
+
+/* Keep teal color for AI tab on hover */
+.block-tab:first-child:hover:not(.active) {
+    color: #4a9d9e;
+}
+
 
 .block-tab.active:last-child {
     background-color: white;
@@ -1220,7 +1227,7 @@
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     margin-right: 0;
-    border-bottom: 1px solid #4a9d9e;
+    border-bottom: 1px solid #e0e0e0;
 }
 .block-tab:last-child:hover:not(.active) {
     background-color: #eeeeee;
@@ -1231,6 +1238,12 @@
 .ai-block .block-tabs + textarea,
 .text-block .block-tabs + textarea {
     margin-top: -1px;
+}
+
+/* Remove top-left border radius for AI and Text block textareas to align with tabs */
+.ai-block .block-tabs + textarea,
+.text-block .block-tabs + textarea {
+    border-top-left-radius: 0;
 }
 
 /* Empty blocks message */
@@ -1309,12 +1322,13 @@
 
 .block-content.show {
     max-height: 2000px; /* Large enough for most content */
+
     opacity: 1;
     padding-top: 10px;
 }
 
 .block-content textarea::placeholder {
-    color: #999999;
+    color: #bbbbc2;
 }
 
 /* Generate Document */
