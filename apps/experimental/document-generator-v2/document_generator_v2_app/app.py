@@ -676,6 +676,12 @@ def generate_resource_html(resources):
             f'onclick="event.stopPropagation()">{description}</textarea>'
             f'<button class="desc-expand-btn" onclick="toggleResourceDescription(\'{resource_id}\')">⌵</button>'
             f"</div>"
+            f'<div class="resource-filename">{resource["name"]}</div>'
+            f'<div class="resource-upload-zone" data-resource-path="{path}">'
+            f'<span class="upload-text">Drop file here to replace</span>'
+            f'<input type="file" class="resource-file-input" accept=".txt,.md,.py,.c,.cpp,.h,.java,.js,.ts,.jsx,.tsx,.json,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.rs,.go,.rb,.php,.pl,.lua,.r,.m,.swift,.kt,.scala,.clj,.ex,.exs,.elm,.fs,.ml,.sql,.html,.htm,.css,.scss,.sass,.less,.vue,.svelte,.astro,.tex,.rst,.adoc,.org,.csv" '
+            f"onchange=\"handleResourceFileUpload('{path}', this)\" />"
+            f"</div>"
             f"</div>"
             f"</div>"
         )
@@ -736,6 +742,54 @@ def update_resource_panel_description(resources, resource_path, new_description,
     outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
 
     return resources, outline, json_str
+
+
+def replace_resource_file(resources, old_resource_path, new_file_path, doc_title, doc_description, blocks, session_id=None):
+    """Replace a resource file with a new one while keeping the same resource key."""
+    import shutil
+    
+    # Get or create session ID
+    if not session_id:
+        session_id = str(uuid.uuid4())
+    
+    # Get session files directory
+    files_dir = session_manager.get_files_dir(session_id)
+    
+    # Copy new file to session directory
+    new_file_name = os.path.basename(new_file_path)
+    session_file_path = files_dir / new_file_name
+    shutil.copy2(new_file_path, session_file_path)
+    
+    # Update the resource and all blocks that use it
+    for resource in resources:
+        if resource.get("path") == old_resource_path:
+            # Keep the same key, title, and description, just update the path and name
+            resource["path"] = str(session_file_path)
+            resource["name"] = new_file_name
+            # Update title if it was the old filename
+            if resource.get("title") == os.path.basename(old_resource_path):
+                resource["title"] = new_file_name
+            break
+    
+    # Update all blocks that reference this resource
+    for block in blocks:
+        if "resources" in block:
+            for block_resource in block["resources"]:
+                if block_resource.get("path") == old_resource_path:
+                    block_resource["path"] = str(session_file_path)
+                    block_resource["name"] = new_file_name
+                    # Update title if it was the old filename
+                    if block_resource.get("title") == os.path.basename(old_resource_path):
+                        block_resource["title"] = new_file_name
+    
+    # Generate HTML for resources display
+    resources_html = generate_resource_html(resources)
+    
+    # Regenerate outline with updated resources
+    outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
+    
+    # Return updated values including a success flag
+    return resources, blocks, gr.update(value=resources_html), outline, json_str, "Resource replaced successfully!"
 
 
 def load_example(example_id, session_id=None):
@@ -1728,6 +1782,16 @@ def create_app():
                         "Update Panel Description", visible=False, elem_id="update-panel-desc-trigger"
                     )
 
+                    # Hidden components for replacing resource files
+                    replace_resource_path = gr.Textbox(visible=False, elem_id="replace-resource-path")
+                    replace_resource_file_input = gr.File(
+                        visible=False, 
+                        elem_id="replace-resource-file",
+                        file_types=[".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx", ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift", ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml", ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less", ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org", ".csv"]
+                    )
+                    replace_resource_trigger = gr.Button("Replace Resource", visible=False, elem_id="replace-resource-trigger")
+                    replace_success_msg = gr.Textbox(visible=False, elem_id="replace-success-msg")
+
             # Generated document column: Generate and Save Document buttons (aligned right)
             with gr.Column(scale=1, elem_classes="generate-col"):
                 with gr.Row(elem_classes="generate-btn-row"):
@@ -2072,6 +2136,52 @@ def create_app():
                 blocks_state,
             ],
             outputs=[resources_state, outline_state, json_output],
+        )
+
+        # Replace resource file handler
+        def handle_resource_replacement(resources, old_path, new_file, doc_title, doc_description, blocks, session_id):
+            """Handle resource file replacement."""
+            if not new_file:
+                # No file selected, return unchanged
+                return resources, blocks, gr.update(), outline_state.value, json_output.value, ""
+            
+            # new_file is the file path from Gradio
+            new_file_path = new_file if isinstance(new_file, str) else new_file.name
+            
+            # Call the replace function
+            updated_resources, updated_blocks, resources_html, outline, json_str, success_msg = replace_resource_file(
+                resources, old_path, new_file_path, doc_title, doc_description, blocks, session_id
+            )
+            
+            return updated_resources, updated_blocks, resources_html, outline, json_str, success_msg
+
+        replace_resource_trigger.click(
+            fn=handle_resource_replacement,
+            inputs=[
+                resources_state,
+                replace_resource_path,
+                replace_resource_file_input,
+                doc_title,
+                doc_description,
+                blocks_state,
+                session_state,
+            ],
+            outputs=[
+                resources_state,
+                blocks_state,
+                resources_display,
+                outline_state,
+                json_output,
+                replace_success_msg,
+            ],
+        ).then(
+            fn=render_blocks, 
+            inputs=[blocks_state, focused_block_state], 
+            outputs=blocks_display
+        ).then(
+            # Clear the file input after processing
+            fn=lambda: None,
+            outputs=replace_resource_file_input
         )
 
     return app

@@ -1495,6 +1495,63 @@ function setupResourceDescriptions() {
     });
 }
 
+// Handle resource file upload
+function handleResourceFileUpload(resourcePath, fileInput) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    console.log('Uploading file to replace resource:', resourcePath, file.name);
+    
+    // Set the resource path
+    const pathInput = document.getElementById('replace-resource-path');
+    if (pathInput) {
+        const pathTextarea = pathInput.querySelector('textarea');
+        if (pathTextarea) {
+            pathTextarea.value = resourcePath;
+            pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+    
+    // Find the hidden file input component and set the file
+    const hiddenFileInput = document.querySelector('#replace-resource-file input[type="file"]');
+    if (hiddenFileInput) {
+        // Create a new DataTransfer to set files on the hidden input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        hiddenFileInput.files = dataTransfer.files;
+        
+        // Trigger change event on the hidden file input
+        hiddenFileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Trigger the replace button after a delay
+        setTimeout(() => {
+            const replaceBtn = document.getElementById('replace-resource-trigger');
+            if (replaceBtn) {
+                replaceBtn.click();
+                
+                // Add visual feedback to the upload zone
+                const uploadZone = fileInput.closest('.resource-upload-zone');
+                if (uploadZone) {
+                    uploadZone.classList.add('upload-success');
+                    const uploadText = uploadZone.querySelector('.upload-text');
+                    if (uploadText) {
+                        uploadText.textContent = '✓ File replaced';
+                    }
+                    
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        uploadZone.classList.remove('upload-success');
+                        uploadText.textContent = 'Drop file here to replace';
+                    }, 2000);
+                }
+            }
+        }, 100);
+    }
+    
+    // Clear the file input
+    fileInput.value = '';
+}
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
     refresh();

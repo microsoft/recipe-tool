@@ -782,6 +782,68 @@
     color: #999;
 }
 
+/* Resource filename display */
+.resource-filename {
+    font-size: 11px;
+    color: #666;
+    margin: 8px 0 4px 0;
+    font-family: monospace;
+    word-wrap: break-word;
+    word-break: break-all;
+    line-height: 1.3;
+}
+
+/* Resource upload zone styles */
+.resource-upload-zone {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    text-align: center;
+    position: relative;
+    min-height: 32px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.resource-upload-zone:hover {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+.resource-upload-zone.drag-over {
+    background-color: #e8f4f8;
+    border-color: #4a9d9e;
+    border-width: 2px;
+}
+
+.resource-upload-zone .upload-text {
+    font-size: 11px;
+    color: #666;
+    pointer-events: none;
+}
+
+.resource-upload-zone .resource-file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.resource-upload-zone.upload-success {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.resource-upload-zone.upload-success .upload-text {
+    color: #155724;
+    font-weight: bold;
+}
+
 
 /* Workspace */
 .workspace-col {
