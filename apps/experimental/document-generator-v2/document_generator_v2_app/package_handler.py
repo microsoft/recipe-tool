@@ -44,7 +44,7 @@ class DocpackHandler:
 
                 # Keep original filename, handle conflicts with counter suffix only if needed
                 archive_name = resource_file.name
-                
+
                 # Only add suffix if there's a conflict
                 if archive_name in used_names:
                     base_stem = resource_file.stem

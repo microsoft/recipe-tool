@@ -606,7 +606,6 @@ def generate_resource_html(resources):
 
     html_items = []
     for idx, resource in enumerate(resources):
-        icon = "📄"  # Always use text file icon
         css_class = "resource-item text"
         path = resource["path"].replace("'", "\\'")  # Escape single quotes
         title = resource.get("title", resource["name"])
@@ -1140,7 +1139,6 @@ def render_block_resources(block_resources, block_type, block_id):
 
     html = ""
     for resource in block_resources:
-        icon = "📄"  # Always use text file icon
         # Use title if available, otherwise fall back to name
         display_name = resource.get("title", resource.get("name", "Unknown"))
         path = resource.get("path", "").replace("'", "\\'")  # Escape single quotes
