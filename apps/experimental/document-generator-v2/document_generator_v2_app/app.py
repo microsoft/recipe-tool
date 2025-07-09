@@ -223,6 +223,11 @@ def reset_document(session_id=None):
         gr.update(value=generate_resource_html([])),  # resources_display
         None,  # import_file
         new_session_id,  # session_id
+        gr.update(
+            value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>", visible=True
+        ),  # generated_content_html
+        gr.update(visible=False),  # generated_content
+        gr.update(interactive=False),  # save_doc_btn
     )
 
 
@@ -736,7 +741,7 @@ def update_resource_panel_description(resources, resource_path, new_description,
 def load_example(example_id, session_id=None):
     """Load a predefined example based on the example ID."""
     if not example_id:
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), session_id
+        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), session_id, gr.update(), gr.update(), gr.update()
 
     # Map example IDs to file paths - now using .docpack files
     examples_dir = Path(__file__).parent.parent / "examples"
@@ -765,15 +770,15 @@ def load_example(example_id, session_id=None):
 
     # Use the import_outline function to load the example
     result = import_outline(str(file_path), session_id)
-    # import_outline returns 9 values (including import_file), but load_example only needs 8
-    # Return: title, description, resources, blocks, outline, json, resources_display, session_id
-    return result[:7] + (result[8],)  # Skip import_file (index 7), keep session_id (index 8)
+    # import_outline returns 12 values now (including generate panel states), but load_example needs 11 (no import_file)
+    # Return: title, description, resources, blocks, outline, json, resources_display, session_id, generated_content_html, generated_content, save_doc_btn
+    return result[:7] + result[8:]  # Skip import_file (index 7)
 
 
 def import_outline(file_path, session_id=None):
     """Import an outline from a .docpack file and convert to blocks format."""
     if not file_path:
-        # Return 9 values: title, description, resources, blocks, outline, json, resources_display, import_file, session_id
+        # Return 12 values: title, description, resources, blocks, outline, json, resources_display, import_file, session_id, generated_content_html, generated_content, save_doc_btn
         return (
             gr.update(),
             gr.update(),
@@ -784,6 +789,9 @@ def import_outline(file_path, session_id=None):
             gr.update(),
             None,
             session_id,
+            gr.update(),
+            gr.update(),
+            gr.update(),
         )
 
     # Get or create session ID
@@ -868,6 +876,9 @@ def import_outline(file_path, session_id=None):
                 gr.update(),  # resources_display
                 None,  # import_file
                 session_id,  # session_id
+                gr.update(),  # generated_content_html
+                gr.update(),  # generated_content
+                gr.update(),  # save_doc_btn
             )
 
         # Use session directory for extraction
@@ -926,6 +937,10 @@ def import_outline(file_path, session_id=None):
                 json.dumps({"error": error_msg}, indent=2),  # json_output
                 gr.update(),  # resources_display
                 None,  # import_file
+                session_id,  # session_id
+                gr.update(),  # generated_content_html
+                gr.update(),  # generated_content
+                gr.update(),  # save_doc_btn
             )
 
         # Convert sections to blocks
@@ -1048,6 +1063,11 @@ def import_outline(file_path, session_id=None):
             gr.update(value=resources_html),
             None,
             session_id,
+            gr.update(
+                value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>", visible=True
+            ),  # generated_content_html
+            gr.update(visible=False),  # generated_content
+            gr.update(interactive=False),  # save_doc_btn
         )
 
     except Exception as e:
@@ -1064,6 +1084,9 @@ def import_outline(file_path, session_id=None):
             gr.update(),
             None,
             session_id,
+            gr.update(),  # generated_content_html
+            gr.update(),  # generated_content
+            gr.update(),  # save_doc_btn
         )
 
 
@@ -1725,7 +1748,7 @@ def create_app():
                 # Generated document display panel
                 with gr.Column(elem_classes="generate-display"):
                     generated_content_html = gr.HTML(
-                        value="<em>Click 'Generate Document' to see the generated content here.</em><br><br><br>",
+                        value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>",
                         elem_classes="generated-content",
                         visible=True,
                     )
@@ -1803,6 +1826,9 @@ def create_app():
                 resources_display,
                 import_file,
                 session_state,
+                generated_content_html,
+                generated_content,
+                save_doc_btn,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
@@ -1995,6 +2021,9 @@ def create_app():
                 resources_display,
                 import_file,  # Add import_file to outputs to clear it
                 session_state,
+                generated_content_html,
+                generated_content,
+                save_doc_btn,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
@@ -2011,6 +2040,9 @@ def create_app():
                 json_output,
                 resources_display,
                 session_state,
+                generated_content_html,
+                generated_content,
+                save_doc_btn,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
