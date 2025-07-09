@@ -556,7 +556,7 @@
     width: 100%;
     min-height: 32px; /* About 2 lines */
     max-height: 180px; /* About 10 lines with 11px font and 1.4 line height */
-    padding: 4px 24px 4px 6px; /* Extra padding on right for button */
+    padding: 4px 18px 4px 6px; /* Extra padding on right for button */
     border: 1px solid #e0e0e0;
     border-radius: 3px;
     font-size: 11px;
@@ -575,6 +575,7 @@
     overflow-y: auto !important;
     scrollbar-width: auto !important; /* Firefox - normal width */
     -ms-overflow-style: auto !important; /* IE */
+    padding-right: 4px;
 }
 
 /* Ensure webkit scrollbar is visible for resource description */
@@ -784,9 +785,9 @@
 
 /* Resource filename display */
 .resource-filename {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
-    margin: 8px 0 4px 0;
+    margin: 0 6px 4px 6px;
     font-family: monospace;
     word-wrap: break-word;
     word-break: break-all;
