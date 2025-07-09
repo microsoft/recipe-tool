@@ -92,6 +92,19 @@
     max-width: 120px !important;
     height: 30px !important;
 }
+.new-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #333333 !important;
+}
+.new-builder-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+}
 
 /* Try Examples button - citrus orange tertiary color */
 .try-examples-btn {

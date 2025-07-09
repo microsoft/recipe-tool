@@ -182,6 +182,50 @@ def set_focused_block(block_id):
     return block_id
 
 
+def reset_document(session_id=None):
+    """Reset the document to initial empty state."""
+    # Create new session ID
+    new_session_id = str(uuid.uuid4())
+    
+    # Reset to initial blocks
+    initial_blocks = [
+        {
+            "id": str(uuid.uuid4()),
+            "type": "ai",
+            "heading": "",
+            "content": "",
+            "resources": [],
+            "collapsed": False,  # AI block starts expanded
+            "indent_level": 0,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "type": "text",
+            "heading": "",
+            "content": "",
+            "resources": [],
+            "collapsed": True,  # Text block starts collapsed
+            "indent_level": 0,
+        },
+    ]
+    
+    # Generate initial outline
+    outline, json_str = regenerate_outline_from_state("", "", [], initial_blocks)
+    
+    # Return empty title, description, empty resources, initial blocks
+    return (
+        "",  # title
+        "",  # description
+        [],  # resources
+        initial_blocks,  # blocks
+        outline,  # outline
+        json_str,  # json_output
+        gr.update(value=generate_resource_html([])),  # resources_display
+        None,  # import_file
+        new_session_id,  # session_id
+    )
+
+
 def convert_block_type(blocks, block_id, to_type, title, description, resources):
     """Convert a block from one type to another while preserving separate content for each type."""
     for block in blocks:
@@ -1424,6 +1468,14 @@ def create_app():
                                     <div class="example-desc">Employee evaluation and feedback</div>
                                 </div>
                             """)
+                    # New button (for resetting document)
+                    new_doc_btn = gr.Button(
+                        "New",
+                        elem_id="new-builder-btn-id",
+                        variant="secondary",
+                        size="sm",
+                        elem_classes="new-builder-btn",
+                    )
                     gr.Button(
                         "Import",
                         elem_id="import-builder-btn-id",
@@ -1734,6 +1786,23 @@ def create_app():
                 resources_state,
             ],  # Always pass None for focused_block_id
             outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
+        # Connect New document button to reset everything
+        new_doc_btn.click(
+            fn=reset_document,
+            inputs=[session_state],
+            outputs=[
+                doc_title,
+                doc_description,
+                resources_state,
+                blocks_state,
+                outline_state,
+                json_output,
+                resources_display,
+                import_file,
+                session_state,
+            ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Delete block handler
