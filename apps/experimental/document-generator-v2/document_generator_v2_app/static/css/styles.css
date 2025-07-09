@@ -891,13 +891,12 @@
 .ai-block textarea {
     width: 100%;
     min-height: 80px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 10px;
-    padding-top: 0px;
     font-size: 14px;
     resize: none; /* Disable manual resize since we auto-expand */
-    background: transparent;
+    background: white;
     outline: none;
     overflow-y: hidden; /* Hide vertical scrollbars */
     overflow-x: hidden; /* Hide horizontal scrollbars */
@@ -922,13 +921,12 @@
 .text-block textarea {
     width: 100%;
     min-height: 80px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 10px;
-    padding-top: 0px;
     font-size: 14px;
     resize: none; /* Disable manual resize since we auto-expand */
-    background: transparent;
+    background: white;
     outline: none;
     overflow-y: hidden; /* Hide vertical scrollbars */
     overflow-x: hidden; /* Hide horizontal scrollbars */
@@ -956,7 +954,7 @@
     outline: none;
     background: transparent;
     padding: 4px 8px;
-    margin: 0 8px 0 0;
+    margin: 0 24px 0 0;
     color: #333;
     transition: background-color 0.2s ease;
 }
@@ -1032,42 +1030,70 @@
     border-color: #999;
 }
 
-.convert-btn {
-    position: absolute;
-    top: 6px;  /* Same as the old collapse button position */
-    right: 6px; /* Same as chevron button - inside the block */
-    width: 20px;
-    height: 20px;
-    padding: 0;
+/* Block tabs styling */
+.block-tabs {
+    display: inline-flex;
+    margin-bottom: 1px; /* Overlap with textarea border */
+    position: relative;
+    top: 1px;
+}
+
+.block-tab {
+    width: 42px;
+    height: 24px;
+    padding: 3px 10px;
     background-color: #f5f5f5;
-    border: 1px solid #d0d0d0;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    line-height: 1;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
-    z-index: 10;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s ease;
+    margin-right: -1px; /* Overlap borders */
 }
 
-.content-block:hover .convert-btn {
-    opacity: 1;
+.block-tab:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-bottom: 0;
 }
 
-.convert-btn.convert-to-text:hover {
-    background-color: #e0e0e0;
-    border-color: #999;
+.block-tab:last-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 0;
 }
 
-.convert-btn.convert-to-ai {
-    color: #4a9d9e;
+.block-tab:hover:not(.active) {
+    background-color: #eeeeee;
+    color: #333;
 }
 
-.convert-btn.convert-to-ai:hover {
-    background-color: #4a9d9e;
+.block-tab.active:first-child {
+    background-color: white;
     border-color: #4a9d9e;
-    color: white;
+    border-bottom: 2px solid white;
+    color: #4a9d9e;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.block-tab.active:last-child {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-bottom: 2px solid white;
+    color: #666;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+/* Update textarea styling to connect with tabs */
+.ai-block .block-tabs + textarea,
+.text-block .block-tabs + textarea {
+    border-top-left-radius: 0;
+    margin-top: -1px;
 }
 
 /* Empty blocks message */
@@ -1147,6 +1173,7 @@
 .block-content.show {
     max-height: 2000px; /* Large enough for most content */
     opacity: 1;
+    padding-top: 10px;
 }
 
 .block-content textarea::placeholder {

@@ -1245,7 +1245,6 @@ def render_blocks(blocks, focused_block_id=None):
                 </button>
                 <button class='delete-btn' onclick='deleteBlock("{block_id}")'>🗑</button>
                 <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
-                <button class='convert-btn convert-to-text' onclick='convertBlock("{block_id}", "text")'>T</button>
                 <div class='block-header'>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
@@ -1253,6 +1252,10 @@ def render_blocks(blocks, focused_block_id=None):
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>
+                    <div class='block-tabs'>
+                        <button class='block-tab active' onclick='convertBlock("{block_id}", "ai")'>AI</button>
+                        <button class='block-tab' onclick='convertBlock("{block_id}", "text")'>Text</button>
+                    </div>
                     <textarea placeholder='Type your AI instruction here...\nThis text will be used for AI content generation.'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
@@ -1308,7 +1311,6 @@ def render_blocks(blocks, focused_block_id=None):
                 </button>
                 <button class='delete-btn' onclick='deleteBlock("{block_id}")'>🗑</button>
                 <button class='add-btn' onclick='addBlockAfter("{block_id}")'>+</button>
-                <button class='convert-btn convert-to-ai' onclick='convertBlock("{block_id}", "ai")'>AI</button>
                 <div class='block-header'>
                     <input type='text' class='block-heading-inline' placeholder='Section Title'
                            value='{heading_value}'
@@ -1316,6 +1318,10 @@ def render_blocks(blocks, focused_block_id=None):
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>
+                    <div class='block-tabs'>
+                        <button class='block-tab' onclick='convertBlock("{block_id}", "ai")'>AI</button>
+                        <button class='block-tab active' onclick='convertBlock("{block_id}", "text")'>Text</button>
+                    </div>
                     <textarea placeholder='Type your text here...\nThis text will be copied into your document.'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
