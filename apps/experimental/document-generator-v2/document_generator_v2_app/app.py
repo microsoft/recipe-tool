@@ -1028,6 +1028,10 @@ def import_outline(file_path, session_id=None):
                     "indent_level": 0,
                 }
             ]
+        else:
+            # Ensure the first block is expanded
+            if blocks and len(blocks) > 0:
+                blocks[0]["collapsed"] = False
 
         # Regenerate outline and JSON
         outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
