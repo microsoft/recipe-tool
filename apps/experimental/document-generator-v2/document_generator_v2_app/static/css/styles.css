@@ -730,15 +730,8 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e5e5;
     border-radius: 8px !important;
-    overflow-y: scroll; /* Always show scroll area */
+    overflow-y: auto; /* Show scrollbar only when needed */
     overflow-x: hidden;
-    -ms-overflow-style: none !important;  /* IE and Edge */
-    scrollbar-width: none !important;  /* Firefox */
-}
-
-.workspace-display::-webkit-scrollbar {
-    width: 0 !important;
-    display: none !important;  /* Chrome, Safari and Opera */
 }
 
 /* Remove the rules that hide all scrollbars inside workspace - we want to show them when needed */
@@ -1171,40 +1164,31 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e5e5;
     border-radius: 8px !important;
-    overflow-y: auto;
+    overflow-y: auto; /* Show scrollbar only when needed */
     overflow-x: hidden;
     padding: 40px !important;
     font-size: 14px !important;
     color: #bbbbc2 !important;
-    -ms-overflow-style: none !important;  /* IE and Edge */
-    scrollbar-width: none !important;  /* Firefox */
-}
-.generate-display::-webkit-scrollbar {
-    display: none !important;  /* Chrome, Safari and Opera */
-}
-
-/* Also hide scrollbars in any nested containers within generate-display */
-.generate-display * {
-    -ms-overflow-style: none !important;  /* IE and Edge */
-    scrollbar-width: none !important;  /* Firefox */
-}
-
-.generate-display *::-webkit-scrollbar {
-    display: none !important;  /* Chrome, Safari and Opera */
 }
 
 /* Specific targeting for generated content */
-.generated-content {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-}
-
 .generated-content em {
     color: #bbbbc2;  /* --neutral-400: #bbbbc2 used for placeholders in gradio */
 }
 
+/* Hide scrollbar for HTML content (loading state) but keep for Markdown */
+.generate-display .gradio-html,
+.generate-display .gradio-html *,
+.generated-content {
+    overflow: hidden !important;
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.generate-display .gradio-html::-webkit-scrollbar,
+.generate-display .gradio-html *::-webkit-scrollbar,
 .generated-content::-webkit-scrollbar {
-    display: none !important;
+    display: none !important;  /* Chrome, Safari and Opera */
 }
 
 /* Generate Document - buttons*/
