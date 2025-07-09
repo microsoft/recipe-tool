@@ -1209,7 +1209,7 @@ def render_blocks(blocks, focused_block_id=None):
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='This text will be used for AI content generation.\nType your AI instruction here...'
+                    <textarea placeholder='Type your AI instruction here...\nThis text will be used for AI content generation.'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
@@ -1271,7 +1271,7 @@ def render_blocks(blocks, focused_block_id=None):
                            oninput='updateBlockHeading("{block_id}", this.value)'/>
                 </div>
                 <div class='block-content {content_class}'>
-                    <textarea placeholder='This text will be copied into your document.\nType your text here...'
+                    <textarea placeholder='Type your text here...\nThis text will be copied into your document.'
                               onfocus='setFocusedBlock("{block_id}", true)'
                               oninput='updateBlockContent("{block_id}", this.value)'>{block["content"]}</textarea>
                     <div class='block-resources'>
