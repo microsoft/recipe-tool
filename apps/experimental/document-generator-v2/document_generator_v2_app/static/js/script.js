@@ -35,39 +35,7 @@ function toggleDebugPanel() {
     }
 }
 
-function setupUploadResource() {
-    // Try multiple selectors
-    const uploadBtn = document.querySelector('.upload-resources-btn')
-
-    if (uploadBtn) {
-        // Remove any existing listeners first
-        uploadBtn.replaceWith(uploadBtn.cloneNode(true));
-        const newUploadBtn = document.querySelector('.upload-resources-btn');
-
-        newUploadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Find the file input that is NOT the import file input
-            const fileInputs = document.querySelectorAll('input[type="file"]');
-            let uploadFileInput = null;
-
-            for (const input of fileInputs) {
-                // Skip the import file input
-                if (!input.closest('#import-file-input')) {
-                    uploadFileInput = input;
-                    break;
-                }
-            }
-
-            if (uploadFileInput) {
-                uploadFileInput.click();
-            }
-        });
-        return true;
-    }
-    return false;
-}
+// No longer needed - using Gradio's native file upload component
 
 // Delete block function
 function deleteBlock(blockId) {
@@ -292,15 +260,16 @@ function setupAutoExpand() {
 // Try setting up when DOM loads and with a delay
 document.addEventListener('DOMContentLoaded', function () {
     refresh();
-    setupUploadResource();
+    // Upload resource setup no longer needed - using Gradio's native component
     setupAutoExpand();
 });
 
 window.addEventListener('load', function() {
-    setTimeout(setupUploadResource, 1000);
+    // Upload resource setup no longer needed - using Gradio's native component
     setTimeout(setupAutoExpand, 100);
     // Also setup drag and drop on window load
     setTimeout(setupDragAndDrop, 200);
+    setTimeout(setupFileUploadDragAndDrop, 250);
     // Setup description toggle button
     setTimeout(setupDescriptionToggle, 150);
 });
@@ -335,12 +304,13 @@ const observer = new MutationObserver(function(mutations) {
     // Only run setup if relevant changes detected
     if (hasRelevantChanges) {
         refresh();
-        setupUploadResource();
+        // Upload resource setup no longer needed - using Gradio's native component
         setupImportButton();
 
         // Delay drag and drop setup slightly to ensure DOM is ready
         setTimeout(() => {
             setupDragAndDrop();
+            setupFileUploadDragAndDrop();
         }, 50);
 
         // Debounce the setupAutoExpand to avoid multiple calls
@@ -809,6 +779,58 @@ function setupImportButton() {
             }
         });
     }
+}
+
+// Setup drag and drop for file upload zone
+function setupFileUploadDragAndDrop() {
+    const fileUploadZone = document.querySelector('.file-upload-dropzone');
+    if (!fileUploadZone) return;
+
+    // Function to replace the text
+    function replaceDropText() {
+        const wrapDivs = document.querySelectorAll('.file-upload-dropzone .wrap');
+        wrapDivs.forEach(wrapDiv => {
+            if (wrapDiv.textContent.includes('Drop File Here')) {
+                wrapDiv.childNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE && node.textContent.includes('Drop File Here')) {
+                        node.textContent = node.textContent.replace('Drop File Here', 'Drop Text File Here');
+                    }
+                });
+            }
+        });
+    }
+
+    // Try to replace immediately
+    replaceDropText();
+
+    // Watch for changes in case the content is dynamically updated
+    const observer = new MutationObserver((mutations) => {
+        replaceDropText();
+    });
+
+    observer.observe(fileUploadZone, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+
+    // Stop observing after 5 seconds to avoid performance issues
+    setTimeout(() => observer.disconnect(), 5000);
+
+    // Add drag-over class when dragging files over the upload zone
+    fileUploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    fileUploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+    });
+
+    fileUploadZone.addEventListener('drop', function(e) {
+        this.classList.remove('drag-over');
+    });
 }
 
 // Drag and drop functionality for resources
@@ -1293,7 +1315,7 @@ function setupResourceDescriptions() {
 document.addEventListener('DOMContentLoaded', function () {
     refresh();
     setupImportButton();
-    setupUploadResource();
+    // Upload resource setup no longer needed - using Gradio's native component
     setupExampleSelection();
     // Delay initial drag and drop setup
     setTimeout(() => {

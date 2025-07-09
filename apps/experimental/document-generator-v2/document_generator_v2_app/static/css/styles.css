@@ -394,10 +394,78 @@
     margin-right: 5px !important;
     gap: 10px !important;
 }
-.upload-resources-btn {
+
+/* File upload dropzone styling */
+.file-upload-dropzone {
     width: 100% !important;
-    height: 30px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    border: 1px dashed #4a9d9e !important;
+    border-radius: 8px !important;
+    background-color: #f8fafa !important;
+    transition: all 0.3s ease !important;
 }
+
+.file-upload-dropzone:hover {
+    border-color: #3a8d8e !important;
+    background-color: #f0f9f9 !important;
+}
+
+/* When dragging files over - match AI content block drag-over effect */
+.file-upload-dropzone.dragging,
+.file-upload-dropzone.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+}
+
+/* Style the file input container */
+.file-upload-dropzone > div {
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Style the label text */
+.file-upload-dropzone label {
+    font-size: 11px !important;
+    color: #666 !important;
+}
+
+/* Make the upload text smaller */
+.file-upload-dropzone .wrap {
+    font-size: 12px !important;
+    padding-top: 5px;
+}
+
+.file-upload-dropzone .wrap .or {
+    font-size: 11px !important;
+    margin: 0 3px !important;
+}
+
+.file-upload-dropzone .feather-upload {
+    width: 90%;
+    height: 90%;
+}
+.file-upload-dropzone .icon-wrap {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 0;
+}
+/* Style the file input button area */
+.file-upload-dropzone .file-preview {
+    display: none !important;
+}
+
+.file-upload-dropzone input[type="file"] {
+    opacity: 0 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+}
+
 .resources-display-area .html-container {
     padding: 0px !important;
 }

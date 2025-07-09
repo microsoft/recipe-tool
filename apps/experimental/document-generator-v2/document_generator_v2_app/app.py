@@ -186,7 +186,7 @@ def reset_document(session_id=None):
     """Reset the document to initial empty state."""
     # Create new session ID
     new_session_id = str(uuid.uuid4())
-    
+
     # Reset to initial blocks
     initial_blocks = [
         {
@@ -208,10 +208,10 @@ def reset_document(session_id=None):
             "indent_level": 0,
         },
     ]
-    
+
     # Generate initial outline
     outline, json_str = regenerate_outline_from_state("", "", [], initial_blocks)
-    
+
     # Return empty title, description, empty resources, initial blocks
     return (
         "",  # title
@@ -1542,17 +1542,9 @@ def create_app():
         with gr.Row():
             # Resources column: Upload Resources button
             with gr.Column(scale=1, elem_classes="resources-col"):
-                # File upload component styled as button
-                gr.Button(
-                    "Upload References",
-                    variant="secondary",
-                    size="sm",
-                    elem_id="upload-resources-btn-id",
-                    elem_classes="upload-resources-btn",
-                )
-
+                # Drag and drop file upload component
                 file_upload = gr.File(
-                    label="Upload References",
+                    label="Drop Text File Here",
                     file_count="multiple",
                     file_types=[
                         ".txt",
@@ -1614,14 +1606,14 @@ def create_app():
                         ".org",
                         ".csv",
                     ],
-                    elem_classes="upload-file-invisible-btn",
-                    visible=False,
+                    elem_classes="file-upload-dropzone",
+                    visible=True,
+                    height=90,
+                    show_label=False,
                 )
 
                 resources_display = gr.HTML(
-                    value="<p style='color: #666; font-size: 12px'>Upload text files here.</p>"
-                    "<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
-                    "<br>"
+                    value="<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
                     "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>",
                     elem_classes="resources-display-area",
                 )
@@ -1977,7 +1969,9 @@ def create_app():
             fn=lambda: [
                 gr.update(interactive=False),  # Disable generate button
                 gr.update(visible=False),  # Hide markdown content
-                gr.update(value="<em></em><br><br><br>", visible=True),  # Show HTML with empty content but structure intact
+                gr.update(
+                    value="<em></em><br><br><br>", visible=True
+                ),  # Show HTML with empty content but structure intact
                 gr.update(interactive=False),  # Disable download button
             ],
             outputs=[generate_doc_btn, generated_content, generated_content_html, save_doc_btn],
