@@ -745,22 +745,24 @@ def update_resource_panel_description(resources, resource_path, new_description,
     return resources, outline, json_str
 
 
-def replace_resource_file(resources, old_resource_path, new_file_path, doc_title, doc_description, blocks, session_id=None):
+def replace_resource_file(
+    resources, old_resource_path, new_file_path, doc_title, doc_description, blocks, session_id=None
+):
     """Replace a resource file with a new one while keeping the same resource key."""
     import shutil
-    
+
     # Get or create session ID
     if not session_id:
         session_id = str(uuid.uuid4())
-    
+
     # Get session files directory
     files_dir = session_manager.get_files_dir(session_id)
-    
+
     # Copy new file to session directory
     new_file_name = os.path.basename(new_file_path)
     session_file_path = files_dir / new_file_name
     shutil.copy2(new_file_path, session_file_path)
-    
+
     # Update the resource and all blocks that use it
     for resource in resources:
         if resource.get("path") == old_resource_path:
@@ -769,7 +771,7 @@ def replace_resource_file(resources, old_resource_path, new_file_path, doc_title
             resource["name"] = new_file_name
             # Keep the existing title - don't update it
             break
-    
+
     # Update all blocks that reference this resource
     for block in blocks:
         if "resources" in block:
@@ -778,13 +780,13 @@ def replace_resource_file(resources, old_resource_path, new_file_path, doc_title
                     block_resource["path"] = str(session_file_path)
                     block_resource["name"] = new_file_name
                     # Keep the existing title - don't update it
-    
+
     # Generate HTML for resources display
     resources_html = generate_resource_html(resources)
-    
+
     # Regenerate outline with updated resources
     outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
-    
+
     # Return updated values including a success flag
     return resources, blocks, gr.update(value=resources_html), outline, json_str, "Resource replaced successfully!"
 
@@ -792,7 +794,19 @@ def replace_resource_file(resources, old_resource_path, new_file_path, doc_title
 def load_example(example_id, session_id=None):
     """Load a predefined example based on the example ID."""
     if not example_id:
-        return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), session_id, gr.update(), gr.update(), gr.update()
+        return (
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            session_id,
+            gr.update(),
+            gr.update(),
+            gr.update(),
+        )
 
     # Map example IDs to file paths - now using .docpack files
     examples_dir = Path(__file__).parent.parent / "examples"
@@ -801,7 +815,7 @@ def load_example(example_id, session_id=None):
         "2": examples_dir / "launch-documentation" / "launch-documentation.docpack",
         "3": examples_dir
         / "scenario-4-annual-performance-review"
-        / "Annual Employee Performance Review_20250708_160552.docpack",
+        / "Annual Employee Performance Review_20250709_153352.docpack",
     }
 
     file_path = example_files.get(example_id)
@@ -1782,11 +1796,72 @@ def create_app():
                     # Hidden components for replacing resource files
                     replace_resource_path = gr.Textbox(visible=False, elem_id="replace-resource-path")
                     replace_resource_file_input = gr.File(
-                        visible=False, 
+                        visible=False,
                         elem_id="replace-resource-file",
-                        file_types=[".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx", ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".rs", ".go", ".rb", ".php", ".pl", ".lua", ".r", ".m", ".swift", ".kt", ".scala", ".clj", ".ex", ".exs", ".elm", ".fs", ".ml", ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less", ".vue", ".svelte", ".astro", ".tex", ".rst", ".adoc", ".org", ".csv"]
+                        file_types=[
+                            ".txt",
+                            ".md",
+                            ".py",
+                            ".c",
+                            ".cpp",
+                            ".h",
+                            ".java",
+                            ".js",
+                            ".ts",
+                            ".jsx",
+                            ".tsx",
+                            ".json",
+                            ".xml",
+                            ".yaml",
+                            ".yml",
+                            ".toml",
+                            ".ini",
+                            ".cfg",
+                            ".conf",
+                            ".sh",
+                            ".bash",
+                            ".zsh",
+                            ".fish",
+                            ".ps1",
+                            ".bat",
+                            ".cmd",
+                            ".rs",
+                            ".go",
+                            ".rb",
+                            ".php",
+                            ".pl",
+                            ".lua",
+                            ".r",
+                            ".m",
+                            ".swift",
+                            ".kt",
+                            ".scala",
+                            ".clj",
+                            ".ex",
+                            ".exs",
+                            ".elm",
+                            ".fs",
+                            ".ml",
+                            ".sql",
+                            ".html",
+                            ".htm",
+                            ".css",
+                            ".scss",
+                            ".sass",
+                            ".less",
+                            ".vue",
+                            ".svelte",
+                            ".astro",
+                            ".tex",
+                            ".rst",
+                            ".adoc",
+                            ".org",
+                            ".csv",
+                        ],
                     )
-                    replace_resource_trigger = gr.Button("Replace Resource", visible=False, elem_id="replace-resource-trigger")
+                    replace_resource_trigger = gr.Button(
+                        "Replace Resource", visible=False, elem_id="replace-resource-trigger"
+                    )
                     replace_success_msg = gr.Textbox(visible=False, elem_id="replace-success-msg")
 
             # Generated document column: Generate and Save Document buttons (aligned right)
@@ -2141,15 +2216,15 @@ def create_app():
             if not new_file:
                 # No file selected, return unchanged
                 return resources, blocks, gr.update(), outline_state.value, json_output.value, ""
-            
+
             # new_file is the file path from Gradio
             new_file_path = new_file if isinstance(new_file, str) else new_file.name
-            
+
             # Call the replace function
             updated_resources, updated_blocks, resources_html, outline, json_str, success_msg = replace_resource_file(
                 resources, old_path, new_file_path, doc_title, doc_description, blocks, session_id
             )
-            
+
             return updated_resources, updated_blocks, resources_html, outline, json_str, success_msg
 
         replace_resource_trigger.click(
@@ -2171,14 +2246,10 @@ def create_app():
                 json_output,
                 replace_success_msg,
             ],
-        ).then(
-            fn=render_blocks, 
-            inputs=[blocks_state, focused_block_state], 
-            outputs=blocks_display
-        ).then(
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display).then(
             # Clear the file input after processing
             fn=lambda: None,
-            outputs=replace_resource_file_input
+            outputs=replace_resource_file_input,
         )
 
     return app
