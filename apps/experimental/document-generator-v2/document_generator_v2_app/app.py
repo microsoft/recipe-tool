@@ -835,7 +835,7 @@ def import_outline(file_path, session_id=None):
         json_data, extracted_files = DocpackHandler.extract_package(file_path, session_dir)
 
         # Extract title and description
-        title = json_data.get("title", "Document Title")
+        title = json_data.get("title", "")
         description = json_data.get("general_instruction", "")
 
         # Extract and validate resources
@@ -1336,7 +1336,7 @@ def handle_file_upload(files, current_resources, title, description, blocks, ses
 
 
 # Global variable to store current document state for download
-current_document_state = {"title": "Document Title", "outline_json": "{}", "blocks": []}
+current_document_state = {"title": "", "outline_json": "{}", "blocks": []}
 
 
 def create_app():
@@ -1385,7 +1385,7 @@ def create_app():
         blocks_state = gr.State(initial_blocks)
 
         # Initialize outline state with empty values
-        initial_outline, initial_json = regenerate_outline_from_state("Document Title", "", [], initial_blocks)
+        initial_outline, initial_json = regenerate_outline_from_state("", "", [], initial_blocks)
         outline_state = gr.State(initial_outline)
 
         with gr.Row():
@@ -1451,7 +1451,7 @@ def create_app():
         with gr.Row(elem_classes="header-section"):
             # Document title (narrower width)
             doc_title = gr.Textbox(
-                value="Document Title",
+                value="",
                 placeholder="Document Title",
                 label=None,
                 show_label=False,
