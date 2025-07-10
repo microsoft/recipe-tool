@@ -974,7 +974,8 @@
 .content-block[data-indent="4"] .indent-controls { left: -155px; padding-right: 155px;}
 .content-block[data-indent="5"] .indent-controls { left: -185px; padding-right: 185px;}
 
-.content-block:hover .indent-controls {
+.content-block:hover .indent-controls,
+.content-block:focus-within .indent-controls {
     opacity: 1;
 }
 
@@ -1145,7 +1146,9 @@
 }
 
 .content-block:hover .delete-btn,
-.content-block:hover .add-btn {
+.content-block:hover .add-btn,
+.content-block:focus-within .delete-btn,
+.content-block:focus-within .add-btn {
     opacity: 1;
 }
 
@@ -1276,7 +1279,8 @@
     color: #2e2e2e;
 }
 
-.content-block:hover .collapse-btn {
+.content-block:hover .collapse-btn,
+.content-block:focus-within .collapse-btn {
     opacity: 1;
 }
 

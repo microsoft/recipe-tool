@@ -214,8 +214,8 @@ def reset_document(session_id=None):
 
     # Return empty title, description, empty resources, initial blocks
     return (
-        "",  # title
-        "",  # description
+        gr.update(value=""),  # title - use gr.update to ensure proper clearing
+        gr.update(value=""),  # description - use gr.update to ensure proper clearing
         [],  # resources
         initial_blocks,  # blocks
         outline,  # outline
@@ -1343,7 +1343,7 @@ def render_blocks(blocks, focused_block_id=None):
                 </div>
                 <div class='block-content {content_class}'>
                     <div class='block-tabs'>
-                        <button class='block-tab active' onclick='convertBlock("{block_id}", "ai")'>AI</button>
+                        <button class='block-tab active' onclick='focusBlockTextarea("{block_id}")'>AI</button>
                         <button class='block-tab' onclick='convertBlock("{block_id}", "text")'>Text</button>
                     </div>
                     <textarea placeholder='Type your AI instruction here...\nThis text will be used for AI content generation.'
@@ -1410,7 +1410,7 @@ def render_blocks(blocks, focused_block_id=None):
                 <div class='block-content {content_class}'>
                     <div class='block-tabs'>
                         <button class='block-tab' onclick='convertBlock("{block_id}", "ai")'>AI</button>
-                        <button class='block-tab active' onclick='convertBlock("{block_id}", "text")'>Text</button>
+                        <button class='block-tab active' onclick='focusBlockTextarea("{block_id}")'>Text</button>
                     </div>
                     <textarea placeholder='Type your text here...\nThis text will be copied into your document.'
                               onfocus='setFocusedBlock("{block_id}", true)'
@@ -1717,6 +1717,9 @@ def create_app():
                     delete_block_id = gr.Textbox(visible=False, elem_id="delete-block-id")
                     delete_trigger = gr.Button("Delete", visible=False, elem_id="delete-trigger")
 
+                    # Hidden HTML for JavaScript execution
+                    js_executor = gr.HTML(visible=False)
+
                     # Hidden components for content updates
                     update_block_id = gr.Textbox(visible=False, elem_id="update-block-id")
                     update_content_input = gr.Textbox(visible=False, elem_id="update-content-input")
@@ -1954,7 +1957,10 @@ def create_app():
                 generated_content,
                 save_doc_btn,
             ],
-        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display).then(
+            fn=lambda: gr.update(value="<script>setTimeout(resetDocumentDescription, 100);</script>"),
+            outputs=js_executor,
+        )
 
         # Delete block handler
         delete_trigger.click(

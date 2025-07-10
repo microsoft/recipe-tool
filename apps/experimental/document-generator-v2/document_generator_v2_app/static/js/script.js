@@ -264,6 +264,32 @@ document.addEventListener('DOMContentLoaded', function () {
     setupAutoExpand();
 });
 
+// Reset document description on new document
+function resetDocumentDescription() {
+    const docDescriptionBox = document.querySelector('.doc-description-box');
+    const docDescriptionTextarea = document.querySelector('#doc-description-id textarea');
+    
+    if (docDescriptionBox && docDescriptionTextarea) {
+        // Clear the textarea value
+        docDescriptionTextarea.value = '';
+        
+        // Ensure the box is collapsed
+        if (!docDescriptionBox.classList.contains('collapsed')) {
+            docDescriptionBox.classList.add('collapsed');
+        }
+        
+        // Reset the textarea height
+        docDescriptionTextarea.style.height = 'auto';
+        autoExpandTextarea(docDescriptionTextarea);
+        
+        // Hide the expand button
+        const expandBtn = docDescriptionBox.querySelector('.desc-expand-btn');
+        if (expandBtn) {
+            expandBtn.style.display = 'none';
+        }
+    }
+}
+
 // Track if we're dragging from an external source
 let isDraggingFromExternal = false;
 
@@ -577,8 +603,29 @@ function convertBlock(blockId, toType) {
                 const convertBtn = document.getElementById('convert-trigger');
                 if (convertBtn) {
                     convertBtn.click();
+                    // Focus the textarea after conversion
+                    setTimeout(() => {
+                        const block = document.querySelector(`[data-id="${blockId}"]`);
+                        if (block) {
+                            const textarea = block.querySelector('textarea');
+                            if (textarea) {
+                                textarea.focus();
+                            }
+                        }
+                    }, 200);
                 }
             }, 100);
+        }
+    }
+}
+
+// Focus textarea within a block
+function focusBlockTextarea(blockId) {
+    const block = document.querySelector(`[data-id="${blockId}"]`);
+    if (block) {
+        const textarea = block.querySelector('textarea');
+        if (textarea) {
+            textarea.focus();
         }
     }
 }
