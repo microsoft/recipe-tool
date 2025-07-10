@@ -1905,33 +1905,36 @@ def create_app():
                                         f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>'
                                     )
 
-                                    with gr.Row():
-                                        with gr.Column(scale=9):
+                                    with gr.Row(elem_classes="resource-row-gradio"):
+                                        with gr.Column(scale=1, elem_classes="resource-info-col"):
                                             # Resource title
                                             resource_title = gr.Textbox(
                                                 value=resource.get("title", resource["name"]),
                                                 placeholder="Title",
                                                 label=None,
+                                                show_label=False,
                                                 elem_classes="resource-title-gradio",
                                                 scale=1,
                                             )
+
+                                            delete_btn = gr.Button("🗑", elem_classes="resource-delete-btn", size="sm")
 
                                             # Resource description
                                             resource_desc = gr.Textbox(
                                                 value=resource.get("description", ""),
                                                 placeholder="Add a description for this resource...",
                                                 label=None,
+                                                show_label=False,
                                                 elem_classes="resource-desc-gradio",
                                                 lines=2,
                                                 scale=1,
                                             )
 
                                             # Filename display
-                                            gr.HTML(f'<div class="resource-filename">{resource["name"]}</div>')
-
-                                        with gr.Column(scale=1):
-                                            # Delete button
-                                            delete_btn = gr.Button("🗑", elem_classes="resource-delete-btn", size="sm")
+                                            gr.HTML(
+                                                elem_classes="resource-filename",
+                                                value=f"<div>  {resource['name']}</div>",
+                                            )
 
                                     # File replacement upload area
                                     replace_file = gr.File(
@@ -1998,6 +2001,7 @@ def create_app():
                                         ],
                                         elem_classes="resource-upload-gradio",
                                         scale=1,
+                                        show_label=False,
                                     )
 
                                     # Connect events for this resource

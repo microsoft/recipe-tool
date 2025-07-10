@@ -600,6 +600,7 @@ const observer = new MutationObserver(function(mutations) {
             setupExampleSelection();
             setupResourceDescriptions();
             setupResourceUploadZones();
+            setupResourceUploadText();
             preventResourceDrops();
         }, 100);
     }
@@ -1118,6 +1119,9 @@ function setupFileUploadDragAndDrop() {
 
     // Stop observing after 5 seconds to avoid performance issues
     setTimeout(() => observer.disconnect(), 5000);
+
+    // Also setup resource upload zones
+    setupResourceUploadText();
 
     // Add drag-over class when dragging files over the upload zone
     let dragCounter = 0;
@@ -1903,6 +1907,78 @@ function preventResourceDrops() {
     });
 }
 
+// Function to setup resource upload text
+function setupResourceUploadText() {
+    // Function to replace the text in resource upload zones
+    function replaceResourceUploadText() {
+        const resourceUploadZones = document.querySelectorAll('.resource-upload-gradio');
+        
+        resourceUploadZones.forEach(zone => {
+            // Find all text nodes and remove default Gradio text
+            const wrapDivs = zone.querySelectorAll('.wrap');
+            wrapDivs.forEach(wrapDiv => {
+                // Hide the icon
+                const icon = wrapDiv.querySelector('.icon-wrap');
+                if (icon) {
+                    icon.style.display = 'none';
+                }
+                
+                // Replace the text content and remove spans with "- or -"
+                wrapDiv.childNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.textContent;
+                        if (text.includes('Drop File Here') || text.includes('Click to Upload') || text.includes('- or -')) {
+                            node.textContent = '';
+                        }
+                    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
+                        // Check if span contains "- or -" or other unwanted text
+                        if (node.textContent.includes('- or -') || 
+                            node.textContent.includes('Drop File Here') || 
+                            node.textContent.includes('Click to Upload')) {
+                            node.style.display = 'none';
+                        }
+                    }
+                });
+                
+                // Also hide any .or class spans
+                const orSpans = wrapDiv.querySelectorAll('.or, span.or');
+                orSpans.forEach(span => {
+                    span.style.display = 'none';
+                });
+                
+                // Add our custom text if not already present
+                if (!wrapDiv.querySelector('.custom-upload-text')) {
+                    const customText = document.createElement('span');
+                    customText.className = 'custom-upload-text';
+                    customText.textContent = 'Drop file here to replace';
+                    customText.style.fontSize = '11px';
+                    customText.style.color = '#666';
+                    wrapDiv.appendChild(customText);
+                }
+            });
+        });
+    }
+
+    // Try to replace immediately
+    replaceResourceUploadText();
+
+    // Watch for changes in resource areas
+    const resourcesArea = document.querySelector('.resources-display-area');
+    if (resourcesArea) {
+        const observer = new MutationObserver((mutations) => {
+            replaceResourceUploadText();
+        });
+
+        observer.observe(resourcesArea, {
+            childList: true,
+            subtree: true
+        });
+
+        // Stop observing after 10 seconds
+        setTimeout(() => observer.disconnect(), 10000);
+    }
+}
+
 // Setup drag and drop for resource upload zones
 function setupResourceUploadZones() {
     const uploadZones = document.querySelectorAll('.resource-upload-zone');
@@ -1978,8 +2054,9 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         setupDragAndDrop();
         setupResourceDescriptions();
-        setupResourceTitleObservers()
+        setupResourceTitleObservers();
         setupResourceUploadZones();
+        setupResourceUploadText();
         preventResourceDrops();
     }, 100);
 });

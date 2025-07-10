@@ -472,10 +472,11 @@
     padding: 0px !important;
 }
 
-.resource-item {
+.resource-item,
+.resource-item-gradio {
     padding: 6px;
     margin-bottom: 4px;
-    background-color: #f5f5f5; /* Light gray background */
+    background-color: #f5f5f5 !important; /* Light gray background */
     border: 1px solid;
     border-color: #4a9d9e !important; /* Keep teal-green border */
     border-radius: 4px;
@@ -489,7 +490,8 @@
 .resource-content {
     width: 100%;
 }
-.resource-item.dragging {
+.resource-item.dragging,
+.resource-item-gradio.dragging {
     opacity: 0.5;
     cursor: grabbing;
 }
@@ -527,6 +529,171 @@
     /* No padding change to prevent size shift */
 }
 
+/* Gradio resource title styling */
+.resource-info-col.form {
+    border: 0;
+    background: #f5f5f5 !important;
+}
+
+/* Ensure the info column itself has the right background */
+.resource-info-col {
+    background: #f5f5f5 !important;
+}
+
+
+/* Remove the extra filename alignment rules */
+
+.resource-title-gradio {
+    padding: 0;
+    padding-right: 26px;
+    border: 0;
+    background: transparent;
+}
+
+.resource-title-gradio.show-textbox-border {
+    border: 0;
+}
+
+.resource-title-gradio input {
+    background: white !important;
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+    margin: 0 !important;
+    outline: none !important;
+    cursor: text;
+    user-select: text;
+    font-family: inherit !important;
+    border-radius: 2px !important;
+    font-weight: bold !important;
+    width: 100% !important;
+    min-height: unset !important;
+    height: 24px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+.resource-title-gradio input:hover {
+    border-color: #ccc !important;
+}
+
+.resource-title-gradio input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.resource-desc-gradio {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.resource-desc-gradio textarea {
+    width: 100% !important;
+    min-height: 32px !important;
+    max-height: 180px !important;
+    padding: 4px 6px !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 3px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    font-family: inherit !important;
+    resize: none !important;
+    overflow-y: hidden !important;
+    background: white !important;
+    transition: height 0.1s ease, border-color 0.2s ease !important;
+    cursor: text;
+    user-select: text;
+    margin-top: 4px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+.resource-desc-gradio textarea:hover {
+    border-color: #ccc !important;
+}
+
+.resource-desc-gradio textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.resource-desc-gradio textarea::placeholder {
+    color: #999 !important;
+    font-style: italic !important;
+}*/
+
+
+/* Resource filename styling */
+.resource-filename {
+    font-size: 9px !important;
+    color: #666 !important;
+    margin: 4px -6px -6px -6px !important; /* Extend to edges of container */
+    padding: 4px 6px !important;
+    font-family: monospace !important;
+    line-height: 1.2 !important;
+    background-color: #f5f5f5 !important; /* Same as resource-item background */
+}
+
+/* Target any child elements inside resource-filename */
+.resource-filename * {
+    font-size: inherit !important;
+}
+
+/* If Gradio wraps the text in a p or span */
+.block.resource-filename div {
+    font-size: 9px !important;
+    margin: 0 !important;
+    margin-left: 4px;
+    margin-top: 4px;
+    padding: 0 !important;
+    text-align: left !important;
+    color: #666 !important;
+    font-family: monospace !important;
+}
+
+/* Gradio resource upload zone */
+.resource-upload-gradio {
+    margin-top: 4px !important;
+    min-height: 32px !important;
+    border: 1px dashed #4a9d9e !important;
+    border-radius: 4px !important;
+    background-color: #f8fafa !important;
+    transition: all 0.3s ease !important;
+}
+
+.resource-upload-gradio:hover {
+    border-color: #3a8d8e !important;
+    background-color: #f0f9f9 !important;
+}
+
+.resource-upload-gradio.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+}
+
+/* Style the Gradio file upload component inside resource */
+.resource-upload-gradio .wrap {
+    min-height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    color: #666 !important;
+    padding: 4px !important;
+}
+
+.resource-upload-gradio .icon-wrap {
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 4px !important;
+}
+
+/* Hide file preview in resource upload */
+.resource-upload-gradio .file-preview {
+    display: none !important;
+}
+
 /* Delete button for resources in panel */
 .resource-delete {
     cursor: pointer;
@@ -539,12 +706,83 @@
     flex-shrink: 0;
 }
 
-.resource-item:hover .resource-delete {
+.resource-item:hover .resource-delete,
+.resource-item-gradio:hover .resource-delete {
     opacity: 1;
 }
 
 .resource-delete:hover {
     color: #ff5252;
+}
+
+/* Gradio resource delete button styling */
+.resource-delete-btn {
+    position: absolute !important;
+    top: 1px !important;
+    right: 1px !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    padding: 0 !important;
+    background-color: #f5f5f5 !important;
+    border: 1px solid #d0d0d0 !important;
+    border-radius: 3px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    transition: opacity 0.2s ease, background-color 0.2s ease !important;
+    opacity: 1 !important;
+    z-index: 10 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Override Gradio button styles for delete button */
+.resource-item-gradio .resource-delete-btn.svelte-1pjfiar,
+.resource-item-gradio .resource-delete-btn {
+    box-shadow: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+}
+
+.resource-delete-btn:hover {
+    background-color: #ff6b6b !important;
+    border-color: #ff5252 !important;
+    color: white !important;
+}
+
+/* Ensure the button's parent column doesn't interfere */
+.resource-item-gradio > .form > .wrap > .wrap > div:last-child {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Make the resource group relative positioned for absolute button */
+.resource-item-gradio {
+    position: relative !important;
+    background: #f5f5f5 !important;
+    overflow: visible !important; /* Allow button to extend outside */
+}
+
+/* Ensure all Gradio wrapper elements have the right background */
+.resource-item-gradio > div,
+.resource-item-gradio > .form,
+.resource-item-gradio > .form > .wrap,
+.resource-item-gradio > .form > .wrap > .wrap {
+    background: #f5f5f5 !important;
+}
+
+/* Adjust the resource row to not interfere with absolute button */
+.resource-row-gradio {
+    background: #f5f5f5 !important;
+}
+
+/* Target any form elements inside resource items */
+.resource-item-gradio .form {
+    background: #f5f5f5 !important;
 }
 
 /* Resource description container */
@@ -785,16 +1023,7 @@
     color: #999;
 }
 
-/* Resource filename display */
-.resource-filename {
-    font-size: 10px;
-    color: #666;
-    margin: 0 6px 4px 6px;
-    font-family: monospace;
-    word-wrap: break-word;
-    word-break: break-all;
-    line-height: 1.3;
-}
+
 
 /* Resource upload zone styles */
 .resource-upload-zone {
