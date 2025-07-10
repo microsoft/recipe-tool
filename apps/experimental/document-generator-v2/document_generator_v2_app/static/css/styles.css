@@ -397,6 +397,11 @@
     gap: 10px !important;
 }
 
+/* Reduce gap between resource items */
+.resources-display-area > div {
+    gap: 4px !important;
+}
+
 /* File upload dropzone styling */
 .file-upload-dropzone {
     width: 100% !important;
@@ -470,6 +475,10 @@
 
 .resources-display-area .html-container {
     padding: 0px !important;
+}
+
+.resources-display-area {
+    gap: 5px !important;
 }
 
 .resource-item,
@@ -586,13 +595,14 @@
     padding: 0;
     border: 0;
     background: transparent;
+    position: relative;
 }
 
 .resource-desc-gradio textarea {
     width: 100% !important;
     min-height: 32px !important;
     max-height: 180px !important;
-    padding: 4px 6px !important;
+    padding: 4px 16px 4px 6px !important;
     border: 1px solid #e0e0e0 !important;
     border-radius: 3px !important;
     font-size: 11px !important;
@@ -616,11 +626,98 @@
 .resource-desc-gradio textarea:focus {
     outline: none !important;
     box-shadow: none !important;
+
 }
 
 .resource-desc-gradio textarea::placeholder {
     color: #999 !important;
-    font-style: italic !important;
+    font-style: italic !important
+}
+
+/* Show scrollbar only when content exceeds max-height */
+.resource-desc-gradio textarea.scrollable {
+    overflow-y: auto !important;
+    scrollbar-width: auto !important; /* Firefox - normal width */
+    -ms-overflow-style: auto !important; /* IE */
+    padding: 4px 0px 4px 6px !important;
+}
+
+/* Ensure webkit scrollbar is visible for resource description */
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar {
+    width: 16px !important;
+    display: block !important;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-right: 5px;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-thumb {
+    background: #999999;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 8px;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a;
+    cursor: default !important;
+    border: 3px solid transparent !important;
+    background-clip: content-box !important;
+}
+
+/* Collapsed state for resource description */
+.resource-desc-gradio.collapsed textarea {
+    overflow: hidden !important;
+    max-height: 32px !important;
+    cursor: text !important;
+}
+
+/* Description expand button in resource description */
+.resource-desc-gradio .desc-expand-btn {
+    position: absolute;
+    top: 0px;
+    right: 3px;
+    width: 14px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 20px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.resource-desc-gradio .desc-expand-btn:hover {
+    color: #666;
+}
+
+.resource-desc-gradio .desc-expand-btn:focus {
+    outline: none;
+}
+
+/* Rotate chevron for expanded state to match doc description */
+.resource-desc-gradio:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+    top: 4px;
+    right: 2px;
+}
+
+.resource-desc-gradio.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    top: 2px; /* Match doc description positioning */
+    right: 2px;
 }*/
 
 
