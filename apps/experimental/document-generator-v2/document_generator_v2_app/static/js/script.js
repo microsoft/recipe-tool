@@ -1144,24 +1144,12 @@ function setupDragAndDrop() {
         // Make sure the item is draggable
         item.setAttribute('draggable', 'true');
         
-        // Try to extract resource data and store it on the element
+        // Just store the path on the element for reference during drag
         const pathHidden = item.querySelector('.resource-path-hidden');
-        const filenameDiv = item.querySelector('.resource-filename');
-        const titleTextarea = item.querySelector('.resource-title-gradio textarea');
-        const descTextarea = item.querySelector('.resource-desc-gradio textarea');
-        
-        if (pathHidden && filenameDiv) {
-            const resourceData = {
-                path: pathHidden.getAttribute('data-path') || pathHidden.textContent.trim(),
-                name: filenameDiv.textContent.trim(),
-                title: titleTextarea ? titleTextarea.value : filenameDiv.textContent.trim(),
-                description: descTextarea ? descTextarea.value : '',
-                type: 'text'
-            };
-            
-            // Store resource data on the element
-            item.dataset.resourceData = JSON.stringify(resourceData);
-            console.log(`Resource ${index} data:`, resourceData);
+        if (pathHidden) {
+            const path = pathHidden.getAttribute('data-path') || pathHidden.textContent.trim();
+            item.dataset.resourcePath = path;
+            console.log(`Resource ${index} path:`, path);
         }
         
         // Also make child elements not draggable to prevent conflicts
@@ -1232,60 +1220,46 @@ function handleDragStart(e) {
     if (resourceElement) {
         console.log('Resource element found:', resourceElement);
         
-        // Try to get stored resource data first
-        if (resourceElement.dataset.resourceData) {
-            try {
-                draggedResource = JSON.parse(resourceElement.dataset.resourceData);
-                console.log('Using stored resource data:', draggedResource);
-            } catch (e) {
-                console.error('Error parsing stored resource data:', e);
-            }
+        // Always extract current values dynamically to get latest updates
+        console.log('Extracting current resource data...');
+        
+        // Look for elements - Gradio might have nested structures
+        const titleInput = resourceElement.querySelector('.resource-title-gradio input[type="text"], .resource-title-gradio textarea');
+        const descInput = resourceElement.querySelector('.resource-desc-gradio textarea');
+        const pathDiv = resourceElement.querySelector('.resource-path-hidden');
+        const filenameDiv = resourceElement.querySelector('.resource-filename');
+        
+        // Debug logging
+        console.log('Title input found:', !!titleInput);
+        if (titleInput) {
+            console.log('Title input type:', titleInput.tagName);
+            console.log('Title value:', titleInput.value);
         }
         
-        // If no stored data, try to extract it dynamically
-        if (!draggedResource) {
-            console.log('No stored data, trying to extract dynamically...');
+        console.log('Found elements:', {
+            titleInput: !!titleInput,
+            descInput: !!descInput,
+            pathDiv: !!pathDiv,
+            filenameDiv: !!filenameDiv
+        });
+        
+        if (pathDiv && filenameDiv) {
+            const path = pathDiv.getAttribute('data-path') || pathDiv.textContent.trim();
+            const filename = filenameDiv.textContent.trim();
+            // Get title from input/textarea value, fallback to filename
+            const title = titleInput && titleInput.value ? titleInput.value.trim() : filename;
+            const description = descInput && descInput.value ? descInput.value.trim() : '';
             
-            // Look for elements in any order/structure
-            const titleTextarea = resourceElement.querySelector('textarea');
-            const descTextarea = resourceElement.querySelectorAll('textarea')[1]; // Second textarea
-            const allDivs = resourceElement.querySelectorAll('div');
-            
-            let pathDiv = null;
-            let filenameDiv = null;
-            
-            // Find the divs with our specific content
-            allDivs.forEach(div => {
-                if (div.className === 'resource-path-hidden') {
-                    pathDiv = div;
-                }
-                if (div.className === 'resource-filename') {
-                    filenameDiv = div;
-                }
-            });
-            
-            console.log('Found after search:', {
-                titleTextarea: !!titleTextarea,
-                descTextarea: !!descTextarea,
-                pathDiv: !!pathDiv,
-                filenameDiv: !!filenameDiv
-            });
-            
-            if (pathDiv && filenameDiv) {
-                const path = pathDiv.getAttribute('data-path') || pathDiv.textContent.trim();
-                const filename = filenameDiv.textContent.trim();
-                const title = titleTextarea ? titleTextarea.value : filename;
-                const description = descTextarea ? descTextarea.value : '';
-                
-                draggedResource = {
-                    name: filename,
-                    title: title,
-                    path: path,
-                    type: 'text',
-                    description: description
-                };
-                console.log('Dynamically extracted resource:', draggedResource);
-            }
+            draggedResource = {
+                name: filename,
+                title: title,
+                path: path,
+                type: 'text',
+                description: description
+            };
+            console.log('Dynamically extracted resource:', draggedResource);
+            console.log('Title being sent:', title);
+            console.log('Filename being sent:', filename);
         }
         
         if (draggedResource) {
