@@ -177,45 +177,19 @@ function expandBlockOnHeadingFocus(blockId) {
 
 // Auto-expand textarea function
 function autoExpandTextarea(textarea) {
-    // Store current scroll position of workspace
-    const workspace = document.querySelector('.workspace-display');
-
-    // Store the current height before changing
-    const oldHeight = textarea.offsetHeight;
-
-    // Reset height to auto to get the correct scrollHeight
-    textarea.style.height = 'auto';
-
-    // Set height to scrollHeight plus a small buffer
-    const newHeight = textarea.scrollHeight + 2;
-
-    // Check if this is the description textarea
-    const isDescription = textarea.closest('#doc-description-id');
-    if (isDescription) {
-        // Calculate max height for 10 lines
-        const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
-        const padding = parseInt(window.getComputedStyle(textarea).paddingTop) +
-                       parseInt(window.getComputedStyle(textarea).paddingBottom);
-        const tenLinesHeight = (lineHeight * 10) + padding;
-
-        // First check if content would exceed 10 lines (show scrollbar when starting 11th line)
-        const wouldExceedTenLines = newHeight > tenLinesHeight;
-
-        // Set max-height to exactly 10 lines
-        textarea.style.maxHeight = tenLinesHeight + 'px';
-
-        // Set height to min of scrollHeight or 10 lines height
-        textarea.style.height = Math.min(newHeight, tenLinesHeight) + 'px';
-
-        // Add scrollable class if content exceeds 10 lines
-        if (wouldExceedTenLines) {
-            textarea.classList.add('scrollable');
-        } else {
-            textarea.classList.remove('scrollable');
-        }
-    } else {
-        textarea.style.height = newHeight + 'px';
+    // Skip document description - it's handled by setupDescriptionToggle
+    const isDocDescription = textarea.closest('#doc-description-id');
+    if (isDocDescription) {
+        return;
     }
+    
+    // For other textareas, use height-based method
+    textarea.style.height = 'auto';
+    const newHeight = textarea.scrollHeight + 2;
+    textarea.style.height = newHeight + 'px';
+    textarea.style.maxHeight = '';
+    textarea.style.overflow = 'hidden';
+    textarea.classList.remove('scrollable');
 }
 
 // Setup auto-expand for all textareas
@@ -247,13 +221,8 @@ function setupAutoExpand() {
     // Special handling for the document description to ensure proper initial height
     const docDescription = document.querySelector('#doc-description-id textarea');
     if (docDescription) {
-        // Set minimum height for 2 lines
-        const lineHeight = parseInt(window.getComputedStyle(docDescription).lineHeight);
-        const padding = parseInt(window.getComputedStyle(docDescription).paddingTop) +
-                       parseInt(window.getComputedStyle(docDescription).paddingBottom);
-        const minHeight = (lineHeight * 2) + padding;
-        docDescription.style.minHeight = minHeight + 'px';
-        autoExpandTextarea(docDescription);
+        // Remove the watcher - it's causing issues
+        // The setupDescriptionToggle handles everything needed
     }
 }
 
@@ -945,28 +914,49 @@ function setupDescriptionToggle() {
         return firstTwo;
     }
 
-    // Function to check if button should be visible and handle scrollbar
+    // Function to check if button should be visible
     function checkButtonVisibility() {
-        const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
-        const padding = parseInt(window.getComputedStyle(textarea).paddingTop) +
-                       parseInt(window.getComputedStyle(textarea).paddingBottom);
-        const twoLinesHeight = (lineHeight * 2) + padding;
-
+        if (isCollapsed) return;
+        
+        // Count actual lines in the textarea
+        const lines = textarea.value.split('\n');
+        let totalLines = lines.length; // Start with actual line breaks
+        
+        // Add wrapped lines - estimate ~80 chars per line for wider doc description
+        lines.forEach((line, index) => {
+            if (line.length > 80) {
+                // Add extra lines for wrapping
+                totalLines += Math.floor(line.length / 80);
+            }
+        });
+        
+        console.log('Doc desc - lines:', lines.length, 'totalLines:', totalLines);
+        
         // Show button if content exceeds 2 lines
-        if (textarea.scrollHeight > twoLinesHeight && !isCollapsed) {
+        if (totalLines > 2) {
             button.style.display = 'block';
-        } else if (!isCollapsed) {
+        } else {
             button.style.display = 'none';
         }
-
-        // Add scrollable class if content exceeds 10 lines
-        const tenLinesHeight = (lineHeight * 10) + padding;
-        // Check if we're starting the 11th line
-        if (!isCollapsed && textarea.scrollHeight > tenLinesHeight) {
-            textarea.classList.add('scrollable');
-        } else {
-            textarea.classList.remove('scrollable');
+        
+        // Set rows attribute based on content, no max
+        let rowsToShow = Math.max(2, totalLines);
+        
+        // Add 1 extra row if we have 3 or more rows for breathing room
+        if (rowsToShow >= 3) {
+            rowsToShow += 1;
         }
+        
+        console.log('Setting rows to:', rowsToShow);
+        
+        textarea.rows = rowsToShow;
+        textarea.style.height = 'auto'; // Use auto instead of empty string
+        textarea.style.minHeight = 'auto';
+        textarea.style.maxHeight = 'none';
+        textarea.style.overflow = 'hidden';
+        
+        // Never add scrollable class
+        textarea.classList.remove('scrollable');
     }
 
     // Toggle collapse/expand
@@ -979,25 +969,15 @@ function setupDescriptionToggle() {
         if (isCollapsed) {
             // Expand - restore full text
             textarea.value = fullText;
-            textarea.style.height = 'auto';
-            // Calculate 10 lines height
-            const calcLineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight);
-            const calcPadding = parseInt(window.getComputedStyle(textarea).paddingTop) +
-                               parseInt(window.getComputedStyle(textarea).paddingBottom);
-            const tenLinesHeight = (calcLineHeight * 10) + calcPadding;
-
-            textarea.style.maxHeight = tenLinesHeight + 'px';
-            textarea.style.overflow = '';  // Reset to CSS default
+            textarea.style.height = ''; // Clear height
+            textarea.style.maxHeight = ''; // Remove max height
+            textarea.style.overflow = 'hidden'; // No scrollbars
             container.classList.remove('collapsed');
             button.innerHTML = '⌵';
             button.title = 'Collapse';
             isCollapsed = false;
-            textarea.classList.remove('scrollable'); // Remove scrollable class first
-            autoExpandTextarea(textarea);
-            // Check if scrollbar is needed after expansion
-            if (textarea.scrollHeight > tenLinesHeight) {
-                textarea.classList.add('scrollable');
-            }
+            textarea.classList.remove('scrollable'); // Remove scrollable class
+            checkButtonVisibility(); // Use checkButtonVisibility like resources
             // Keep focus without moving cursor
             textarea.focus();
 
@@ -1007,8 +987,9 @@ function setupDescriptionToggle() {
             // Collapse - save full text and show only first 2 lines
             fullText = textarea.value;
             textarea.value = getFirstTwoLines(fullText);
-            textarea.style.height = twoLinesHeight + 'px';
-            textarea.style.maxHeight = twoLinesHeight + 'px';
+            textarea.rows = 2; // Force 2 rows
+            textarea.style.height = ''; // Let rows control height
+            textarea.style.maxHeight = ''; // Clear max height
             textarea.style.overflow = 'hidden';
             container.classList.add('collapsed');
             button.innerHTML = '⌵';  // Same chevron, will rotate with CSS
@@ -1042,11 +1023,22 @@ function setupDescriptionToggle() {
 
     // Check on input
     textarea.addEventListener('input', () => {
-        checkButtonVisibility();
-        // Auto-expand if typing while collapsed
-        if (isCollapsed) {
+        // Only update if not collapsed (unless typing to expand)
+        if (!isCollapsed) {
+            checkButtonVisibility();
+        } else if (textarea.value !== getFirstTwoLines(fullText)) {
+            // If collapsed and user is typing (not just the truncated value), expand
             toggleCollapse();
         }
+    });
+    
+    // Also handle paste
+    textarea.addEventListener('paste', function() {
+        setTimeout(() => {
+            if (!isCollapsed) {
+                checkButtonVisibility();
+            }
+        }, 10);
     });
 
     // Initial check
@@ -1499,6 +1491,12 @@ function setupExampleSelection() {
                         const loadExampleBtn = document.getElementById('load-example-trigger');
                         if (loadExampleBtn) {
                             loadExampleBtn.click();
+                            
+                            // Re-setup resource descriptions after loading
+                            setTimeout(() => {
+                                setupResourceDescriptions();
+                                // Doc description will be handled by the interval watcher
+                            }, 500);
                         }
                     }, 100);
                 }
@@ -1703,6 +1701,188 @@ function toggleResourceDescription(resourceId) {
 
 // Setup auto-expand for resource descriptions
 function setupResourceDescriptions() {
+    // Handle Gradio resource descriptions
+    const gradioDescTextareas = document.querySelectorAll('.resource-desc-gradio textarea');
+    
+    gradioDescTextareas.forEach(textarea => {
+        const container = textarea.closest('.resource-desc-gradio');
+        if (!container || container.dataset.toggleSetup) {
+            return;
+        }
+        
+        // Mark as setup
+        container.dataset.toggleSetup = 'true';
+        
+        // Create expand/collapse button
+        const button = document.createElement('button');
+        button.className = 'desc-expand-btn';
+        button.innerHTML = '⌵'; // Down chevron
+        button.title = 'Collapse';
+        button.style.display = 'none'; // Hidden by default
+        
+        // Add button to container
+        container.appendChild(button);
+        
+        // Track collapsed state and full text
+        let isCollapsed = false;
+        let fullText = '';
+        
+        // Function to get first two lines of text
+        function getFirstTwoLines(text) {
+            const lines = text.split('\n');
+            
+            // Always show exactly 2 lines
+            if (lines.length === 1) {
+                // If only one line, just return it with ellipsis if it's long
+                return lines[0].length > 50 ? lines[0].substring(0, 47) + '...' : lines[0];
+            } else if (lines.length >= 2) {
+                // Get exactly first two lines
+                const firstLine = lines[0];
+                const secondLine = lines[1];
+                
+                // If there are more than 2 lines or the second line is long, add ellipsis
+                if (lines.length > 2 || secondLine.length > 50) {
+                    // Truncate second line if needed to make room for ellipsis
+                    const truncatedSecond = secondLine.length > 47 ? secondLine.substring(0, 47) : secondLine;
+                    return firstLine + '\n' + truncatedSecond + '...';
+                } else {
+                    return firstLine + '\n' + secondLine;
+                }
+            }
+            
+            return text;
+        }
+        
+        // Function to check if button should be visible
+        function checkButtonVisibility() {
+            if (isCollapsed) return;
+            
+            // Count actual lines in the textarea
+            const lines = textarea.value.split('\n');
+            let totalLines = lines.length; // Start with actual line breaks
+            
+            // Add wrapped lines - more accurate estimation
+            // Resource panel is narrower, estimate ~35 chars per line at 11px font
+            lines.forEach((line, index) => {
+                if (line.length > 35) {
+                    // Add extra lines for wrapping
+                    totalLines += Math.floor(line.length / 35);
+                }
+            });
+            
+            // Show button if content exceeds 2 lines
+            if (totalLines > 2) {
+                button.style.display = 'block';
+            } else {
+                button.style.display = 'none';
+            }
+            
+            // Set rows attribute based on content, no max
+            let rowsToShow = Math.max(2, totalLines);
+            
+            // Add 1 extra row if we have 3 or more rows for breathing room
+            if (rowsToShow >= 3) {
+                rowsToShow += 1;
+            }
+            
+            textarea.rows = rowsToShow;
+            textarea.style.height = ''; // Let rows attribute control height
+            textarea.style.minHeight = ''; // Clear any min-height
+            textarea.style.maxHeight = ''; // Clear any max-height
+            textarea.style.overflow = 'hidden'; // No scrollbars
+            
+            // Never add scrollable class
+            textarea.classList.remove('scrollable');
+        }
+        
+        // Toggle collapse/expand
+        function toggleCollapse() {
+            if (isCollapsed) {
+                // Expand
+                textarea.value = fullText;
+                textarea.style.height = ''; // Clear height to let rows control it
+                container.classList.remove('collapsed');
+                button.innerHTML = '⌵';
+                button.title = 'Collapse';
+                isCollapsed = false;
+                // Don't set rows to null - let checkButtonVisibility set it
+                checkButtonVisibility();
+                textarea.focus();
+                
+                // Trigger input event to update Gradio's state
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                // Collapse
+                fullText = textarea.value;
+                textarea.value = getFirstTwoLines(fullText);
+                textarea.rows = 2; // Force exactly 2 rows
+                textarea.style.height = ''; // Let rows attribute control height
+                container.classList.add('collapsed');
+                button.innerHTML = '⌵';
+                button.title = 'Expand';
+                isCollapsed = true;
+                textarea.classList.remove('scrollable');
+                textarea.blur();
+            }
+        }
+        
+        // Button click handler
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleCollapse();
+        });
+        
+        // Click on collapsed textarea to expand
+        textarea.addEventListener('click', (e) => {
+            if (isCollapsed) {
+                const cursorPos = textarea.selectionStart;
+                toggleCollapse();
+                setTimeout(() => {
+                    textarea.setSelectionRange(cursorPos, cursorPos);
+                }, 0);
+            }
+        });
+        
+        // Check on input
+        textarea.addEventListener('input', () => {
+            checkButtonVisibility();
+            if (isCollapsed) {
+                toggleCollapse();
+            }
+        });
+        
+        // Initial check
+        checkButtonVisibility();
+        
+        // If textarea has initial content, ensure proper display
+        if (textarea.value && textarea.value.split('\n').length > 2) {
+            checkButtonVisibility();
+        }
+        
+        // Watch for value changes (e.g., from imports)
+        const observer = new MutationObserver(() => {
+            if (!isCollapsed && textarea.value !== fullText) {
+                checkButtonVisibility();
+            }
+        });
+        
+        observer.observe(textarea, {
+            attributes: true,
+            attributeFilter: ['value']
+        });
+        
+        // Also listen for programmatic value changes
+        let lastValue = textarea.value;
+        setInterval(() => {
+            if (textarea.value !== lastValue && !isCollapsed) {
+                lastValue = textarea.value;
+                checkButtonVisibility();
+            }
+        }, 500);
+    });
+
+    // Also handle the old panel descriptions if they exist
     const descTextareas = document.querySelectorAll('.resource-panel-description');
 
     descTextareas.forEach(textarea => {

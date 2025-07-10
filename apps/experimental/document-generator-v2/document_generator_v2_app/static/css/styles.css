@@ -243,54 +243,11 @@
     font-size: 13px !important;
     line-height: 1.4 !important;
     resize: none !important; /* Disable manual resize since we auto-expand */
-    overflow-y: hidden; /* Hide scrollbar by default */
-    max-height: 190px !important; /* ~10 lines with 13px * 1.4 line-height + padding */
-    transition: height 0.1s ease;
+    overflow-y: hidden !important; /* Hide scrollbar */
+    max-height: none !important; /* No max height */
+    transition: none; /* Remove transition for row-based sizing */
 }
 
-/* Show scrollbar only when content exceeds max-height */
-.doc-description-box textarea.scrollable {
-    overflow-y: auto !important;
-    scrollbar-width: auto !important; /* Firefox - normal width */
-    -ms-overflow-style: auto !important; /* IE */
-}
-
-/* Ensure webkit scrollbar is visible for doc description */
-.doc-description-box textarea.scrollable::-webkit-scrollbar {
-    width: 16px !important;
-    /* Total width including "padding" */
-    display: block !important;
-    cursor: default !important;
-}
-
-.doc-description-box textarea.scrollable::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border: 3px solid transparent;
-    /* Creates 3px padding on each side */
-    background-clip: content-box;
-    /* Key property - clips background to content box */
-    border-radius: 8px;
-    margin-top: 15px;
-    margin-right: 5px;
-    cursor: default !important;
-}
-
-.doc-description-box textarea.scrollable::-webkit-scrollbar-thumb {
-    background: #999999;
-    border: 3px solid transparent;
-    /* Creates 3px padding on each side */
-    background-clip: content-box;
-    /* Key property - clips background to content box */
-    border-radius: 8px;
-    cursor: default !important;
-}
-
-.doc-description-box textarea.scrollable::-webkit-scrollbar-thumb:hover {
-    background: #7a7a7a;
-    cursor: default !important;
-    border: 3px solid transparent !important;
-    background-clip: content-box !important;
-}
 
 .doc-description-box textarea:focus,
 .doc-description-box textarea:active,
@@ -600,8 +557,6 @@
 
 .resource-desc-gradio textarea {
     width: 100% !important;
-    min-height: 32px !important;
-    max-height: 180px !important;
     padding: 4px 16px 4px 6px !important;
     border: 1px solid #e0e0e0 !important;
     border-radius: 3px !important;
@@ -611,12 +566,15 @@
     resize: none !important;
     overflow-y: hidden !important;
     background: white !important;
-    transition: height 0.1s ease, border-color 0.2s ease !important;
+    transition: border-color 0.2s ease !important;
     cursor: text;
     user-select: text;
     margin-top: 4px !important;
     display: block !important;
     box-sizing: border-box !important;
+    height: auto !important; /* Let rows attribute control height */
+    min-height: auto !important; /* Don't constrain minimum height */
+    max-height: none !important; /* Let rows handle the sizing */
 }
 
 .resource-desc-gradio textarea:hover {
@@ -640,6 +598,7 @@
     scrollbar-width: auto !important; /* Firefox - normal width */
     -ms-overflow-style: auto !important; /* IE */
     padding: 4px 0px 4px 6px !important;
+    max-height: none !important; /* Let rows handle sizing */
 }
 
 /* Ensure webkit scrollbar is visible for resource description */
@@ -677,7 +636,8 @@
 /* Collapsed state for resource description */
 .resource-desc-gradio.collapsed textarea {
     overflow: hidden !important;
-    max-height: 32px !important;
+    height: auto !important; /* Let rows attribute control height */
+    max-height: none !important; /* Remove max-height constraint */
     cursor: text !important;
 }
 
