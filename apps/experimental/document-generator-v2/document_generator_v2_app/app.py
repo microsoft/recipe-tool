@@ -844,28 +844,40 @@ def load_example(example_id, session_id=None):
 
     # Use the import_outline function to load the example
     result = import_outline(str(file_path), session_id)
-    # import_outline returns 12 values now (including generate panel states), but load_example needs 11 (no import_file)
-    # Return: title, description, resources, blocks, outline, json, session_id, generated_content_html, generated_content, save_doc_btn
-    return result[:7] + result[8:]  # Skip import_file (index 7)
+    # import_outline now returns 11 values matching import_file.change outputs
+    # import_outline returns: title, desc, resources, blocks, outline, json, import_file, session_id, gen_html, gen_content, save_btn
+    # load_example needs: title, desc, resources, blocks, outline, json, session_id, gen_html, gen_content, save_btn
+    # We need to skip import_file (at index 6) from the result
+    return (
+        result[0],  # title
+        result[1],  # description
+        result[2],  # resources
+        result[3],  # blocks
+        result[4],  # outline
+        result[5],  # json_str
+        result[7],  # session_id (skip import_file at 6)
+        result[8],  # generated_content_html
+        result[9],  # generated_content
+        result[10], # save_doc_btn
+    )
 
 
 def import_outline(file_path, session_id=None):
     """Import an outline from a .docpack file and convert to blocks format."""
     if not file_path:
-        # Return 12 values: title, description, resources, blocks, outline, json, import_file, session_id, generated_content_html, generated_content, save_doc_btn
+        # Return 11 values matching import_file.change outputs
         return (
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            None,
-            session_id,
-            gr.update(),
-            gr.update(),
-            gr.update(),
+            gr.update(),  # title
+            gr.update(),  # description
+            gr.update(),  # resources
+            gr.update(),  # blocks
+            gr.update(),  # outline
+            gr.update(),  # json_output
+            None,  # import_file
+            session_id,  # session_state
+            gr.update(),  # generated_content_html
+            gr.update(),  # generated_content
+            gr.update(),  # save_doc_btn
         )
 
     # Get or create session ID
@@ -1124,7 +1136,7 @@ def import_outline(file_path, session_id=None):
         # Generate resources HTML using the proper function
         resources_html = generate_resource_html(resources)
 
-        # Return None for import_file to clear it, and include session_id
+        # Return values matching what import_file.change expects
         return (
             title,
             description,
@@ -1132,8 +1144,7 @@ def import_outline(file_path, session_id=None):
             blocks,
             outline,
             json_str,
-            gr.update(value=resources_html),
-            None,
+            None,  # import_file (clear it)
             session_id,
             gr.update(
                 value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>", visible=True
@@ -1145,17 +1156,16 @@ def import_outline(file_path, session_id=None):
     except Exception as e:
         error_msg = f"Error importing file: {str(e)}"
         print(error_msg)
-        # Return current values on error (including None for import_file and session_id)
+        # Return current values on error matching expected outputs
         return (
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            gr.update(),
-            None,
-            session_id,
+            gr.update(),  # title
+            gr.update(),  # description
+            gr.update(),  # resources
+            gr.update(),  # blocks
+            gr.update(),  # outline
+            gr.update(),  # json_output
+            None,  # import_file
+            session_id,  # session_state
             gr.update(),  # generated_content_html
             gr.update(),  # generated_content
             gr.update(),  # save_doc_btn
