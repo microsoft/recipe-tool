@@ -1988,7 +1988,7 @@ def create_app():
                                     # Connect events for this resource
                                     resource_path = resource["path"]
 
-                                    # Title update - update resources_state but avoid re-render
+                                    # Title update - don't update resources_state to avoid re-render
                                     resource_title.change(
                                         fn=update_resource_title_gradio,
                                         inputs=[
@@ -1999,11 +1999,11 @@ def create_app():
                                             doc_description,
                                             blocks_state,
                                         ],
-                                        outputs=[resources_state, outline_state, json_output],  # Update actual resources_state
+                                        outputs=[gr.State(), outline_state, json_output],  # Use dummy State to avoid re-render
                                         trigger_mode="always_last",  # Only trigger after user stops typing
                                     )
 
-                                    # Description update - update resources_state but avoid re-render
+                                    # Description update - don't update resources_state to avoid re-render
                                     resource_desc.change(
                                         fn=update_resource_description_gradio,
                                         inputs=[
@@ -2014,7 +2014,7 @@ def create_app():
                                             doc_description,
                                             blocks_state,
                                         ],
-                                        outputs=[resources_state, outline_state, json_output],  # Update actual resources_state
+                                        outputs=[gr.State(), outline_state, json_output],  # Use dummy State to avoid re-render
                                         trigger_mode="always_last",  # Only trigger after user stops typing
                                     )
 
