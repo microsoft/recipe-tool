@@ -1300,8 +1300,8 @@ def render_block_resources(block_resources, block_type, block_id):
 
         # For AI blocks, show resource without description input and without icon
         html += f"""
-        <div class="dropped-resource">
-            {display_name}
+        <div class="dropped-resource" data-resource-path="{path}">
+            <span class="dropped-resource-title">{display_name}</span>
             <span class="remove-resource" onclick="removeBlockResource('{block_id}', '{path}')">×</span>
         </div>
         """

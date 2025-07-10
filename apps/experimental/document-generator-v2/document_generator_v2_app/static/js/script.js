@@ -146,19 +146,19 @@ function expandBlockOnHeadingFocus(blockId) {
         // Store reference to the heading input and cursor position
         const headingInput = block.querySelector('.block-heading-inline');
         const cursorPosition = headingInput ? headingInput.selectionStart : 0;
-        
+
         // If the block is collapsed, expand it
         toggleBlockCollapse(blockId);
-        
+
         // Use a longer delay and multiple attempts to ensure focus is restored
         let attempts = 0;
         const maxAttempts = 5;
-        
+
         const restoreFocus = () => {
             attempts++;
             const updatedBlock = document.querySelector(`[data-id="${blockId}"]`);
             const updatedHeading = updatedBlock ? updatedBlock.querySelector('.block-heading-inline') : null;
-            
+
             if (updatedHeading && !updatedBlock.classList.contains('collapsed')) {
                 // Block has expanded, restore focus
                 updatedHeading.focus();
@@ -169,7 +169,7 @@ function expandBlockOnHeadingFocus(blockId) {
                 setTimeout(restoreFocus, 100);
             }
         };
-        
+
         // Start trying after initial delay
         setTimeout(restoreFocus, 200);
     }
@@ -268,20 +268,20 @@ document.addEventListener('DOMContentLoaded', function () {
 function resetDocumentDescription() {
     const docDescriptionBox = document.querySelector('.doc-description-box');
     const docDescriptionTextarea = document.querySelector('#doc-description-id textarea');
-    
+
     if (docDescriptionBox && docDescriptionTextarea) {
         // Clear the textarea value
         docDescriptionTextarea.value = '';
-        
+
         // Ensure the box is collapsed
         if (!docDescriptionBox.classList.contains('collapsed')) {
             docDescriptionBox.classList.add('collapsed');
         }
-        
+
         // Reset the textarea height
         docDescriptionTextarea.style.height = 'auto';
         autoExpandTextarea(docDescriptionTextarea);
-        
+
         // Hide the expand button
         const expandBtn = docDescriptionBox.querySelector('.desc-expand-btn');
         if (expandBtn) {
@@ -298,12 +298,12 @@ document.addEventListener('dragenter', function(e) {
     // Only clear draggedResource if we don't already have one AND this looks like an external drag
     if (!draggedResource && e.dataTransfer && e.dataTransfer.types) {
         // Check if this is likely an external file drag
-        const hasFiles = e.dataTransfer.types.includes('Files') || 
+        const hasFiles = e.dataTransfer.types.includes('Files') ||
                         e.dataTransfer.types.includes('application/x-moz-file');
-        
+
         // Also check that it's not coming from our resource items
         const isFromResourceItem = e.target.closest('.resource-item');
-        
+
         if (hasFiles && !isFromResourceItem && !isDraggingFromExternal) {
             isDraggingFromExternal = true;
             console.log('External file drag detected');
@@ -331,7 +331,57 @@ document.addEventListener('dragstart', function(e) {
     }
 });
 
+// Setup observers for resource title changes in Gradio components
+function setupResourceTitleObservers() {
+    const resourceItems = document.querySelectorAll('.resource-item-gradio');
+    console.log('Setting up title observers for', resourceItems.length, 'resource items');
+
+    resourceItems.forEach((item, index) => {
+        // Find the title textarea
+        const titleTextarea = item.querySelector('.resource-title-gradio input');
+        const pathDiv = item.querySelector('.resource-path-hidden');
+
+        if (titleTextarea && pathDiv) {
+            const resourcePath = pathDiv.getAttribute('data-path') || pathDiv.textContent.trim();
+            console.log(`Resource ${index}: path="${resourcePath}"`);
+
+            // Remove any existing listener to avoid duplicates
+            titleTextarea.removeEventListener('input', titleTextarea._titleUpdateHandler);
+
+            // Create and store the handler function
+            titleTextarea._titleUpdateHandler = function() {
+                const newTitle = this.value;
+                console.log(`Title changed for resource "${resourcePath}": "${newTitle}"`);
+
+                // Immediately update all dropped resources with this path
+                const droppedResources = document.querySelectorAll('.dropped-resource[data-resource-path]');
+                console.log(`Found ${droppedResources.length} dropped resources to check`);
+
+                droppedResources.forEach(dropped => {
+                    const droppedPath = dropped.getAttribute('data-resource-path');
+                    console.log(`Checking dropped resource with path="${droppedPath}"`);
+
+                    if (droppedPath === resourcePath) {
+                        const titleSpan = dropped.querySelector('.dropped-resource-title');
+                        if (titleSpan) {
+                            console.log(`Updating title span to: "${newTitle}"`);
+                            titleSpan.textContent = newTitle;
+                        }
+                    }
+                });
+            };
+
+            // Add the event listener
+            titleTextarea.addEventListener('input', titleTextarea._titleUpdateHandler);
+            console.log(`Added input listener to resource ${index}`);
+        } else {
+            console.log(`Resource ${index}: Missing textarea or path div`);
+        }
+    });
+}
+
 window.addEventListener('load', function() {
+    console.log('Window load event fired');
     // Upload resource setup no longer needed - using Gradio's native component
     setTimeout(setupAutoExpand, 100);
     // Also setup drag and drop on window load
@@ -339,63 +389,72 @@ window.addEventListener('load', function() {
     setTimeout(setupFileUploadDragAndDrop, 250);
     // Setup description toggle button
     setTimeout(setupDescriptionToggle, 150);
-    
+
     // Set up a global observer for the resources column
     setupResourceObserver();
+
+    // Setup title observers for dynamic updates
+    setTimeout(() => {
+        console.log('About to call setupResourceTitleObservers');
+        const resourceItems = document.querySelectorAll('.resource-item-gradio');
+        console.log('Found', resourceItems.length, 'resource items before calling setup');
+        setupResourceTitleObservers();
+    }, 300);
 });
 
 // Function to set up observer for resources
 function setupResourceObserver() {
     let resourceSetupTimeout;
-    
+
     // Function to observe a resources area
     function observeResourcesArea(resourcesArea) {
         if (!resourcesArea) return;
-        
+
         const resourceObserver = new MutationObserver((mutations) => {
             // Clear any pending timeout
             clearTimeout(resourceSetupTimeout);
-            
+
             // Check if resource items were added
             let hasResourceChanges = false;
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1 && 
-                        (node.classList?.contains('resource-item') || 
+                    if (node.nodeType === 1 &&
+                        (node.classList?.contains('resource-item') ||
                          node.querySelector?.('.resource-item'))) {
                         hasResourceChanges = true;
                     }
                 });
             });
-            
+
             if (hasResourceChanges) {
                 console.log('Resources added, setting up drag and drop');
                 // Wait a bit for DOM to stabilize then setup drag and drop
                 resourceSetupTimeout = setTimeout(() => {
                     setupDragAndDrop();
+                    setupResourceTitleObservers();
                 }, 200);
             }
         });
-        
+
         resourceObserver.observe(resourcesArea, {
             childList: true,
             subtree: true
         });
-        
+
         return resourceObserver;
     }
-    
+
     // Initial setup
     let currentObserver = observeResourcesArea(document.querySelector('.resources-display-area'));
-    
+
     // Also watch for the resources area itself being replaced
     const columnObserver = new MutationObserver((mutations) => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
                 if (node.nodeType === 1) {
-                    const newResourcesArea = node.classList?.contains('resources-display-area') ? 
+                    const newResourcesArea = node.classList?.contains('resources-display-area') ?
                         node : node.querySelector?.('.resources-display-area');
-                    
+
                     if (newResourcesArea) {
                         console.log('Resources area replaced, setting up new observer');
                         // Disconnect old observer if it exists
@@ -406,12 +465,14 @@ function setupResourceObserver() {
                         currentObserver = observeResourcesArea(newResourcesArea);
                         // Setup drag and drop for any existing items
                         setTimeout(setupDragAndDrop, 200);
+                        // Setup title observers too
+                        setTimeout(setupResourceTitleObservers, 300);
                     }
                 }
             });
         });
     });
-    
+
     // Observe the resources column for replacements
     const resourcesCol = document.querySelector('.resources-col');
     if (resourcesCol) {
@@ -427,22 +488,22 @@ function preventInvalidDrops() {
     // Helper function to check if element is invalid drop target
     function isInvalidDropTarget(element) {
         if (!element) return false;
-        
+
         // Check if it's a text input
         if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
             return true;
         }
-        
+
         // Check if it's part of a file upload component (Gradio file upload)
-        if (element.closest('.resource-upload-gradio') || 
+        if (element.closest('.resource-upload-gradio') ||
             element.closest('[data-testid="file"]') ||
             element.classList.contains('resource-upload-gradio')) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     // Prevent drop on invalid targets
     document.addEventListener('dragover', function(e) {
         if (isInvalidDropTarget(e.target)) {
@@ -453,13 +514,13 @@ function preventInvalidDrops() {
             }
         }
     }, true);
-    
+
     document.addEventListener('dragleave', function(e) {
         if (isInvalidDropTarget(e.target)) {
             e.target.classList.remove('no-drop');
         }
     }, true);
-    
+
     document.addEventListener('drop', function(e) {
         if (isInvalidDropTarget(e.target)) {
             if (draggedResource || window.currentDraggedResource) {
@@ -470,7 +531,7 @@ function preventInvalidDrops() {
             }
         }
     }, true);
-    
+
     // Clean up no-drop class when drag ends
     document.addEventListener('dragend', function(e) {
         document.querySelectorAll('.no-drop').forEach(el => {
@@ -505,8 +566,8 @@ const observer = new MutationObserver(function(mutations) {
                         node.tagName === 'TEXTAREA') {
                         hasRelevantChanges = true;
                         // Log when we detect resource items
-                        if (node.classList?.contains('resource-item') || 
-                            node.classList?.contains('resource-item-gradio') || 
+                        if (node.classList?.contains('resource-item') ||
+                            node.classList?.contains('resource-item-gradio') ||
                             node.querySelector?.('.resource-item') ||
                             node.querySelector?.('.resource-item-gradio')) {
                             console.log('Detected resource item change');
@@ -528,6 +589,7 @@ const observer = new MutationObserver(function(mutations) {
         setTimeout(() => {
             setupDragAndDrop();
             setupFileUploadDragAndDrop();
+            setupResourceTitleObservers();
         }, 50);
 
         // Debounce the setupAutoExpand to avoid multiple calls
@@ -1143,7 +1205,7 @@ function setupDragAndDrop() {
     resourceItems.forEach((item, index) => {
         // Make sure the item is draggable
         item.setAttribute('draggable', 'true');
-        
+
         // Just store the path on the element for reference during drag
         const pathHidden = item.querySelector('.resource-path-hidden');
         if (pathHidden) {
@@ -1151,13 +1213,13 @@ function setupDragAndDrop() {
             item.dataset.resourcePath = path;
             console.log(`Resource ${index} path:`, path);
         }
-        
+
         // Also make child elements not draggable to prevent conflicts
         const inputs = item.querySelectorAll('input, textarea, button');
         inputs.forEach(input => {
             input.setAttribute('draggable', 'false');
         });
-        
+
         // Remove existing listeners to avoid duplicates
         item.removeEventListener('dragstart', handleDragStart);
         item.removeEventListener('dragend', handleDragEnd);
@@ -1170,7 +1232,7 @@ function setupDragAndDrop() {
     // Setup drop zones
     const dropZones = document.querySelectorAll('.block-resources');
     console.log('Found drop zones:', dropZones.length);
-    
+
     if (dropZones.length === 0) {
         console.warn('No drop zones found! Blocks might not be rendered yet.');
         // Try again after a short delay
@@ -1208,48 +1270,48 @@ let draggedResource = null;
 
 function handleDragStart(e) {
     console.log('handleDragStart called on:', e.target);
-    
+
     // Prevent dragging when clicking on input elements
     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
         e.preventDefault();
         return;
     }
-    
+
     // For Gradio components, we need to extract data differently
     const resourceElement = e.target.closest('.resource-item-gradio');
     if (resourceElement) {
         console.log('Resource element found:', resourceElement);
-        
+
         // Always extract current values dynamically to get latest updates
         console.log('Extracting current resource data...');
-        
+
         // Look for elements - Gradio might have nested structures
         const titleInput = resourceElement.querySelector('.resource-title-gradio input[type="text"], .resource-title-gradio textarea');
         const descInput = resourceElement.querySelector('.resource-desc-gradio textarea');
         const pathDiv = resourceElement.querySelector('.resource-path-hidden');
         const filenameDiv = resourceElement.querySelector('.resource-filename');
-        
+
         // Debug logging
         console.log('Title input found:', !!titleInput);
         if (titleInput) {
             console.log('Title input type:', titleInput.tagName);
             console.log('Title value:', titleInput.value);
         }
-        
+
         console.log('Found elements:', {
             titleInput: !!titleInput,
             descInput: !!descInput,
             pathDiv: !!pathDiv,
             filenameDiv: !!filenameDiv
         });
-        
+
         if (pathDiv && filenameDiv) {
             const path = pathDiv.getAttribute('data-path') || pathDiv.textContent.trim();
             const filename = filenameDiv.textContent.trim();
             // Get title from input/textarea value, fallback to filename
             const title = titleInput && titleInput.value ? titleInput.value.trim() : filename;
             const description = descInput && descInput.value ? descInput.value.trim() : '';
-            
+
             draggedResource = {
                 name: filename,
                 title: title,
@@ -1261,14 +1323,14 @@ function handleDragStart(e) {
             console.log('Title being sent:', title);
             console.log('Filename being sent:', filename);
         }
-        
+
         if (draggedResource) {
             console.log('Started dragging Gradio resource:', draggedResource);
             resourceElement.classList.add('dragging');
             document.body.classList.add('dragging-resource');
             e.dataTransfer.effectAllowed = 'copy';
             e.dataTransfer.setData('text/plain', JSON.stringify(draggedResource));
-            
+
             // Set global variable to ensure it persists
             window.currentDraggedResource = draggedResource;
         } else {
@@ -1285,10 +1347,10 @@ function handleDragEnd(e) {
     } else {
         e.target.classList.remove('dragging');
     }
-    
+
     // Remove dragging class from body
     document.body.classList.remove('dragging-resource');
-    
+
     // Clear draggedResource after a small delay to ensure drop completes
     setTimeout(() => {
         draggedResource = null;
@@ -1301,7 +1363,7 @@ function handleDragEnter(e) {
     e.stopPropagation();
     const resource = draggedResource || window.currentDraggedResource;
     console.log('DragEnter event - draggedResource:', resource);
-    
+
     if (resource) {
         e.currentTarget.classList.add('drag-over');
     }
@@ -1312,22 +1374,22 @@ function handleDragOver(e) {
     if (e.currentTarget.classList.contains('block-resources')) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const resource = draggedResource || window.currentDraggedResource;
-        
+
         // Debug logging - reduce verbosity
         if (!e.currentTarget.dataset.loggedOnce) {
             console.log('DragOver event - draggedResource:', resource);
             console.log('DragOver target:', e.currentTarget);
             e.currentTarget.dataset.loggedOnce = 'true';
         }
-        
+
         // Only show drag-over effect if we're dragging a resource from the panel
         if (resource) {
             // Try different drop effects to get the right cursor
             e.dataTransfer.dropEffect = 'copy';
             e.currentTarget.classList.add('drag-over');
-            
+
             // Force cursor style
             e.currentTarget.style.cursor = 'copy';
         }
@@ -1345,7 +1407,7 @@ function handleDrop(e) {
     e.currentTarget.classList.remove('drag-over');
 
     const resource = draggedResource || window.currentDraggedResource;
-    
+
     console.log('Drop event triggered');
     console.log('Drop target:', e.currentTarget);
     console.log('Drop zone index:', e.currentTarget.getAttribute('data-drop-zone-index'));
@@ -1473,16 +1535,14 @@ function updateResourceTitle(resourcePath, newTitle) {
     });
 
     // Immediately update all dropped resources in AI blocks with this path
-    const droppedResources = document.querySelectorAll('.dropped-resource');
+    const droppedResources = document.querySelectorAll('.dropped-resource[data-resource-path]');
     droppedResources.forEach(dropped => {
-        // Find the remove button which contains the resource path
-        const removeBtn = dropped.querySelector('.remove-resource');
-        if (removeBtn) {
-            // Extract the path from the onclick attribute
-            const onclickAttr = removeBtn.getAttribute('onclick');
-            if (onclickAttr && onclickAttr.includes(resourcePath.replace(/'/g, "\\'"))) {
-                // Update the text content (no icon anymore)
-                dropped.childNodes[0].textContent = newTitle + ' ';
+        // Check if this dropped resource matches the path
+        if (dropped.getAttribute('data-resource-path') === resourcePath) {
+            // Find the title span and update it
+            const titleSpan = dropped.querySelector('.dropped-resource-title');
+            if (titleSpan) {
+                titleSpan.textContent = newTitle;
             }
         }
     });
@@ -1767,9 +1827,9 @@ function setupResourceDescriptions() {
 function handleResourceFileUpload(resourcePath, fileInput) {
     const file = fileInput.files[0];
     if (!file) return;
-    
+
     console.log('Uploading file to replace resource:', resourcePath, file.name);
-    
+
     // Set the resource path
     const pathInput = document.getElementById('replace-resource-path');
     if (pathInput) {
@@ -1779,7 +1839,7 @@ function handleResourceFileUpload(resourcePath, fileInput) {
             pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
     }
-    
+
     // Find the hidden file input component and set the file
     const hiddenFileInput = document.querySelector('#replace-resource-file input[type="file"]');
     if (hiddenFileInput) {
@@ -1787,16 +1847,16 @@ function handleResourceFileUpload(resourcePath, fileInput) {
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         hiddenFileInput.files = dataTransfer.files;
-        
+
         // Trigger change event on the hidden file input
         hiddenFileInput.dispatchEvent(new Event('change', { bubbles: true }));
-        
+
         // Trigger the replace button after a delay
         setTimeout(() => {
             const replaceBtn = document.getElementById('replace-resource-trigger');
             if (replaceBtn) {
                 replaceBtn.click();
-                
+
                 // Add visual feedback to the upload zone
                 const uploadZone = fileInput.closest('.resource-upload-zone');
                 if (uploadZone) {
@@ -1805,7 +1865,7 @@ function handleResourceFileUpload(resourcePath, fileInput) {
                     if (uploadText) {
                         uploadText.textContent = '✓ File replaced';
                     }
-                    
+
                     // Reset after 2 seconds
                     setTimeout(() => {
                         uploadZone.classList.remove('upload-success');
@@ -1815,7 +1875,7 @@ function handleResourceFileUpload(resourcePath, fileInput) {
             }
         }, 100);
     }
-    
+
     // Clear the file input
     fileInput.value = '';
 }
@@ -1824,7 +1884,7 @@ function handleResourceFileUpload(resourcePath, fileInput) {
 function preventResourceDrops() {
     // Prevent drops on all textareas and inputs within resource items
     const resourceInputs = document.querySelectorAll('.resource-item input, .resource-item textarea');
-    
+
     resourceInputs.forEach(element => {
         element.addEventListener('dragover', function(e) {
             e.preventDefault();
@@ -1832,7 +1892,7 @@ function preventResourceDrops() {
                 e.dataTransfer.dropEffect = 'none';
             }
         });
-        
+
         element.addEventListener('drop', function(e) {
             e.preventDefault();
             if (draggedResource) {
@@ -1846,10 +1906,10 @@ function preventResourceDrops() {
 // Setup drag and drop for resource upload zones
 function setupResourceUploadZones() {
     const uploadZones = document.querySelectorAll('.resource-upload-zone');
-    
+
     uploadZones.forEach(zone => {
         let dragCounter = 0;
-        
+
         zone.addEventListener('dragenter', function(e) {
             e.preventDefault();
             // Only show drag-over effect if NOT dragging a resource
@@ -1858,7 +1918,7 @@ function setupResourceUploadZones() {
                 this.classList.add('drag-over');
             }
         });
-        
+
         zone.addEventListener('dragover', function(e) {
             e.preventDefault();
             // If dragging a resource, show "not allowed" cursor
@@ -1869,7 +1929,7 @@ function setupResourceUploadZones() {
                 e.dataTransfer.dropEffect = 'copy';
             }
         });
-        
+
         zone.addEventListener('dragleave', function(e) {
             e.preventDefault();
             dragCounter--;
@@ -1877,29 +1937,29 @@ function setupResourceUploadZones() {
                 this.classList.remove('drag-over');
             }
         });
-        
+
         zone.addEventListener('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
             dragCounter = 0;
             this.classList.remove('drag-over');
-            
+
             // Block resource drops completely
             if (draggedResource) {
                 return false;
             }
-            
+
             // Handle external file drops
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                 const fileInput = this.querySelector('.resource-file-input');
                 const resourcePath = this.getAttribute('data-resource-path');
-                
+
                 if (fileInput && resourcePath) {
                     // Create a new DataTransfer to set files on input
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(e.dataTransfer.files[0]);
                     fileInput.files = dataTransfer.files;
-                    
+
                     // Trigger the change event
                     handleResourceFileUpload(resourcePath, fileInput);
                 }
@@ -1918,6 +1978,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         setupDragAndDrop();
         setupResourceDescriptions();
+        setupResourceTitleObservers()
         setupResourceUploadZones();
         preventResourceDrops();
     }, 100);
