@@ -696,7 +696,7 @@ def generate_resource_html(resources):
 def delete_resource_from_panel(resources, resource_path, title, description, blocks):
     """Delete a resource from the resource panel and all blocks that use it."""
     print(f"Deleting resource from panel: {resource_path}")
-    
+
     # Remove from resources list
     new_resources = [res for res in resources if res.get("path") != resource_path]
 
@@ -710,14 +710,16 @@ def delete_resource_from_panel(resources, resource_path, title, description, blo
 
             # Remove the resource
             block_copy["resources"] = [res for res in block_copy["resources"] if res.get("path") != resource_path]
-            
+
             if original_count != len(block_copy["resources"]):
-                print(f"Removed resource from block {block_copy['id']}: {original_count} -> {len(block_copy['resources'])}")
+                print(
+                    f"Removed resource from block {block_copy['id']}: {original_count} -> {len(block_copy['resources'])}"
+                )
 
             # If this was a text block and we removed its only resource, clear the content
             if block_copy["type"] == "text" and original_count > 0 and len(block_copy["resources"]) == 0:
                 block_copy["content"] = ""
-        
+
         updated_blocks.append(block_copy)
 
     # Regenerate outline
@@ -858,7 +860,7 @@ def load_example(example_id, session_id=None):
         result[7],  # session_id (skip import_file at 6)
         result[8],  # generated_content_html
         result[9],  # generated_content
-        result[10], # save_doc_btn
+        result[10],  # save_doc_btn
     )
 
 
@@ -1281,7 +1283,7 @@ def create_docpack_from_current_state():
 def render_block_resources(block_resources, block_type, block_id):
     """Render the resources inside a block."""
     print(f"render_block_resources for block {block_id}: {len(block_resources) if block_resources else 0} resources")
-    
+
     if block_type == "text":
         # Text blocks always show the drop zone, never show resources
         return "Drop reference files here to upload text."
@@ -1310,14 +1312,15 @@ def render_block_resources(block_resources, block_type, block_id):
 def render_blocks(blocks, focused_block_id=None):
     """Render blocks as HTML."""
     import time
+
     timestamp = int(time.time() * 1000)
-    
+
     print(f"render_blocks called with {len(blocks) if blocks else 0} blocks at {timestamp}")
     if blocks:
         for i, block in enumerate(blocks):
             res_count = len(block.get("resources", []))
             print(f"  Block {i} ({block['id']}): {res_count} resources")
-    
+
     if not blocks:
         return "<div class='empty-blocks-message'>Click '+ Add AI' to add an AI generated section.</div><div class='empty-blocks-message'>Click '+ Add Text' to add a traditional text section.</div>"
 
@@ -1559,7 +1562,7 @@ def update_resource_description_gradio(resources, resource_path, new_description
 def delete_resource_gradio(resources, resource_path, title, description, blocks):
     """Delete a resource from Gradio component."""
     print(f"Deleting resource: {resource_path}")
-    
+
     # Remove from resources list
     new_resources = [res for res in resources if res.get("path") != resource_path]
 
@@ -1572,14 +1575,14 @@ def delete_resource_gradio(resources, resource_path, title, description, blocks)
             original_count = len(block_copy["resources"])
             block_copy["resources"] = [res for res in block_copy["resources"] if res.get("path") != resource_path]
             new_count = len(block_copy["resources"])
-            
+
             if original_count != new_count:
                 print(f"Removed resource from block {block_copy['id']}: {original_count} -> {new_count}")
 
             # If this is a text block and we just removed its resource, clear the content
             if block_copy["type"] == "text" and len(block_copy["resources"]) == 0:
                 block_copy["content"] = ""
-        
+
         updated_blocks.append(block_copy)
 
     # Regenerate outline
@@ -1722,7 +1725,7 @@ def create_app():
                 gr.Markdown(" An AI tool for creating structured documents with customizable sections.")
 
             # Import and Save buttons
-            with gr.Column():
+            with gr.Column(elem_classes="app-buttons-col"):
                 with gr.Row():
                     # Add empty space to push buttons to the right
                     gr.HTML("<div style='flex: 1;'></div>")
@@ -1898,8 +1901,10 @@ def create_app():
                             for idx, resource in enumerate(resources):
                                 with gr.Group(elem_classes="resource-item-gradio"):
                                     # Hidden element containing resource path for drag and drop
-                                    gr.HTML(f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>')
-                                    
+                                    gr.HTML(
+                                        f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>'
+                                    )
+
                                     with gr.Row():
                                         with gr.Column(scale=9):
                                             # Resource title
@@ -2009,7 +2014,11 @@ def create_app():
                                             doc_description,
                                             blocks_state,
                                         ],
-                                        outputs=[gr.State(), outline_state, json_output],  # Use dummy State to avoid re-render
+                                        outputs=[
+                                            gr.State(),
+                                            outline_state,
+                                            json_output,
+                                        ],  # Use dummy State to avoid re-render
                                         trigger_mode="always_last",  # Only trigger after user stops typing
                                     )
 
@@ -2024,21 +2033,25 @@ def create_app():
                                             doc_description,
                                             blocks_state,
                                         ],
-                                        outputs=[gr.State(), outline_state, json_output],  # Use dummy State to avoid re-render
+                                        outputs=[
+                                            gr.State(),
+                                            outline_state,
+                                            json_output,
+                                        ],  # Use dummy State to avoid re-render
                                         trigger_mode="always_last",  # Only trigger after user stops typing
                                     )
 
                                     # Delete button
                                     def delete_gradio_and_render(resources, path, title, desc, blocks, focused):
                                         """Delete resource via Gradio button and render blocks."""
-                                        print(f"\n=== delete_gradio_and_render called ===")
+                                        print("\n=== delete_gradio_and_render called ===")
                                         new_res, new_blocks, outline, json_str = delete_resource_gradio(
                                             resources, path, title, desc, blocks
                                         )
                                         blocks_html = render_blocks(new_blocks, focused)
                                         print("=== delete_gradio_and_render complete ===\n")
                                         return new_res, new_blocks, outline, json_str, blocks_html
-                                    
+
                                     delete_btn.click(
                                         fn=delete_gradio_and_render,
                                         inputs=[
@@ -2049,7 +2062,13 @@ def create_app():
                                             blocks_state,
                                             focused_block_state,
                                         ],
-                                        outputs=[resources_state, blocks_state, outline_state, json_output, blocks_display],
+                                        outputs=[
+                                            resources_state,
+                                            blocks_state,
+                                            outline_state,
+                                            json_output,
+                                            blocks_display,
+                                        ],
                                     )
 
                                     # File replacement
@@ -2067,9 +2086,11 @@ def create_app():
                                         outputs=[resources_state, outline_state, json_output, replace_file],
                                     ).then(
                                         # Force JSON update after resources render
-                                        fn=lambda title, desc, res, blocks: regenerate_outline_from_state(title, desc, res, blocks)[1],
+                                        fn=lambda title, desc, res, blocks: regenerate_outline_from_state(
+                                            title, desc, res, blocks
+                                        )[1],
                                         inputs=[doc_title, doc_description, resources_state, blocks_state],
-                                        outputs=[json_output]
+                                        outputs=[json_output],
                                     )
 
             # Workspace column: AI, H, T buttons (aligned left)
@@ -2426,27 +2447,34 @@ def create_app():
         # Delete resource from panel handler
         def delete_and_render(resources, resource_path, title, description, blocks, focused_id):
             """Delete resource and return both the state updates and rendered HTML."""
-            print(f"\n=== delete_and_render called ===")
+            print("\n=== delete_and_render called ===")
             print(f"Resource path: {resource_path}")
             print(f"Blocks before: {len(blocks)} blocks")
-            
+
             new_resources, updated_blocks, outline, json_str = delete_resource_from_panel(
                 resources, resource_path, title, description, blocks
             )
-            
+
             print(f"Blocks after delete: {len(updated_blocks)} blocks")
-            
+
             # Render the blocks immediately
             blocks_html = render_blocks(updated_blocks, focused_id)
-            
+
             print(f"Generated HTML length: {len(blocks_html)}")
             print("=== delete_and_render complete ===\n")
-            
+
             return new_resources, updated_blocks, outline, json_str, blocks_html
-        
+
         delete_panel_resource_trigger.click(
             fn=delete_and_render,
-            inputs=[resources_state, delete_panel_resource_path, doc_title, doc_description, blocks_state, focused_block_state],
+            inputs=[
+                resources_state,
+                delete_panel_resource_path,
+                doc_title,
+                doc_description,
+                blocks_state,
+                focused_block_state,
+            ],
             outputs=[resources_state, blocks_state, outline_state, json_output, blocks_display],
         )
 
@@ -2487,7 +2515,7 @@ def create_app():
             # Force JSON update after resources render
             fn=lambda title, desc, res, blocks: regenerate_outline_from_state(title, desc, res, blocks)[1],
             inputs=[doc_title, doc_description, resources_state, blocks_state],
-            outputs=[json_output]
+            outputs=[json_output],
         )
 
         # Generate document handler - update to return the download button state

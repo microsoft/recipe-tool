@@ -76,6 +76,7 @@
 
 .app-header-col {
     gap: 7px !important;
+    max-width: 450px;
 }
 
 
@@ -136,7 +137,7 @@
     top: 30px !important;
     right: 0 !important;
     margin-top: 4px !important;
-    min-width: 280px !important;
+    min-width: 250px !important;
     background-color: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
     border-radius: 8px !important;
@@ -144,6 +145,7 @@
     z-index: 1000 !important;
     display: none !important;
     padding: 8px !important;
+    padding-left: 6px !important;
 }
 
 /* Show dropdown on hover */
@@ -1454,7 +1456,7 @@ body.dragging-resource .block-resources.drag-over {
 }
 
 /* Show not-allowed cursor when dragging over invalid drop targets */
-textarea.no-drop, 
+textarea.no-drop,
 input.no-drop,
 .resource-upload-gradio.no-drop,
 .no-drop {
