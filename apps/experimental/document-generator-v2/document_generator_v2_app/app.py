@@ -1857,6 +1857,9 @@ def create_app():
                         else:
                             for idx, resource in enumerate(resources):
                                 with gr.Group(elem_classes="resource-item-gradio"):
+                                    # Hidden element containing resource path for drag and drop
+                                    gr.HTML(f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>')
+                                    
                                     with gr.Row():
                                         with gr.Column(scale=9):
                                             # Resource title

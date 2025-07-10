@@ -422,6 +422,66 @@ function setupResourceObserver() {
     }
 }
 
+// Prevent dropping resources on text inputs and file upload zones
+function preventInvalidDrops() {
+    // Helper function to check if element is invalid drop target
+    function isInvalidDropTarget(element) {
+        if (!element) return false;
+        
+        // Check if it's a text input
+        if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+            return true;
+        }
+        
+        // Check if it's part of a file upload component (Gradio file upload)
+        if (element.closest('.resource-upload-gradio') || 
+            element.closest('[data-testid="file"]') ||
+            element.classList.contains('resource-upload-gradio')) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Prevent drop on invalid targets
+    document.addEventListener('dragover', function(e) {
+        if (isInvalidDropTarget(e.target)) {
+            if (draggedResource || window.currentDraggedResource) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'none';
+                e.target.classList.add('no-drop');
+            }
+        }
+    }, true);
+    
+    document.addEventListener('dragleave', function(e) {
+        if (isInvalidDropTarget(e.target)) {
+            e.target.classList.remove('no-drop');
+        }
+    }, true);
+    
+    document.addEventListener('drop', function(e) {
+        if (isInvalidDropTarget(e.target)) {
+            if (draggedResource || window.currentDraggedResource) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.target.classList.remove('no-drop');
+                console.log('Prevented drop on invalid target:', e.target);
+            }
+        }
+    }, true);
+    
+    // Clean up no-drop class when drag ends
+    document.addEventListener('dragend', function(e) {
+        document.querySelectorAll('.no-drop').forEach(el => {
+            el.classList.remove('no-drop');
+        });
+    }, true);
+}
+
+// Call it once when the page loads
+preventInvalidDrops();
+
 // Use MutationObserver for dynamic content
 let debounceTimer;
 const observer = new MutationObserver(function(mutations) {
@@ -436,14 +496,19 @@ const observer = new MutationObserver(function(mutations) {
                 if (node.nodeType === 1) { // Element node
                     if (node.classList?.contains('content-block') ||
                         node.classList?.contains('resource-item') ||
+                        node.classList?.contains('resource-item-gradio') ||
                         node.classList?.contains('block-resources') ||
                         node.querySelector?.('textarea') ||
                         node.querySelector?.('.resource-item') ||
+                        node.querySelector?.('.resource-item-gradio') ||
                         node.querySelector?.('.block-resources') ||
                         node.tagName === 'TEXTAREA') {
                         hasRelevantChanges = true;
                         // Log when we detect resource items
-                        if (node.classList?.contains('resource-item') || node.querySelector?.('.resource-item')) {
+                        if (node.classList?.contains('resource-item') || 
+                            node.classList?.contains('resource-item-gradio') || 
+                            node.querySelector?.('.resource-item') ||
+                            node.querySelector?.('.resource-item-gradio')) {
                             console.log('Detected resource item change');
                         }
                         break;
@@ -1071,13 +1136,39 @@ function setupFileUploadDragAndDrop() {
 function setupDragAndDrop() {
     console.log('Setting up drag and drop...');
 
-    // Setup draggable resources
-    const resourceItems = document.querySelectorAll('.resource-item');
-    console.log('Found resource items:', resourceItems.length);
+    // Setup draggable resources - now look for Gradio resource components
+    const resourceItems = document.querySelectorAll('.resource-item-gradio');
+    console.log('Found Gradio resource items:', resourceItems.length);
 
-    resourceItems.forEach(item => {
+    resourceItems.forEach((item, index) => {
         // Make sure the item is draggable
         item.setAttribute('draggable', 'true');
+        
+        // Try to extract resource data and store it on the element
+        const pathHidden = item.querySelector('.resource-path-hidden');
+        const filenameDiv = item.querySelector('.resource-filename');
+        const titleTextarea = item.querySelector('.resource-title-gradio textarea');
+        const descTextarea = item.querySelector('.resource-desc-gradio textarea');
+        
+        if (pathHidden && filenameDiv) {
+            const resourceData = {
+                path: pathHidden.getAttribute('data-path') || pathHidden.textContent.trim(),
+                name: filenameDiv.textContent.trim(),
+                title: titleTextarea ? titleTextarea.value : filenameDiv.textContent.trim(),
+                description: descTextarea ? descTextarea.value : '',
+                type: 'text'
+            };
+            
+            // Store resource data on the element
+            item.dataset.resourceData = JSON.stringify(resourceData);
+            console.log(`Resource ${index} data:`, resourceData);
+        }
+        
+        // Also make child elements not draggable to prevent conflicts
+        const inputs = item.querySelectorAll('input, textarea, button');
+        inputs.forEach(input => {
+            input.setAttribute('draggable', 'false');
+        });
         
         // Remove existing listeners to avoid duplicates
         item.removeEventListener('dragstart', handleDragStart);
@@ -1091,67 +1182,202 @@ function setupDragAndDrop() {
     // Setup drop zones
     const dropZones = document.querySelectorAll('.block-resources');
     console.log('Found drop zones:', dropZones.length);
+    
+    if (dropZones.length === 0) {
+        console.warn('No drop zones found! Blocks might not be rendered yet.');
+        // Try again after a short delay
+        setTimeout(() => {
+            const retryDropZones = document.querySelectorAll('.block-resources');
+            console.log('Retry - Found drop zones:', retryDropZones.length);
+            setupDropZones(retryDropZones);
+        }, 500);
+    } else {
+        setupDropZones(dropZones);
+    }
+}
 
+function setupDropZones(dropZones) {
     dropZones.forEach((zone, index) => {
         // Remove existing listeners to avoid duplicates
+        zone.removeEventListener('dragenter', handleDragEnter);
         zone.removeEventListener('dragover', handleDragOver);
         zone.removeEventListener('drop', handleDrop);
         zone.removeEventListener('dragleave', handleDragLeave);
 
         // Add new listeners
+        zone.addEventListener('dragenter', handleDragEnter);
         zone.addEventListener('dragover', handleDragOver);
         zone.addEventListener('drop', handleDrop);
         zone.addEventListener('dragleave', handleDragLeave);
 
         // Add data attribute to help debug
         zone.setAttribute('data-drop-zone-index', index);
+        console.log(`Set up drop zone ${index} on element:`, zone);
     });
 }
 
 let draggedResource = null;
 
 function handleDragStart(e) {
-    draggedResource = {
-        name: e.target.dataset.resourceName,
-        title: e.target.dataset.resourceTitle || e.target.dataset.resourceName, // Include title
-        path: e.target.dataset.resourcePath,
-        type: e.target.dataset.resourceType
-    };
-    console.log('Started dragging resource:', draggedResource);
-    e.target.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'copy';
-    // Don't set text/plain data to prevent dropping text into textareas
-    e.dataTransfer.setData('application/x-resource', 'resource'); // Custom data type
+    console.log('handleDragStart called on:', e.target);
+    
+    // Prevent dragging when clicking on input elements
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+        e.preventDefault();
+        return;
+    }
+    
+    // For Gradio components, we need to extract data differently
+    const resourceElement = e.target.closest('.resource-item-gradio');
+    if (resourceElement) {
+        console.log('Resource element found:', resourceElement);
+        
+        // Try to get stored resource data first
+        if (resourceElement.dataset.resourceData) {
+            try {
+                draggedResource = JSON.parse(resourceElement.dataset.resourceData);
+                console.log('Using stored resource data:', draggedResource);
+            } catch (e) {
+                console.error('Error parsing stored resource data:', e);
+            }
+        }
+        
+        // If no stored data, try to extract it dynamically
+        if (!draggedResource) {
+            console.log('No stored data, trying to extract dynamically...');
+            
+            // Look for elements in any order/structure
+            const titleTextarea = resourceElement.querySelector('textarea');
+            const descTextarea = resourceElement.querySelectorAll('textarea')[1]; // Second textarea
+            const allDivs = resourceElement.querySelectorAll('div');
+            
+            let pathDiv = null;
+            let filenameDiv = null;
+            
+            // Find the divs with our specific content
+            allDivs.forEach(div => {
+                if (div.className === 'resource-path-hidden') {
+                    pathDiv = div;
+                }
+                if (div.className === 'resource-filename') {
+                    filenameDiv = div;
+                }
+            });
+            
+            console.log('Found after search:', {
+                titleTextarea: !!titleTextarea,
+                descTextarea: !!descTextarea,
+                pathDiv: !!pathDiv,
+                filenameDiv: !!filenameDiv
+            });
+            
+            if (pathDiv && filenameDiv) {
+                const path = pathDiv.getAttribute('data-path') || pathDiv.textContent.trim();
+                const filename = filenameDiv.textContent.trim();
+                const title = titleTextarea ? titleTextarea.value : filename;
+                const description = descTextarea ? descTextarea.value : '';
+                
+                draggedResource = {
+                    name: filename,
+                    title: title,
+                    path: path,
+                    type: 'text',
+                    description: description
+                };
+                console.log('Dynamically extracted resource:', draggedResource);
+            }
+        }
+        
+        if (draggedResource) {
+            console.log('Started dragging Gradio resource:', draggedResource);
+            resourceElement.classList.add('dragging');
+            document.body.classList.add('dragging-resource');
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('text/plain', JSON.stringify(draggedResource));
+            
+            // Set global variable to ensure it persists
+            window.currentDraggedResource = draggedResource;
+        } else {
+            console.error('Could not extract resource data for drag');
+        }
+    }
 }
 
 function handleDragEnd(e) {
-    e.target.classList.remove('dragging');
+    // For Gradio components
+    const resourceElement = e.target.closest('.resource-item-gradio');
+    if (resourceElement) {
+        resourceElement.classList.remove('dragging');
+    } else {
+        e.target.classList.remove('dragging');
+    }
+    
+    // Remove dragging class from body
+    document.body.classList.remove('dragging-resource');
+    
     // Clear draggedResource after a small delay to ensure drop completes
     setTimeout(() => {
         draggedResource = null;
+        window.currentDraggedResource = null;
     }, 100);
 }
 
-function handleDragOver(e) {
+function handleDragEnter(e) {
     e.preventDefault();
-    // Only show drag-over effect if we're dragging a resource from the panel
-    if (draggedResource) {
-        e.dataTransfer.dropEffect = 'copy';
+    e.stopPropagation();
+    const resource = draggedResource || window.currentDraggedResource;
+    console.log('DragEnter event - draggedResource:', resource);
+    
+    if (resource) {
         e.currentTarget.classList.add('drag-over');
+    }
+}
+
+function handleDragOver(e) {
+    // Only prevent default for valid drop zones
+    if (e.currentTarget.classList.contains('block-resources')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const resource = draggedResource || window.currentDraggedResource;
+        
+        // Debug logging - reduce verbosity
+        if (!e.currentTarget.dataset.loggedOnce) {
+            console.log('DragOver event - draggedResource:', resource);
+            console.log('DragOver target:', e.currentTarget);
+            e.currentTarget.dataset.loggedOnce = 'true';
+        }
+        
+        // Only show drag-over effect if we're dragging a resource from the panel
+        if (resource) {
+            // Try different drop effects to get the right cursor
+            e.dataTransfer.dropEffect = 'copy';
+            e.currentTarget.classList.add('drag-over');
+            
+            // Force cursor style
+            e.currentTarget.style.cursor = 'copy';
+        }
     }
 }
 
 function handleDragLeave(e) {
     e.currentTarget.classList.remove('drag-over');
+    e.currentTarget.style.cursor = '';
 }
 
 function handleDrop(e) {
     e.preventDefault();
+    e.stopPropagation();
     e.currentTarget.classList.remove('drag-over');
 
-    console.log('Drop event triggered on zone:', e.currentTarget.getAttribute('data-drop-zone-index'));
+    const resource = draggedResource || window.currentDraggedResource;
+    
+    console.log('Drop event triggered');
+    console.log('Drop target:', e.currentTarget);
+    console.log('Drop zone index:', e.currentTarget.getAttribute('data-drop-zone-index'));
+    console.log('Dragged resource:', resource);
 
-    if (!draggedResource) {
+    if (!resource) {
         console.error('No dragged resource found');
         return;
     }
@@ -1160,16 +1386,21 @@ function handleDrop(e) {
     const contentBlock = e.currentTarget.closest('.content-block');
     if (!contentBlock) {
         console.error('No parent content block found');
+        console.log('Current target classes:', e.currentTarget.className);
+        console.log('Parent element:', e.currentTarget.parentElement);
         return;
     }
 
     const blockId = contentBlock.dataset.id;
-    console.log('Dropping resource on block:', blockId, draggedResource);
+    console.log('Dropping resource on block:', blockId, resource);
 
     // Update the block's resources
-    updateBlockResources(blockId, draggedResource);
+    updateBlockResources(blockId, resource);
 
+    // Clear both variables and remove body class
     draggedResource = null;
+    window.currentDraggedResource = null;
+    document.body.classList.remove('dragging-resource');
 }
 
 // Function to update block resources

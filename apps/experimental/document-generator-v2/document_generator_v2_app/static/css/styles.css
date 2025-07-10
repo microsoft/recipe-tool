@@ -1045,6 +1045,7 @@
     color: #999;
     font-size: 12px;
     background-color: #f8f8f8;
+    cursor: default;
 }
 
 .text-block {
@@ -1074,6 +1075,7 @@
     color: #999;
     font-size: 12px;
     background-color: #f8f8f8;
+    cursor: default;
 }
 
 /* Heading input styles for AI and Text blocks - inline version */
@@ -1399,5 +1401,68 @@
     max-width: 120px !important;
     height: 30px !important;
 
+}
+
+/* Gradio resource item drag and drop styles */
+.resource-item-gradio {
+    cursor: grab !important;
+    transition: all 0.2s ease;
+}
+
+.resource-item-gradio:hover {
+    background: #f0f0f0;
+    cursor: grab !important;
+}
+
+.resource-item-gradio:active {
+    cursor: grabbing !important;
+}
+
+.resource-item-gradio.dragging {
+    opacity: 0.5;
+    cursor: grabbing !important;
+    background: #e0e0e0;
+}
+
+/* Global cursor while dragging */
+body.dragging-resource,
+body.dragging-resource * {
+    cursor: grabbing !important;
+}
+
+/* Ensure all elements show grabbing cursor during drag, except drop zones */
+body.dragging-resource *:not(.no-drop):not(.block-resources) {
+    cursor: grabbing !important;
+}
+
+/* Drag and drop styles - matching HTML version */
+.block-resources.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+    cursor: copy !important;
+}
+
+/* Show copy cursor on drop zones when hovering during drag */
+body.dragging-resource .block-resources:hover {
+    cursor: copy !important;
+}
+
+/* Show copy cursor when actively dragging over */
+body.dragging-resource .block-resources.drag-over {
+    cursor: copy !important;
+}
+
+/* Show not-allowed cursor when dragging over invalid drop targets */
+textarea.no-drop, 
+input.no-drop,
+.resource-upload-gradio.no-drop,
+.no-drop {
+    cursor: not-allowed !important;
+}
+
+/* Also style file upload zones to show they're not valid drop targets */
+.resource-upload-gradio.no-drop {
+    opacity: 0.6;
 }
 
