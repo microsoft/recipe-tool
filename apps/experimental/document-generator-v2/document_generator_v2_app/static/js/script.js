@@ -242,6 +242,7 @@ function resetDocumentDescription() {
         // Clear the textarea value
         docDescriptionTextarea.value = '';
 
+
         // Ensure the box is collapsed
         if (!docDescriptionBox.classList.contains('collapsed')) {
             docDescriptionBox.classList.add('collapsed');
