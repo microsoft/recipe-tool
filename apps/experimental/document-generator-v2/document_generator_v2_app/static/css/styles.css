@@ -1,11 +1,27 @@
 /* Document Builder Custom Styles */
 
+/* Hide components but keep them in DOM */
+.hidden-component {
+    display: none !important;
+}
+
+/* Hide the parent div.form container when it contains a hidden-component */
+.form:has(.hidden-component) {
+    display: none !important;
+}
+
+
 /* Debug Panel Accordion Styles */
 .debug-panel {
     border: 1px solid #ddd;
     border-radius: 8px;
     background: white;
     margin-top: 10px;
+}
+
+/* Hide debug panel content initially */
+.debug-panel-content {
+    display: none;
 }
 
 .debug-panel-header {

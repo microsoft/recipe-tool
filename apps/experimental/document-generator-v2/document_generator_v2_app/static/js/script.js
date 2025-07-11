@@ -3,35 +3,46 @@
 
 
 function refresh() {
+    console.log('refresh() called');
     const url = new URL(window.location);
     elements = document.getElementsByClassName("dark")
+    console.log('Found dark elements:', elements.length);
     if (elements.length != 0) {
-        console.log(elements)
+        console.log('Dark elements:', elements)
         elements[0].classList.remove("dark");
-        console.log('Refreshing in light mode');
+        console.log('Refreshing in light mode - removed dark class');
     }
 }
 
 
 // Toggle debug panel visibility
 function toggleDebugPanel() {
+    console.log('toggleDebugPanel called');
     const content = document.getElementById('debug-panel-content');
     const icon = document.getElementById('debug-collapse-icon');
+    
+    console.log('Debug panel content element:', content);
+    console.log('Current display style:', content ? content.style.display : 'content not found');
+    console.log('Icon element:', icon);
 
     if (content) {
         if (content.style.display === 'none' || content.style.display === '') {
+            console.log('Opening debug panel');
             content.style.display = 'block';
             if (icon) {
                 icon.textContent = '⌵';
                 icon.style.transform = 'rotate(180deg)';  // Rotate down chevron to point up
             }
         } else {
+            console.log('Closing debug panel');
             content.style.display = 'none';
             if (icon) {
                 icon.textContent = '⌵';
                 icon.style.transform = 'rotate(0deg)';  // Normal down chevron
             }
         }
+    } else {
+        console.error('Debug panel content element not found!');
     }
 }
 
@@ -39,102 +50,167 @@ function toggleDebugPanel() {
 
 // Delete block function
 function deleteBlock(blockId) {
+    console.log('deleteBlock called with blockId:', blockId);
     // Set the block ID in the hidden textbox
     const blockIdInput = document.getElementById('delete-block-id');
+    console.log('Delete block ID input element:', blockIdInput);
+    
     if (blockIdInput) {
         // Find the textarea element and set its value
         const textarea = blockIdInput.querySelector('textarea');
+        console.log('Delete block textarea element:', textarea);
+        
         if (textarea) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Set block ID in textarea:', blockId);
 
             // Trigger the hidden delete button
             setTimeout(() => {
                 const deleteBtn = document.getElementById('delete-trigger');
+                console.log('Delete trigger button:', deleteBtn);
+                
                 if (deleteBtn) {
                     deleteBtn.click();
+                    console.log('Clicked delete trigger button');
+                } else {
+                    console.error('Delete trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('Textarea not found in delete block ID input!');
         }
+    } else {
+        console.error('Delete block ID input not found!');
     }
 }
 
 // Update block content function
 function updateBlockContent(blockId, content) {
+    console.log('updateBlockContent called with blockId:', blockId, 'content:', content);
     // Set the block ID and content in hidden inputs
     const blockIdInput = document.getElementById('update-block-id');
     const contentInput = document.getElementById('update-content-input');
+    console.log('Update block ID input:', blockIdInput, 'Content input:', contentInput);
 
     if (blockIdInput && contentInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
         const contentTextarea = contentInput.querySelector('textarea');
+        console.log('Block ID textarea:', blockIdTextarea, 'Content textarea:', contentTextarea);
 
         if (blockIdTextarea && contentTextarea) {
             blockIdTextarea.value = blockId;
             contentTextarea.value = content;
+            console.log('Set values in textareas');
 
             // Dispatch input events
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             contentTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input events');
 
             // Trigger the update button
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-trigger');
+                console.log('Update trigger button:', updateBtn);
+                
                 if (updateBtn) {
                     updateBtn.click();
+                    console.log('Clicked update trigger button');
+                } else {
+                    console.error('Update trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
         }
+    } else {
+        console.error('One or both input containers not found!');
     }
 }
 
 // Update block heading function
 function updateBlockHeading(blockId, heading) {
+    console.log('updateBlockHeading called with blockId:', blockId, 'heading:', heading);
     // Set the block ID and heading in hidden inputs
     const blockIdInput = document.getElementById('update-heading-block-id');
     const headingInput = document.getElementById('update-heading-input');
+    console.log('Block ID input element:', blockIdInput);
+    console.log('Heading input element:', headingInput);
 
     if (blockIdInput && headingInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
         const headingTextarea = headingInput.querySelector('textarea');
+        console.log('Block ID textarea:', blockIdTextarea);
+        console.log('Heading textarea:', headingTextarea);
 
         if (blockIdTextarea && headingTextarea) {
             blockIdTextarea.value = blockId;
             headingTextarea.value = heading;
+            console.log('Set block ID:', blockId);
+            console.log('Set heading:', heading);
 
             // Dispatch input events
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             headingTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input events for both textareas');
 
             // Trigger the update button
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-heading-trigger');
+                console.log('Update heading trigger button:', updateBtn);
+                
                 if (updateBtn) {
                     updateBtn.click();
+                    console.log('Clicked update heading trigger button');
+                } else {
+                    console.error('Update heading trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
+            console.error('blockIdTextarea:', blockIdTextarea);
+            console.error('headingTextarea:', headingTextarea);
         }
+    } else {
+        console.error('One or both input containers not found!');
+        console.error('blockIdInput:', blockIdInput);
+        console.error('headingInput:', headingInput);
     }
 }
 
 // Toggle block collapse function
 function toggleBlockCollapse(blockId) {
+    console.log('toggleBlockCollapse called with blockId:', blockId);
     // Set the block ID in the hidden input
     const blockIdInput = document.getElementById('toggle-block-id');
+    console.log('Toggle block ID input:', blockIdInput);
+    
     if (blockIdInput) {
         const textarea = blockIdInput.querySelector('textarea');
+        console.log('Toggle block textarea:', textarea);
+        
         if (textarea) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Set block ID in textarea:', blockId);
 
             // Trigger the hidden toggle button
             setTimeout(() => {
                 const toggleBtn = document.getElementById('toggle-trigger');
+                console.log('Toggle trigger button:', toggleBtn);
+                
                 if (toggleBtn) {
                     toggleBtn.click();
+                    console.log('Clicked toggle trigger button');
+                } else {
+                    console.error('Toggle trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('Textarea not found in toggle block ID input!');
         }
+    } else {
+        console.error('Toggle block ID input not found!');
     }
 }
 
@@ -182,7 +258,7 @@ function autoExpandTextarea(textarea) {
     if (isDocDescription) {
         return;
     }
-    
+
     // For other textareas, use height-based method
     textarea.style.height = 'auto';
     const newHeight = textarea.scrollHeight + 2;
@@ -586,55 +662,99 @@ if (document.body) {
 
 // Update block indent function
 function updateBlockIndent(blockId, direction) {
+    console.log('updateBlockIndent called with blockId:', blockId, 'direction:', direction);
+    
     // Set focused block when indenting
     setFocusedBlock(blockId);
+    console.log('Called setFocusedBlock for blockId:', blockId);
 
     // Set the block ID and direction in hidden inputs
     const blockIdInput = document.getElementById('indent-block-id');
     const directionInput = document.getElementById('indent-direction');
+    console.log('Block ID input element:', blockIdInput);
+    console.log('Direction input element:', directionInput);
 
     if (blockIdInput && directionInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
         const directionTextarea = directionInput.querySelector('textarea');
+        console.log('Block ID textarea:', blockIdTextarea);
+        console.log('Direction textarea:', directionTextarea);
 
         if (blockIdTextarea && directionTextarea) {
             blockIdTextarea.value = blockId;
             directionTextarea.value = direction;
+            console.log('Set block ID:', blockId);
+            console.log('Set direction:', direction);
 
             // Dispatch input events
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             directionTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input events for both textareas');
 
             // Trigger the update button
             setTimeout(() => {
                 const indentBtn = document.getElementById('indent-trigger');
+                console.log('Indent trigger button:', indentBtn);
+                
                 if (indentBtn) {
                     indentBtn.click();
+                    console.log('Clicked indent trigger button');
+                } else {
+                    console.error('Indent trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
+            console.error('blockIdTextarea:', blockIdTextarea);
+            console.error('directionTextarea:', directionTextarea);
         }
+    } else {
+        console.error('One or both input containers not found!');
+        console.error('blockIdInput:', blockIdInput);
+        console.error('directionInput:', directionInput);
     }
 }
 
 // Set focused block function
 function setFocusedBlock(blockId, skipRender = false) {
+    console.log('setFocusedBlock called with blockId:', blockId, 'skipRender:', skipRender);
+    
     const focusIdInput = document.getElementById('focus-block-id');
+    console.log('Focus ID input element:', focusIdInput);
+    
     if (focusIdInput) {
         const textarea = focusIdInput.querySelector('textarea');
+        console.log('Focus ID textarea:', textarea);
+        
         if (textarea) {
             textarea.value = blockId;
+            console.log('Set focus block ID:', blockId);
+            
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input event');
 
             // Only trigger render if not skipping
             if (!skipRender) {
+                console.log('Not skipping render, will trigger focus button');
                 setTimeout(() => {
                     const focusBtn = document.getElementById('focus-trigger');
+                    console.log('Focus trigger button:', focusBtn);
+                    
                     if (focusBtn) {
                         focusBtn.click();
+                        console.log('Clicked focus trigger button');
+                    } else {
+                        console.error('Focus trigger button not found!');
                     }
                 }, 100);
+            } else {
+                console.log('Skipping render as requested');
             }
+        } else {
+            console.error('Textarea not found in focus ID input!');
         }
+    } else {
+        console.error('Focus ID input not found!');
     }
 }
 
@@ -680,40 +800,68 @@ function addBlockAfter(blockId) {
 
 // Convert block type function
 function convertBlock(blockId, toType) {
+    console.log('convertBlock called with blockId:', blockId, 'toType:', toType);
+    
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('convert-block-id');
     const typeInput = document.getElementById('convert-type');
+    console.log('Block ID input element:', blockIdInput);
+    console.log('Type input element:', typeInput);
 
     if (blockIdInput && typeInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
         const typeTextarea = typeInput.querySelector('textarea');
+        console.log('Block ID textarea:', blockIdTextarea);
+        console.log('Type textarea:', typeTextarea);
 
         if (blockIdTextarea && typeTextarea) {
             blockIdTextarea.value = blockId;
             typeTextarea.value = toType;
+            console.log('Set block ID:', blockId);
+            console.log('Set convert to type:', toType);
 
             // Dispatch input events
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             typeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input events for both textareas');
 
             // Trigger the convert button
             setTimeout(() => {
                 const convertBtn = document.getElementById('convert-trigger');
+                console.log('Convert trigger button:', convertBtn);
+                
                 if (convertBtn) {
                     convertBtn.click();
+                    console.log('Clicked convert trigger button');
+                    
                     // Focus the textarea after conversion
                     setTimeout(() => {
                         const block = document.querySelector(`[data-id="${blockId}"]`);
+                        console.log('Found converted block:', block);
+                        
                         if (block) {
                             const textarea = block.querySelector('textarea');
+                            console.log('Found textarea in converted block:', textarea);
+                            
                             if (textarea) {
                                 textarea.focus();
+                                console.log('Focused textarea in converted block');
                             }
                         }
                     }, 200);
+                } else {
+                    console.error('Convert trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
+            console.error('blockIdTextarea:', blockIdTextarea);
+            console.error('typeTextarea:', typeTextarea);
         }
+    } else {
+        console.error('One or both input containers not found!');
+        console.error('blockIdInput:', blockIdInput);
+        console.error('typeInput:', typeInput);
     }
 }
 
@@ -755,30 +903,44 @@ function deleteResourceFromPanel(resourcePath) {
 
 // Remove resource from block function
 function removeBlockResource(blockId, resourcePath) {
+    console.log('removeBlockResource called with blockId:', blockId, 'resourcePath:', resourcePath);
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('remove-resource-block-id');
     const resourcePathInput = document.getElementById('remove-resource-path');
+    console.log('Block ID input:', blockIdInput, 'Resource path input:', resourcePathInput);
 
     if (blockIdInput && resourcePathInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
         const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        console.log('Block ID textarea:', blockIdTextarea, 'Resource path textarea:', resourcePathTextarea);
 
         if (blockIdTextarea && resourcePathTextarea) {
             blockIdTextarea.value = blockId;
             resourcePathTextarea.value = resourcePath;
+            console.log('Set values in textareas');
 
             // Dispatch input events
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             resourcePathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('Dispatched input events');
 
             // Trigger the remove button
             setTimeout(() => {
                 const removeBtn = document.getElementById('remove-resource-trigger');
+                console.log('Remove resource trigger button:', removeBtn);
+                
                 if (removeBtn) {
                     removeBtn.click();
+                    console.log('Clicked remove resource trigger button');
+                } else {
+                    console.error('Remove resource trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
         }
+    } else {
+        console.error('One or both input containers not found!');
     }
 }
 
@@ -918,11 +1080,11 @@ function setupDescriptionToggle() {
     // Function to check if button should be visible
     function checkButtonVisibility() {
         if (isCollapsed) return;
-        
+
         // Count actual lines in the textarea
         const lines = textarea.value.split('\n');
         let totalLines = lines.length; // Start with actual line breaks
-        
+
         // Add wrapped lines - estimate ~80 chars per line for wider doc description
         lines.forEach((line, index) => {
             if (line.length > 80) {
@@ -930,32 +1092,32 @@ function setupDescriptionToggle() {
                 totalLines += Math.floor(line.length / 80);
             }
         });
-        
+
         console.log('Doc desc - lines:', lines.length, 'totalLines:', totalLines);
-        
+
         // Show button if content exceeds 2 lines
         if (totalLines > 2) {
             button.style.display = 'block';
         } else {
             button.style.display = 'none';
         }
-        
+
         // Set rows attribute based on content, no max
         let rowsToShow = Math.max(2, totalLines);
-        
+
         // Add 1 extra row if we have 3 or more rows for breathing room
         if (rowsToShow >= 3) {
             rowsToShow += 1;
         }
-        
+
         console.log('Setting rows to:', rowsToShow);
-        
+
         textarea.rows = rowsToShow;
         textarea.style.height = 'auto'; // Use auto instead of empty string
         textarea.style.minHeight = 'auto';
         textarea.style.maxHeight = 'none';
         textarea.style.overflow = 'hidden';
-        
+
         // Never add scrollable class
         textarea.classList.remove('scrollable');
     }
@@ -1032,7 +1194,7 @@ function setupDescriptionToggle() {
             toggleCollapse();
         }
     });
-    
+
     // Also handle paste
     textarea.addEventListener('paste', function() {
         setTimeout(() => {
@@ -1064,8 +1226,8 @@ function setupImportButton() {
             e.preventDefault();
             e.stopPropagation();
 
-            // Find the import file input
-            const importFileInput = document.querySelector('#import-file-input input[type="file"]');
+            // Find the import file input - it's inside the button element in Gradio 5.x
+            const importFileInput = document.querySelector('#import-file-input button input[type="file"]');
             console.log('Import file input found:', importFileInput);
 
             if (importFileInput) {
@@ -1149,14 +1311,15 @@ function setupFileUploadDragAndDrop() {
         });
 
         element.addEventListener('drop', function(e) {
-            e.preventDefault();
             dragCounter = 0;
             fileUploadZone.classList.remove('drag-over');
             // Block resource drops completely
             if (draggedResource) {
+                e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
+            // For file drops, let Gradio handle it - don't prevent default
         });
     }
 
@@ -1438,34 +1601,62 @@ function handleDrop(e) {
 
 // Function to update block resources
 function updateBlockResources(blockId, resource) {
-    console.log('updateBlockResources called with:', blockId, resource);
+    console.log('updateBlockResources called with blockId:', blockId);
+    console.log('Resource object:', resource);
 
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('update-resources-block-id');
+    console.log('Update resources block ID input element:', blockIdInput);
+    
     const resourceInput = document.getElementById('update-resources-input');
-
-    console.log('Found inputs:', !!blockIdInput, !!resourceInput);
+    console.log('Update resources input element:', resourceInput);
 
     if (blockIdInput && resourceInput) {
         const blockIdTextarea = blockIdInput.querySelector('textarea');
+        console.log('Block ID textarea element:', blockIdTextarea);
+        
         const resourceTextarea = resourceInput.querySelector('textarea');
+        console.log('Resource textarea element:', resourceTextarea);
 
         if (blockIdTextarea && resourceTextarea) {
+            // Set block ID
             blockIdTextarea.value = blockId;
-            resourceTextarea.value = JSON.stringify(resource);
+            console.log('Set block ID in textarea:', blockId);
+            
+            // Set resource JSON
+            const resourceJson = JSON.stringify(resource);
+            resourceTextarea.value = resourceJson;
+            console.log('Set resource JSON in textarea:', resourceJson);
 
             // Dispatch input events
+            console.log('Dispatching input event for block ID textarea');
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            console.log('Dispatching input event for resource textarea');
             resourceTextarea.dispatchEvent(new Event('input', { bubbles: true }));
 
             // Trigger the update button
+            console.log('Setting timeout to trigger update button');
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-resources-trigger');
+                console.log('Update resources trigger button:', updateBtn);
+                
                 if (updateBtn) {
                     updateBtn.click();
+                    console.log('Clicked update resources trigger button');
+                } else {
+                    console.error('Update resources trigger button not found!');
                 }
             }, 100);
+        } else {
+            console.error('One or both textareas not found!');
+            console.error('Block ID textarea:', blockIdTextarea);
+            console.error('Resource textarea:', resourceTextarea);
         }
+    } else {
+        console.error('One or both input containers not found!');
+        console.error('Block ID input:', blockIdInput);
+        console.error('Resource input:', resourceInput);
     }
 }
 
@@ -1492,15 +1683,24 @@ function setupExampleSelection() {
                         const loadExampleBtn = document.getElementById('load-example-trigger');
                         if (loadExampleBtn) {
                             loadExampleBtn.click();
-                            
+
                             // Re-setup resource descriptions after loading
                             setTimeout(() => {
                                 setupResourceDescriptions();
                                 // Doc description will be handled by the interval watcher
                             }, 500);
                         }
+                        else {
+                            console.log('loadExampleBtn not found');
+                        }
                     }, 100);
                 }
+                else {
+                    console.log('textarea not found');
+                }
+            }
+            else {
+                console.log('ExampleIdInput not found');
             }
 
             // Hide dropdown after selection
@@ -1704,34 +1904,34 @@ function toggleResourceDescription(resourceId) {
 function setupResourceDescriptions() {
     // Handle Gradio resource descriptions
     const gradioDescTextareas = document.querySelectorAll('.resource-desc-gradio textarea');
-    
+
     gradioDescTextareas.forEach(textarea => {
         const container = textarea.closest('.resource-desc-gradio');
         if (!container || container.dataset.toggleSetup) {
             return;
         }
-        
+
         // Mark as setup
         container.dataset.toggleSetup = 'true';
-        
+
         // Create expand/collapse button
         const button = document.createElement('button');
         button.className = 'desc-expand-btn';
         button.innerHTML = '⌵'; // Down chevron
         button.title = 'Collapse';
         button.style.display = 'none'; // Hidden by default
-        
+
         // Add button to container
         container.appendChild(button);
-        
+
         // Track collapsed state and full text
         let isCollapsed = false;
         let fullText = '';
-        
+
         // Function to get first two lines of text
         function getFirstTwoLines(text) {
             const lines = text.split('\n');
-            
+
             // Always show exactly 2 lines
             if (lines.length === 1) {
                 // If only one line, just return it with ellipsis if it's long
@@ -1740,7 +1940,7 @@ function setupResourceDescriptions() {
                 // Get exactly first two lines
                 const firstLine = lines[0];
                 const secondLine = lines[1];
-                
+
                 // If there are more than 2 lines or the second line is long, add ellipsis
                 if (lines.length > 2 || secondLine.length > 50) {
                     // Truncate second line if needed to make room for ellipsis
@@ -1750,18 +1950,18 @@ function setupResourceDescriptions() {
                     return firstLine + '\n' + secondLine;
                 }
             }
-            
+
             return text;
         }
-        
+
         // Function to check if button should be visible
         function checkButtonVisibility() {
             if (isCollapsed) return;
-            
+
             // Count actual lines in the textarea
             const lines = textarea.value.split('\n');
             let totalLines = lines.length; // Start with actual line breaks
-            
+
             // Add wrapped lines - more accurate estimation
             // Resource panel is narrower, estimate ~35 chars per line at 11px font
             lines.forEach((line, index) => {
@@ -1770,32 +1970,32 @@ function setupResourceDescriptions() {
                     totalLines += Math.floor(line.length / 35);
                 }
             });
-            
+
             // Show button if content exceeds 2 lines
             if (totalLines > 2) {
                 button.style.display = 'block';
             } else {
                 button.style.display = 'none';
             }
-            
+
             // Set rows attribute based on content, no max
             let rowsToShow = Math.max(2, totalLines);
-            
+
             // Add 1 extra row if we have 3 or more rows for breathing room
             if (rowsToShow >= 3) {
                 rowsToShow += 1;
             }
-            
+
             textarea.rows = rowsToShow;
             textarea.style.height = ''; // Let rows attribute control height
             textarea.style.minHeight = ''; // Clear any min-height
             textarea.style.maxHeight = ''; // Clear any max-height
             textarea.style.overflow = 'hidden'; // No scrollbars
-            
+
             // Never add scrollable class
             textarea.classList.remove('scrollable');
         }
-        
+
         // Toggle collapse/expand
         function toggleCollapse() {
             if (isCollapsed) {
@@ -1809,7 +2009,7 @@ function setupResourceDescriptions() {
                 // Don't set rows to null - let checkButtonVisibility set it
                 checkButtonVisibility();
                 textarea.focus();
-                
+
                 // Trigger input event to update Gradio's state
                 textarea.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
@@ -1826,14 +2026,14 @@ function setupResourceDescriptions() {
                 textarea.blur();
             }
         }
-        
+
         // Button click handler
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             toggleCollapse();
         });
-        
+
         // Click on collapsed textarea to expand
         textarea.addEventListener('click', (e) => {
             if (isCollapsed) {
@@ -1844,7 +2044,7 @@ function setupResourceDescriptions() {
                 }, 0);
             }
         });
-        
+
         // Check on input
         textarea.addEventListener('input', () => {
             checkButtonVisibility();
@@ -1852,27 +2052,27 @@ function setupResourceDescriptions() {
                 toggleCollapse();
             }
         });
-        
+
         // Initial check
         checkButtonVisibility();
-        
+
         // If textarea has initial content, ensure proper display
         if (textarea.value && textarea.value.split('\n').length > 2) {
             checkButtonVisibility();
         }
-        
+
         // Watch for value changes (e.g., from imports)
         const observer = new MutationObserver(() => {
             if (!isCollapsed && textarea.value !== fullText) {
                 checkButtonVisibility();
             }
         });
-        
+
         observer.observe(textarea, {
             attributes: true,
             attributeFilter: ['value']
         });
-        
+
         // Also listen for programmatic value changes
         let lastValue = textarea.value;
         setInterval(() => {
@@ -2093,7 +2293,7 @@ function setupResourceUploadText() {
     // Function to replace the text in resource upload zones
     function replaceResourceUploadText() {
         const resourceUploadZones = document.querySelectorAll('.resource-upload-gradio');
-        
+
         resourceUploadZones.forEach(zone => {
             // Find all text nodes and remove default Gradio text
             const wrapDivs = zone.querySelectorAll('.wrap');
@@ -2103,7 +2303,7 @@ function setupResourceUploadText() {
                 if (icon) {
                     icon.style.display = 'none';
                 }
-                
+
                 // Replace the text content and remove spans with "- or -"
                 wrapDiv.childNodes.forEach(node => {
                     if (node.nodeType === Node.TEXT_NODE) {
@@ -2113,20 +2313,20 @@ function setupResourceUploadText() {
                         }
                     } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
                         // Check if span contains "- or -" or other unwanted text
-                        if (node.textContent.includes('- or -') || 
-                            node.textContent.includes('Drop File Here') || 
+                        if (node.textContent.includes('- or -') ||
+                            node.textContent.includes('Drop File Here') ||
                             node.textContent.includes('Click to Upload')) {
                             node.style.display = 'none';
                         }
                     }
                 });
-                
+
                 // Also hide any .or class spans
                 const orSpans = wrapDiv.querySelectorAll('.or, span.or');
                 orSpans.forEach(span => {
                     span.style.display = 'none';
                 });
-                
+
                 // Add our custom text if not already present
                 if (!wrapDiv.querySelector('.custom-upload-text')) {
                     const customText = document.createElement('span');
@@ -2227,17 +2427,40 @@ function setupResourceUploadZones() {
 
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOMContentLoaded - Starting initialization');
+    
     refresh();
+    console.log('Called refresh()');
+    
     setupImportButton();
+    console.log('Called setupImportButton()');
+    
     // Upload resource setup no longer needed - using Gradio's native component
     setupExampleSelection();
+    console.log('Called setupExampleSelection()');
+    
     // Delay initial drag and drop setup
     setTimeout(() => {
+        console.log('Starting delayed setup functions');
+        
         setupDragAndDrop();
+        console.log('Called setupDragAndDrop()');
+        
         setupResourceDescriptions();
+        console.log('Called setupResourceDescriptions()');
+        
         setupResourceTitleObservers();
+        console.log('Called setupResourceTitleObservers()');
+        
         setupResourceUploadZones();
+        console.log('Called setupResourceUploadZones()');
+        
         setupResourceUploadText();
+        console.log('Called setupResourceUploadText()');
+        
         preventResourceDrops();
+        console.log('Called preventResourceDrops()');
+        
+        console.log('All initialization complete');
     }, 100);
 });

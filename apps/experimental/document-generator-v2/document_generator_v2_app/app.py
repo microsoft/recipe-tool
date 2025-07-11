@@ -1782,7 +1782,11 @@ def create_app():
 
                 # Hidden file component for import
                 import_file = gr.File(
-                    label="Import Docpack", file_types=[".docpack"], visible=False, elem_id="import-file-input"
+                    label="Import Docpack", 
+                    file_types=[".docpack"], 
+                    visible=True,
+                    elem_id="import-file-input",
+                    elem_classes="hidden-component"
                 )
 
         # Document title and description
@@ -2107,59 +2111,171 @@ def create_app():
                     blocks_display = gr.HTML(value=render_blocks(initial_blocks, None), elem_classes="blocks-container")
 
                     # Hidden components for JS communication
-                    delete_block_id = gr.Textbox(visible=False, elem_id="delete-block-id")
-                    delete_trigger = gr.Button("Delete", visible=False, elem_id="delete-trigger")
+                    delete_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="delete-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    delete_trigger = gr.Button(
+                        "Delete", 
+                        visible=True, 
+                        elem_id="delete-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden HTML for JavaScript execution
                     js_executor = gr.HTML(visible=False)
 
                     # Hidden components for content updates
-                    update_block_id = gr.Textbox(visible=False, elem_id="update-block-id")
-                    update_content_input = gr.Textbox(visible=False, elem_id="update-content-input")
-                    update_trigger = gr.Button("Update", visible=False, elem_id="update-trigger")
+                    update_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    update_content_input = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-content-input",
+                        elem_classes="hidden-component"
+                    )
+                    update_trigger = gr.Button(
+                        "Update", 
+                        visible=True, 
+                        elem_id="update-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for toggle collapse
-                    toggle_block_id = gr.Textbox(visible=False, elem_id="toggle-block-id")
-                    toggle_trigger = gr.Button("Toggle", visible=False, elem_id="toggle-trigger")
+                    toggle_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="toggle-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    toggle_trigger = gr.Button(
+                        "Toggle", 
+                        visible=True, 
+                        elem_id="toggle-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for heading updates
-                    update_heading_block_id = gr.Textbox(visible=False, elem_id="update-heading-block-id")
-                    update_heading_input = gr.Textbox(visible=False, elem_id="update-heading-input")
+                    update_heading_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-heading-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    update_heading_input = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-heading-input",
+                        elem_classes="hidden-component"
+                    )
                     update_heading_trigger = gr.Button(
-                        "Update Heading", visible=False, elem_id="update-heading-trigger"
+                        "Update Heading", 
+                        visible=True, 
+                        elem_id="update-heading-trigger",
+                        elem_classes="hidden-component"
                     )
 
                     # Hidden components for indent updates
-                    indent_block_id = gr.Textbox(visible=False, elem_id="indent-block-id")
-                    indent_direction = gr.Textbox(visible=False, elem_id="indent-direction")
-                    indent_trigger = gr.Button("Update Indent", visible=False, elem_id="indent-trigger")
+                    indent_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="indent-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    indent_direction = gr.Textbox(
+                        visible=True, 
+                        elem_id="indent-direction",
+                        elem_classes="hidden-component"
+                    )
+                    indent_trigger = gr.Button(
+                        "Update Indent", 
+                        visible=True, 
+                        elem_id="indent-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for focus tracking
-                    focus_block_id = gr.Textbox(visible=False, elem_id="focus-block-id")
-                    focus_trigger = gr.Button("Set Focus", visible=False, elem_id="focus-trigger")
+                    focus_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="focus-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    focus_trigger = gr.Button(
+                        "Set Focus", 
+                        visible=True, 
+                        elem_id="focus-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for adding block after
-                    add_after_block_id = gr.Textbox(visible=False, elem_id="add-after-block-id")
-                    add_after_type = gr.Textbox(visible=False, elem_id="add-after-type")
-                    add_after_trigger = gr.Button("Add After", visible=False, elem_id="add-after-trigger")
+                    add_after_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="add-after-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    add_after_type = gr.Textbox(
+                        visible=True, 
+                        elem_id="add-after-type",
+                        elem_classes="hidden-component"
+                    )
+                    add_after_trigger = gr.Button(
+                        "Add After", 
+                        visible=True, 
+                        elem_id="add-after-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for converting block type
-                    convert_block_id = gr.Textbox(visible=False, elem_id="convert-block-id")
-                    convert_type = gr.Textbox(visible=False, elem_id="convert-type")
-                    convert_trigger = gr.Button("Convert", visible=False, elem_id="convert-trigger")
+                    convert_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="convert-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    convert_type = gr.Textbox(
+                        visible=True, 
+                        elem_id="convert-type",
+                        elem_classes="hidden-component"
+                    )
+                    convert_trigger = gr.Button(
+                        "Convert", 
+                        visible=True, 
+                        elem_id="convert-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for updating block resources
-                    update_resources_block_id = gr.Textbox(visible=False, elem_id="update-resources-block-id")
-                    update_resources_input = gr.Textbox(visible=False, elem_id="update-resources-input")
+                    update_resources_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-resources-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    update_resources_input = gr.Textbox(
+                        visible=True, 
+                        elem_id="update-resources-input",
+                        elem_classes="hidden-component"
+                    )
                     update_resources_trigger = gr.Button(
-                        "Update Resources", visible=False, elem_id="update-resources-trigger"
+                        "Update Resources", 
+                        visible=True, 
+                        elem_id="update-resources-trigger",
+                        elem_classes="hidden-component"
                     )
 
                     # Hidden components for removing block resources
-                    remove_resource_block_id = gr.Textbox(visible=False, elem_id="remove-resource-block-id")
-                    remove_resource_path = gr.Textbox(visible=False, elem_id="remove-resource-path")
+                    remove_resource_block_id = gr.Textbox(
+                        visible=True, 
+                        elem_id="remove-resource-block-id",
+                        elem_classes="hidden-component"
+                    )
+                    remove_resource_path = gr.Textbox(
+                        visible=True, 
+                        elem_id="remove-resource-path",
+                        elem_classes="hidden-component"
+                    )
                     remove_resource_trigger = gr.Button(
-                        "Remove Resource", visible=False, elem_id="remove-resource-trigger"
+                        "Remove Resource", 
+                        visible=True, 
+                        elem_id="remove-resource-trigger",
+                        elem_classes="hidden-component"
                     )
 
                     # Hidden components for deleting resources from panel
@@ -2175,8 +2291,17 @@ def create_app():
                     update_desc_trigger = gr.Button("Update Description", visible=False, elem_id="update-desc-trigger")
 
                     # Hidden components for loading examples
-                    example_id_input = gr.Textbox(visible=False, elem_id="example-id-input")
-                    load_example_trigger = gr.Button("Load Example", visible=False, elem_id="load-example-trigger")
+                    example_id_input = gr.Textbox(
+                        visible=True,
+                        elem_id="example-id-input",
+                        elem_classes="hidden-component"
+                    )
+                    load_example_trigger = gr.Button(
+                        "Load Example", 
+                        visible=True,
+                        elem_id="load-example-trigger",
+                        elem_classes="hidden-component"
+                    )
 
                     # Hidden components for updating resource titles
                     update_title_resource_path = gr.Textbox(visible=False, elem_id="update-title-resource-path")
@@ -2295,7 +2420,7 @@ def create_app():
                             </div>
                         """)
 
-                    with gr.Column(elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=False):
+                    with gr.Column(elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=True):
                         json_output = gr.Code(value=initial_json, language="json", elem_classes="json-debug-output")
 
         # Helper function to add AI block and regenerate outline
