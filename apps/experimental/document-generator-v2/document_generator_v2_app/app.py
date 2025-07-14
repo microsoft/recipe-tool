@@ -2755,7 +2755,7 @@ def create_app():
             """Handle resource file replacement."""
             if not new_file:
                 # No file selected, return unchanged
-                return resources, blocks, gr.update(), outline_state.value, json_output.value, ""
+                return resources, blocks, outline_state.value, json_output.value, ""
 
             # new_file is the file path from Gradio
             new_file_path = new_file if isinstance(new_file, str) else new_file.name
@@ -2765,7 +2765,8 @@ def create_app():
                 resources, old_path, new_file_path, doc_title, doc_description, blocks, session_id
             )
 
-            return updated_resources, updated_blocks, resources_html, outline, json_str, success_msg
+            # Return only the values that match the outputs list
+            return updated_resources, updated_blocks, outline, json_str, success_msg
 
         replace_resource_trigger.click(
             fn=handle_resource_replacement,
