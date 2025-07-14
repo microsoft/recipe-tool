@@ -1136,7 +1136,7 @@ def import_outline(file_path, session_id=None):
         outline, json_str = regenerate_outline_from_state(title, description, resources, blocks)
 
         # Generate resources HTML using the proper function
-        resources_html = generate_resource_html(resources)
+        generate_resource_html(resources)
 
         # Return values matching what import_file.change expects
         return (
@@ -1673,35 +1673,36 @@ def log_gradio_functions(app):
     """Log all Gradio function mappings with their fn_index."""
     print("\n=== Gradio Function Index Mapping ===")
     total_fns = 0
-    if hasattr(app, 'fns'):
+    if hasattr(app, "fns"):
         total_fns = len(app.fns)
         print(f"Total registered functions: {total_fns}")
         print(f"Highest fn_index: {total_fns - 1}")
-        
+
         for idx, fn_data in enumerate(app.fns):
-            if fn_data and hasattr(fn_data, 'fn'):
+            if fn_data and hasattr(fn_data, "fn"):
                 fn = fn_data.fn
-                fn_name = fn.__name__ if hasattr(fn, '__name__') else str(fn)
+                fn_name = fn.__name__ if hasattr(fn, "__name__") else str(fn)
                 print(f"fn_index {idx}: {fn_name}")
             else:
                 print(f"fn_index {idx}: <empty/None>")
     else:
         print("WARNING: app.fns not found!")
     print("=====================================\n")
-    
+
     # Also create a mapping file for reference
     mapping = {"total_functions": total_fns, "functions": {}}
-    if hasattr(app, 'fns'):
+    if hasattr(app, "fns"):
         for idx, fn_data in enumerate(app.fns):
-            if fn_data and hasattr(fn_data, 'fn'):
+            if fn_data and hasattr(fn_data, "fn"):
                 fn = fn_data.fn
-                fn_name = fn.__name__ if hasattr(fn, '__name__') else str(fn)
+                fn_name = fn.__name__ if hasattr(fn, "__name__") else str(fn)
                 mapping["functions"][idx] = fn_name
             else:
                 mapping["functions"][idx] = "<empty/None>"
-    
+
     # Save to a file for easy reference
     import json
+
     with open("gradio_fn_index_mapping.json", "w") as f:
         json.dump(mapping, f, indent=2)
     print("Function mapping saved to gradio_fn_index_mapping.json")
@@ -1819,11 +1820,11 @@ def create_app():
 
                 # Hidden file component for import
                 import_file = gr.File(
-                    label="Import Docpack", 
-                    file_types=[".docpack"], 
+                    label="Import Docpack",
+                    file_types=[".docpack"],
                     visible=True,
                     elem_id="import-file-input",
-                    elem_classes="hidden-component"
+                    elem_classes="hidden-component",
                 )
 
         # Document title and description
@@ -2149,15 +2150,10 @@ def create_app():
 
                     # Hidden components for JS communication
                     delete_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="delete-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="delete-block-id", elem_classes="hidden-component"
                     )
                     delete_trigger = gr.Button(
-                        "Delete", 
-                        visible=True, 
-                        elem_id="delete-trigger",
-                        elem_classes="hidden-component"
+                        "Delete", visible=True, elem_id="delete-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden HTML for JavaScript execution
@@ -2165,154 +2161,98 @@ def create_app():
 
                     # Hidden components for content updates
                     update_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-block-id", elem_classes="hidden-component"
                     )
                     update_content_input = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-content-input",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-content-input", elem_classes="hidden-component"
                     )
                     update_trigger = gr.Button(
-                        "Update", 
-                        visible=True, 
-                        elem_id="update-trigger",
-                        elem_classes="hidden-component"
+                        "Update", visible=True, elem_id="update-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for toggle collapse
                     toggle_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="toggle-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="toggle-block-id", elem_classes="hidden-component"
                     )
                     toggle_trigger = gr.Button(
-                        "Toggle", 
-                        visible=True, 
-                        elem_id="toggle-trigger",
-                        elem_classes="hidden-component"
+                        "Toggle", visible=True, elem_id="toggle-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for heading updates
                     update_heading_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-heading-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-heading-block-id", elem_classes="hidden-component"
                     )
                     update_heading_input = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-heading-input",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-heading-input", elem_classes="hidden-component"
                     )
                     update_heading_trigger = gr.Button(
-                        "Update Heading", 
-                        visible=True, 
+                        "Update Heading",
+                        visible=True,
                         elem_id="update-heading-trigger",
-                        elem_classes="hidden-component"
+                        elem_classes="hidden-component",
                     )
 
                     # Hidden components for indent updates
                     indent_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="indent-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="indent-block-id", elem_classes="hidden-component"
                     )
                     indent_direction = gr.Textbox(
-                        visible=True, 
-                        elem_id="indent-direction",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="indent-direction", elem_classes="hidden-component"
                     )
                     indent_trigger = gr.Button(
-                        "Update Indent", 
-                        visible=True, 
-                        elem_id="indent-trigger",
-                        elem_classes="hidden-component"
+                        "Update Indent", visible=True, elem_id="indent-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for focus tracking
-                    focus_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="focus-block-id",
-                        elem_classes="hidden-component"
-                    )
+                    focus_block_id = gr.Textbox(visible=True, elem_id="focus-block-id", elem_classes="hidden-component")
                     focus_trigger = gr.Button(
-                        "Set Focus", 
-                        visible=True, 
-                        elem_id="focus-trigger",
-                        elem_classes="hidden-component"
+                        "Set Focus", visible=True, elem_id="focus-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for adding block after
                     add_after_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="add-after-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="add-after-block-id", elem_classes="hidden-component"
                     )
-                    add_after_type = gr.Textbox(
-                        visible=True, 
-                        elem_id="add-after-type",
-                        elem_classes="hidden-component"
-                    )
+                    add_after_type = gr.Textbox(visible=True, elem_id="add-after-type", elem_classes="hidden-component")
                     add_after_trigger = gr.Button(
-                        "Add After", 
-                        visible=True, 
-                        elem_id="add-after-trigger",
-                        elem_classes="hidden-component"
+                        "Add After", visible=True, elem_id="add-after-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for converting block type
                     convert_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="convert-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="convert-block-id", elem_classes="hidden-component"
                     )
-                    convert_type = gr.Textbox(
-                        visible=True, 
-                        elem_id="convert-type",
-                        elem_classes="hidden-component"
-                    )
+                    convert_type = gr.Textbox(visible=True, elem_id="convert-type", elem_classes="hidden-component")
                     convert_trigger = gr.Button(
-                        "Convert", 
-                        visible=True, 
-                        elem_id="convert-trigger",
-                        elem_classes="hidden-component"
+                        "Convert", visible=True, elem_id="convert-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for updating block resources
                     update_resources_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-resources-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-resources-block-id", elem_classes="hidden-component"
                     )
                     update_resources_input = gr.Textbox(
-                        visible=True, 
-                        elem_id="update-resources-input",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="update-resources-input", elem_classes="hidden-component"
                     )
                     update_resources_trigger = gr.Button(
-                        "Update Resources", 
-                        visible=True, 
+                        "Update Resources",
+                        visible=True,
                         elem_id="update-resources-trigger",
-                        elem_classes="hidden-component"
+                        elem_classes="hidden-component",
                     )
 
                     # Hidden components for removing block resources
                     remove_resource_block_id = gr.Textbox(
-                        visible=True, 
-                        elem_id="remove-resource-block-id",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="remove-resource-block-id", elem_classes="hidden-component"
                     )
                     remove_resource_path = gr.Textbox(
-                        visible=True, 
-                        elem_id="remove-resource-path",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="remove-resource-path", elem_classes="hidden-component"
                     )
                     remove_resource_trigger = gr.Button(
-                        "Remove Resource", 
-                        visible=True, 
+                        "Remove Resource",
+                        visible=True,
                         elem_id="remove-resource-trigger",
-                        elem_classes="hidden-component"
+                        elem_classes="hidden-component",
                     )
 
                     # Hidden components for deleting resources from panel
@@ -2329,15 +2269,10 @@ def create_app():
 
                     # Hidden components for loading examples
                     example_id_input = gr.Textbox(
-                        visible=True,
-                        elem_id="example-id-input",
-                        elem_classes="hidden-component"
+                        visible=True, elem_id="example-id-input", elem_classes="hidden-component"
                     )
                     load_example_trigger = gr.Button(
-                        "Load Example", 
-                        visible=True,
-                        elem_id="load-example-trigger",
-                        elem_classes="hidden-component"
+                        "Load Example", visible=True, elem_id="load-example-trigger", elem_classes="hidden-component"
                     )
 
                     # Hidden components for updating resource titles
@@ -2863,43 +2798,49 @@ def main():
     print(f"Server: {server_name}:{server_port}")
 
     app = create_app()
-    
+
     # Log all function mappings
     log_gradio_functions(app)
-    
+
     # Add runtime request logging
     import functools
-    
+
     def log_gradio_request(fn, fn_index):
         """Wrapper to log function calls with their index."""
+
         @functools.wraps(fn)
         def wrapper(*args, **kwargs):
-            print(f"\n>>> Gradio function call: fn_index={fn_index}, function={fn.__name__ if hasattr(fn, '__name__') else str(fn)}")
+            print(
+                f"\n>>> Gradio function call: fn_index={fn_index}, function={fn.__name__ if hasattr(fn, '__name__') else str(fn)}"
+            )
             try:
                 result = fn(*args, **kwargs)
-                print(f"<<< Function completed successfully")
+                print("<<< Function completed successfully")
                 return result
             except Exception as e:
                 print(f"<<< Function failed with error: {type(e).__name__}: {e}")
                 raise
+
         return wrapper
-    
+
     # Wrap all registered functions with logging
-    if hasattr(app, 'fns'):
+    if hasattr(app, "fns"):
         for idx, fn_data in enumerate(app.fns):
-            if fn_data and hasattr(fn_data, 'fn') and fn_data.fn:
+            if fn_data and hasattr(fn_data, "fn") and fn_data.fn:
                 original_fn = fn_data.fn
                 fn_data.fn = log_gradio_request(original_fn, idx)
-                print(f"Added logging to fn_index {idx}: {original_fn.__name__ if hasattr(original_fn, '__name__') else str(original_fn)}")
-    
+                print(
+                    f"Added logging to fn_index {idx}: {original_fn.__name__ if hasattr(original_fn, '__name__') else str(original_fn)}"
+                )
+
     # Also add error handler for out-of-bounds function indices
     original_push = None
-    if hasattr(app, '_queue') and hasattr(app._queue, 'push'):
+    if hasattr(app, "_queue") and hasattr(app._queue, "push"):
         original_push = app._queue.push
-        
+
         async def debug_push(body, *args, **kwargs):
             print(f"\n>>> Queue push request: fn_index={body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
-            if hasattr(app, 'fns') and hasattr(body, 'fn_index'):
+            if hasattr(app, "fns") and hasattr(body, "fn_index"):
                 max_index = len(app.fns) - 1
                 if body.fn_index > max_index:
                     print(f"!!! ERROR: fn_index {body.fn_index} is out of bounds! Max index is {max_index}")
@@ -2911,11 +2852,12 @@ def main():
                 print(f"!!! Requested fn_index: {body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
                 print(f"!!! Available functions: {len(app.fns) if hasattr(app, 'fns') else 'unknown'}")
                 raise
-        
+
         app._queue.push = debug_push
-    
+
     # Enable debug mode to see fn_index mappings
     import logging
+
     logging.basicConfig(level=logging.DEBUG)
     app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True, debug=True)
 
