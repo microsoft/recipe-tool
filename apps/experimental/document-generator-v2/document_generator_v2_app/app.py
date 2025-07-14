@@ -1669,6 +1669,44 @@ def replace_resource_file_gradio(resources, old_resource_path, new_file, title, 
         return resources, None, "{}", None
 
 
+def log_gradio_functions(app):
+    """Log all Gradio function mappings with their fn_index."""
+    print("\n=== Gradio Function Index Mapping ===")
+    total_fns = 0
+    if hasattr(app, 'fns'):
+        total_fns = len(app.fns)
+        print(f"Total registered functions: {total_fns}")
+        print(f"Highest fn_index: {total_fns - 1}")
+        
+        for idx, fn_data in enumerate(app.fns):
+            if fn_data and hasattr(fn_data, 'fn'):
+                fn = fn_data.fn
+                fn_name = fn.__name__ if hasattr(fn, '__name__') else str(fn)
+                print(f"fn_index {idx}: {fn_name}")
+            else:
+                print(f"fn_index {idx}: <empty/None>")
+    else:
+        print("WARNING: app.fns not found!")
+    print("=====================================\n")
+    
+    # Also create a mapping file for reference
+    mapping = {"total_functions": total_fns, "functions": {}}
+    if hasattr(app, 'fns'):
+        for idx, fn_data in enumerate(app.fns):
+            if fn_data and hasattr(fn_data, 'fn'):
+                fn = fn_data.fn
+                fn_name = fn.__name__ if hasattr(fn, '__name__') else str(fn)
+                mapping["functions"][idx] = fn_name
+            else:
+                mapping["functions"][idx] = "<empty/None>"
+    
+    # Save to a file for easy reference
+    import json
+    with open("gradio_fn_index_mapping.json", "w") as f:
+        json.dump(mapping, f, indent=2)
+    print("Function mapping saved to gradio_fn_index_mapping.json")
+
+
 def create_app():
     """Create and return the Document Builder Gradio app."""
 
@@ -2754,8 +2792,9 @@ def create_app():
         def handle_resource_replacement(resources, old_path, new_file, doc_title, doc_description, blocks, session_id):
             """Handle resource file replacement."""
             if not new_file:
-                # No file selected, return unchanged
-                return resources, blocks, outline_state.value, json_output.value, ""
+                # No file selected, return unchanged - regenerate outline to return current state
+                outline, json_str = regenerate_outline_from_state(doc_title, doc_description, resources, blocks)
+                return resources, blocks, outline, json_str, ""
 
             # new_file is the file path from Gradio
             new_file_path = new_file if isinstance(new_file, str) else new_file.name
@@ -2824,7 +2863,61 @@ def main():
     print(f"Server: {server_name}:{server_port}")
 
     app = create_app()
-    app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True)
+    
+    # Log all function mappings
+    log_gradio_functions(app)
+    
+    # Add runtime request logging
+    import functools
+    
+    def log_gradio_request(fn, fn_index):
+        """Wrapper to log function calls with their index."""
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            print(f"\n>>> Gradio function call: fn_index={fn_index}, function={fn.__name__ if hasattr(fn, '__name__') else str(fn)}")
+            try:
+                result = fn(*args, **kwargs)
+                print(f"<<< Function completed successfully")
+                return result
+            except Exception as e:
+                print(f"<<< Function failed with error: {type(e).__name__}: {e}")
+                raise
+        return wrapper
+    
+    # Wrap all registered functions with logging
+    if hasattr(app, 'fns'):
+        for idx, fn_data in enumerate(app.fns):
+            if fn_data and hasattr(fn_data, 'fn') and fn_data.fn:
+                original_fn = fn_data.fn
+                fn_data.fn = log_gradio_request(original_fn, idx)
+                print(f"Added logging to fn_index {idx}: {original_fn.__name__ if hasattr(original_fn, '__name__') else str(original_fn)}")
+    
+    # Also add error handler for out-of-bounds function indices
+    original_push = None
+    if hasattr(app, '_queue') and hasattr(app._queue, 'push'):
+        original_push = app._queue.push
+        
+        async def debug_push(body, *args, **kwargs):
+            print(f"\n>>> Queue push request: fn_index={body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
+            if hasattr(app, 'fns') and hasattr(body, 'fn_index'):
+                max_index = len(app.fns) - 1
+                if body.fn_index > max_index:
+                    print(f"!!! ERROR: fn_index {body.fn_index} is out of bounds! Max index is {max_index}")
+                    print(f"!!! Total registered functions: {len(app.fns)}")
+            try:
+                return await original_push(body, *args, **kwargs)
+            except KeyError as e:
+                print(f"!!! KeyError in queue push: {e}")
+                print(f"!!! Requested fn_index: {body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
+                print(f"!!! Available functions: {len(app.fns) if hasattr(app, 'fns') else 'unknown'}")
+                raise
+        
+        app._queue.push = debug_push
+    
+    # Enable debug mode to see fn_index mappings
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True, debug=True)
 
 
 if __name__ == "__main__":

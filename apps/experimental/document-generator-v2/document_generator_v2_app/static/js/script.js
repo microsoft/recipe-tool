@@ -433,8 +433,7 @@ window.addEventListener('load', function() {
     // Also setup drag and drop on window load
     setTimeout(setupDragAndDrop, 200);
     setTimeout(setupFileUploadDragAndDrop, 250);
-    // Setup description toggle button
-    setTimeout(setupDescriptionToggle, 150);
+    // Removed setupDescriptionToggle - causes phantom Gradio events
 
     // Set up a global observer for the resources column
     setupResourceObserver();
@@ -642,9 +641,9 @@ const observer = new MutationObserver(function(mutations) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             setupAutoExpand();
-            setupDescriptionToggle();
+            // Removed setupDescriptionToggle() - causes phantom Gradio events
             setupExampleSelection();
-            setupResourceDescriptions();
+            // Removed setupResourceDescriptions() - causes phantom Gradio events
             setupResourceUploadZones();
             setupResourceUploadText();
             preventResourceDrops();
@@ -1684,11 +1683,11 @@ function setupExampleSelection() {
                         if (loadExampleBtn) {
                             loadExampleBtn.click();
 
-                            // Re-setup resource descriptions after loading
-                            setTimeout(() => {
-                                setupResourceDescriptions();
-                                // Doc description will be handled by the interval watcher
-                            }, 500);
+                            // Removed setupResourceDescriptions() - causes phantom Gradio events
+                            // setTimeout(() => {
+                            //     setupResourceDescriptions();
+                            //     // Doc description will be handled by the interval watcher
+                            // }, 500);
                         }
                         else {
                             console.log('loadExampleBtn not found');
@@ -2446,8 +2445,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setupDragAndDrop();
         console.log('Called setupDragAndDrop()');
         
-        setupResourceDescriptions();
-        console.log('Called setupResourceDescriptions()');
+        // Removed setupResourceDescriptions() - causes phantom Gradio events
+        // console.log('Called setupResourceDescriptions()');
         
         setupResourceTitleObservers();
         console.log('Called setupResourceTitleObservers()');
