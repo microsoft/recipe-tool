@@ -1777,7 +1777,6 @@ def create_app():
                         elem_classes="save-builder-btn",
                         visible=True,
                         value=create_docpack_from_current_state,
-                        every=0,  # Ensure fresh file creation on each click
                     )
 
                 # Hidden file component for import
