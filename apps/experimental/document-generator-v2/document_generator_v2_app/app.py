@@ -2824,36 +2824,36 @@ def main():
         return wrapper
 
     # Wrap all registered functions with logging
-    if hasattr(app, "fns"):
-        for idx, fn_data in enumerate(app.fns):
-            if fn_data and hasattr(fn_data, "fn") and fn_data.fn:
-                original_fn = fn_data.fn
-                fn_data.fn = log_gradio_request(original_fn, idx)
-                print(
-                    f"Added logging to fn_index {idx}: {original_fn.__name__ if hasattr(original_fn, '__name__') else str(original_fn)}"
-                )
+    # if hasattr(app, "fns"):
+    #    for idx, fn_data in enumerate(app.fns):
+    #        if fn_data and hasattr(fn_data, "fn") and fn_data.fn:
+    #            original_fn = fn_data.fn
+    #            fn_data.fn = log_gradio_request(original_fn, idx)
+    #            print(
+    #                f"Added logging to fn_index {idx}: {original_fn.__name__ if hasattr(original_fn, '__name__') else str(original_fn)}"
+    #            )
 
     # Also add error handler for out-of-bounds function indices
-    original_push = None
-    if hasattr(app, "_queue") and hasattr(app._queue, "push"):
-        original_push = app._queue.push
-
-        async def debug_push(body, *args, **kwargs):
-            print(f"\n>>> Queue push request: fn_index={body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
-            if hasattr(app, "fns") and hasattr(body, "fn_index"):
-                max_index = len(app.fns) - 1
-                if body.fn_index > max_index:
-                    print(f"!!! ERROR: fn_index {body.fn_index} is out of bounds! Max index is {max_index}")
-                    print(f"!!! Total registered functions: {len(app.fns)}")
-            try:
-                return await original_push(body, *args, **kwargs)
-            except KeyError as e:
-                print(f"!!! KeyError in queue push: {e}")
-                print(f"!!! Requested fn_index: {body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
-                print(f"!!! Available functions: {len(app.fns) if hasattr(app, 'fns') else 'unknown'}")
-                raise
-
-        app._queue.push = debug_push
+    # original_push = None
+    # if hasattr(app, "_queue") and hasattr(app._queue, "push"):
+    #    original_push = app._queue.push
+    #
+    #    async def debug_push(body, *args, **kwargs):
+    #        print(f"\n>>> Queue push request: fn_index={body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
+    #        if hasattr(app, "fns") and hasattr(body, "fn_index"):
+    #            max_index = len(app.fns) - 1
+    #            if body.fn_index > max_index:
+    #                print(f"!!! ERROR: fn_index {body.fn_index} is out of bounds! Max index is {max_index}")
+    #                print(f"!!! Total registered functions: {len(app.fns)}")
+    #        try:
+    #            return await original_push(body, *args, **kwargs)
+    #        except KeyError as e:
+    #            print(f"!!! KeyError in queue push: {e}")
+    #            print(f"!!! Requested fn_index: {body.fn_index if hasattr(body, 'fn_index') else 'unknown'}")
+    #            print(f"!!! Available functions: {len(app.fns) if hasattr(app, 'fns') else 'unknown'}")
+    #            raise
+    #
+    #    app._queue.push = debug_push
 
     # Enable debug mode to see fn_index mappings
     import logging
