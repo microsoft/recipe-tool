@@ -534,6 +534,7 @@ def regenerate_outline_from_state(title, description, resources, blocks):
         # Update global state whenever outline is regenerated
         global current_document_state
         current_document_state = {"title": title, "outline_json": json_str, "blocks": blocks}
+        print(f"Regenerated outline from state: {current_document_state}")
 
         return outline, json_str
     except Exception as e:
@@ -1225,9 +1226,15 @@ def save_outline(title, outline_json, blocks):
 
 def create_docpack_from_current_state():
     """Create a docpack using the current global document state."""
+    import time
     from datetime import datetime
 
     global current_document_state
+
+    print(f"=== CREATING DOCPACK at {datetime.now().isoformat()} ===")
+    print(f"Title: {current_document_state.get('title', 'N/A') if current_document_state else 'No state'}")
+    print(f"Has outline_json: {'outline_json' in current_document_state if current_document_state else False}")
+    print(f"Number of blocks: {len(current_document_state.get('blocks', [])) if current_document_state else 0}")
 
     if not current_document_state:
         return None
@@ -1236,10 +1243,11 @@ def create_docpack_from_current_state():
         title = current_document_state.get("title", "Document")
         outline_json = current_document_state.get("outline_json", "{}")
 
-        # Create filename from title and timestamp
+        # Create filename from title and timestamp with milliseconds to ensure uniqueness
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        milliseconds = int(time.time() * 1000) % 1000
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
-        docpack_name = f"{safe_title}_{timestamp}.docpack"
+        docpack_name = f"{safe_title}_{timestamp}_{milliseconds}.docpack"
 
         # Create a temporary file for the docpack
         temp_dir = Path(tempfile.gettempdir())
@@ -1818,7 +1826,7 @@ def create_app():
                                 size="sm",
                                 elem_classes="import-builder-btn",
                             )
-                            gr.DownloadButton(
+                            save_outline_btn = gr.DownloadButton(
                                 "Save",
                                 elem_id="save-builder-btn-id",
                                 variant="secondary",
@@ -2709,6 +2717,9 @@ def create_app():
                 save_doc_btn,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
+        # Update save button value whenever outline changes
+        outline_state.change(fn=lambda: gr.update(value=create_docpack_from_current_state()), outputs=save_outline_btn)
 
         # Load example handler
         load_example_trigger.click(
