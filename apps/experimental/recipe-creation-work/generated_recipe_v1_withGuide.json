@@ -1,0 +1,66 @@
+{
+  "steps": [
+    {
+      "type": "read_files",
+      "config": {
+        "path": "{{ resources | map: 'path' | join: ',' }}",
+        "content_key": "resource_contents",
+        "merge_mode": "dict",
+        "optional": true
+      }
+    },
+    {
+      "type": "llm_generate",
+      "config": {
+        "prompt": "Generate an outline JSON following the Document Generator outline format. Use the user description: {{ description }}. Use the following resources: {% for r in resources %}<RESOURCE key='{{ r.key }}'>\n{{ resource_contents[r.path] }}\n</RESOURCE>{% endfor %}. Output a JSON object with keys: title, general_instruction, resources, and sections. 'title' should be a short title derived from the description. 'general_instruction' should capture the description. 'resources' should list each resource object with key, path, and description from the input. 'sections' should be an array of section objects, each with 'title', 'prompt', 'refs', and nested 'sections'. Do not include any additional keys.",
+        "model": "{{ model | default:'openai/gpt-4o' }}",
+        "output_format": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "general_instruction": { "type": "string" },
+            "resources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "path": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["key", "path", "description"]
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "prompt": { "type": "string" },
+                  "refs": { "type": "array", "items": { "type": "string" } },
+                  "sections": { "type": "array" }
+                },
+                "required": ["title", "prompt", "refs", "sections"]
+              }
+            }
+          },
+          "required": ["title", "general_instruction", "resources", "sections"]
+        },
+        "output_key": "outline"
+      }
+    },
+    {
+      "type": "write_files",
+      "config": {
+        "files": [
+          {
+            "path": "{{ output_file | default: 'outline.json' }}",
+            "content_key": "outline"
+          }
+        ],
+        "root": "{{ output_dir | default: '.' }}"
+      }
+    }
+  ]
+}

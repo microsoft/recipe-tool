@@ -1,0 +1,18 @@
+I need a recipe to generate an outline JSON that will be used by the Document Generator App.  The flow for the user will be like this:  the user will submit a desciption / prompt of the document they want to write. They may give a lot of detail about its contents and section breakdown, or they may provide minimal amount with only a highlevel concept to get started.  They may also provide attached references/resources they want to use in generating their document.  The recipe should take this information as input, but then run steps to generate an outline JSON.  This outline can then be edited by the user to be used as input to a different document generator recipe for generating the document.
+
+It's important to note that the recipe I want to create here is for the outline JSON. It is one recipe of a series of recipes to generate the users final document.
+
+I am including a guide about the outline JSON that I need this recipe to produce for more background.
+
+Some of the features of this recipe include:
+- Take in the user's description
+- Take in the user's supplied resources
+- Come up with the appropriate sections and subsections to reflect the user's description (and resources as necessary)
+- Attach to those sections the appropriate resources
+- Fill in to those sections the appropriate AI prompts to later use in generating that section.
+- Communicate this through a final outline JSON, that follows the examples in the guide and example jsons.
+
+The recipe may take a variety forms, which could include:
+- reading all the reference files first before constructing sections
+- reading all the reference files first and creating summaries of each. Then using the summaries to construct sections.
+- or some other approach.  I will let you decide the best way to break this user idea down to create a recipe.

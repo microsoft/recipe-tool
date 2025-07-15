@@ -1,0 +1,63 @@
+{
+  "steps": [
+    {
+      "type": "llm_generate",
+      "config": {
+        "prompt": "Generate a detailed outline JSON for a document based on the following user description and resources.\n\nDescription:\n{{ description }}\n\nResources:\n{{ resources | json }}\n\nThe outline JSON should follow this structure:\n{\n  \"title\": \"<string>\",\n  \"general_instruction\": \"<string>\",\n  \"resources\": [ {\"key\": \"...\",\"path\": \"...\",\"description\": \"...\"} ],\n  \"sections\": [ { \"title\": \"<string>\", \"prompt\": \"<string>\", \"refs\": [\"resource_key\"], \"sections\": [] } ]\n}\nOutput only valid JSON matching this schema.",
+        "model": "openai/gpt-4o",
+        "output_format": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "general_instruction": { "type": "string" },
+            "resources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "path": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["key", "path"]
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "prompt": { "type": "string" },
+                  "refs": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "sections": {
+                    "type": "array",
+                    "items": {}
+                  }
+                },
+                "required": ["title", "prompt"]
+              }
+            }
+          },
+          "required": ["title", "general_instruction", "resources", "sections"]
+        },
+        "output_key": "outline"
+      }
+    },
+    {
+      "type": "write_files",
+      "config": {
+        "files": [
+          {
+            "path": "outline.json",
+            "content": "{{ outline | json }}"
+          }
+        ],
+        "root": "."
+      }
+    }
+  ]
+}
