@@ -1,5 +1,100 @@
 /* Document Builder Custom Styles */
 
+/* Start Tab Styles */
+.start-tab-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Welcome message styles */
+.start-welcome-title {
+    text-align: center;
+    margin-bottom: 20px !important;
+    margin-top: 40px !important;
+}
+
+.start-welcome-title h1 {
+    font-size: 72px !important;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.start-welcome-subtitle {
+    text-align: center;
+    margin-bottom: 30px !important;
+    font-size: 28px;
+    color: #666;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+/* Get Started button */
+.start-button-row {
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.start-get-started-btn {
+    background-color: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    padding: 10px 24px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.start-get-started-btn:hover {
+    background-color: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 157, 158, 0.3) !important;
+}
+
+/* Spacer for future content */
+.start-content-spacer {
+    min-height: 20px;
+}
+
+/* Introduction section */
+.start-intro-section {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+}
+
+.start-intro-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+}
+
+.start-intro-content h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    margin-top: 0;
+}
+
+.start-intro-content ul {
+    margin-left: 20px;
+}
+
+.start-intro-content p {
+    margin-top: 24px;
+    color: #555;
+}
+
 /* Hide components but keep them in DOM */
 .hidden-component {
     display: none !important;

@@ -48,6 +48,8 @@ function toggleDebugPanel() {
 
 // No longer needed - using Gradio's native file upload component
 
+// Tab switching is handled by inline JavaScript from button clicks
+
 // Delete block function
 function deleteBlock(blockId) {
     console.log('deleteBlock called with blockId:', blockId);
