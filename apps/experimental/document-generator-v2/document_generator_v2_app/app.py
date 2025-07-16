@@ -2434,7 +2434,11 @@ def create_app():
                                 elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=True
                             ):
                                 json_output = gr.Code(
-                                    value=initial_json, language="json", elem_classes="json-debug-output"
+                                    value=initial_json,
+                                    language="json",
+                                    elem_classes="json-debug-output",
+                                    wrap_lines=True,
+                                    lines=20,
                                 )
 
         # Helper function to add AI block and regenerate outline
