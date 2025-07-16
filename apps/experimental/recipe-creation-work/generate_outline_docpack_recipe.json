@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "type": "set_context",
+      "config": {
+        "key": "output_dir",
+        "value": "{{ output_dir | default: 'output' }}"
+      }
+    },
+    {
+      "type": "set_context",
+      "config": {
+        "key": "docpack_name",
+        "value": "{{ docpack_name | default: 'document.docpack' }}"
+      }
+    },
+    {
+      "type": "execute_recipe",
+      "config": {
+        "recipe_path": "apps/experimental/recipe-creation-work/generate_outline_recipe_v1.json"
+      }
+    },
+    {
+      "type": "shell",
+      "config": {
+        "command": ".venv/bin/docpack create --outline {{ output_dir }}/outline.json --output {{ output_dir }}/{{ docpack_name }}",
+        "output_key": "docpack_result"
+      }
+    }
+  ]
+}

@@ -67,7 +67,8 @@
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "python.testing.unittestEnabled": false,
     "ruff.nativeServer": "on",
-    "ruff.configuration": "${workspaceFolder}/ruff.toml"
+    "ruff.configuration": "${workspaceFolder}/ruff.toml",
+    "cSpell.words": ["docpack"]
   },
   "extensions": {
     "recommendations": [

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from .executor.runner import generate_document
 from .models.outline import Outline, Resource, Section
-from .package_handler import DocpackHandler
+from docpack import DocpackHandler
 from .session import session_manager
 
 # Load environment variables from .env file

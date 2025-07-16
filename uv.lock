@@ -9,6 +9,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "docpack",
     "docs-mcp-server",
     "document-generator",
     "document-generator-v2-app",
@@ -460,6 +461,11 @@ wheels = [
 ]
 
 [[package]]
+name = "docpack"
+version = "0.1.0"
+source = { editable = "docpack" }
+
+[[package]]
 name = "docs-mcp-server"
 version = "0.1.0"
 source = { editable = "mcp-servers/docs-server" }
@@ -541,6 +547,7 @@ name = "document-generator-v2-app"
 version = "0.1.0"
 source = { editable = "apps/experimental/document-generator-v2" }
 dependencies = [
+    { name = "docpack" },
     { name = "gradio" },
     { name = "jsonschema" },
     { name = "python-dotenv" },
@@ -560,6 +567,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "docpack", editable = "docpack" },
     { name = "gradio", specifier = ">=4.0.0" },
     { name = "jsonschema", specifier = ">=4.0.0" },
     { name = "python-dotenv", specifier = ">=0.20.0" },

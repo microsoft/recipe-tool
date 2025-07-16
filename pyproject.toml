@@ -2,6 +2,7 @@
 members = [
     "recipe-tool",
     "recipe-executor",
+    "docpack",
     "shared/gradio-components",
     "apps/document-generator",
     "apps/experimental/document-generator-v2",
@@ -16,6 +17,7 @@ members = [
 # Core libraries
 recipe-executor = { workspace = true }
 recipe-tool = { workspace = true }
+docpack = { workspace = true }
 gradio-components = { workspace = true }
 # Apps
 document-generator-app = { workspace = true }

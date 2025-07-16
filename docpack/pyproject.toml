@@ -1,0 +1,22 @@
+[project]
+name = "docpack"
+version = "0.1.0"
+description = "A package format for document outlines and resources"
+authors = [{ name = "MADE:Explorations Team" }]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+docpack = "docpack.main:main"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["docpack"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

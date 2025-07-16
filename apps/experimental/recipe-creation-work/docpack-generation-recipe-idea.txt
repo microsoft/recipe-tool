@@ -1,0 +1,3 @@
+using the recipe generate_outline_recipe_v1.json, create a new recipe that packages up the produces outline json into a docpack.  i will supply you with documentation on docpack and how this is all used ultimately in the document generator app for better idea and understanding.
+
+you should just need to run the recipe mentioned as a step, followed by the create docpack step. the output of this recipe should be a docpack stored in aprovided output location.
