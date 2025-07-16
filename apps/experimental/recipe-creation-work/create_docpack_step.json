@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "type": "write_files",
+      "config": {
+        "files": [
+          {
+            "path": "{{ output_dir }}/_create_docpack_temp.py",
+            "content": "import json\nimport sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path.cwd()))\nfrom docpack import DocpackHandler\n\noutline_path = Path('{{ output_dir }}/outline.json')\noutput_path = Path('{{ output_dir }}/{{ docpack_name }}')\n\nwith open(outline_path, 'r') as f:\n    outline_data = json.load(f)\n\nresource_files = []\nfor resource in outline_data.get('resources', []):\n    resource_path = Path(resource.get('path', ''))\n    if resource_path.exists():\n        resource_files.append(resource_path)\n\nDocpackHandler.create_package(\n    outline_data=outline_data,\n    resource_files=resource_files,\n    output_path=output_path\n)\n\nprint(f'DOCPACK_CREATED:{output_path}')"
+          }
+        ]
+      }
+    },
+    {
+      "type": "read_files",
+      "config": {
+        "path": "{{ output_dir }}/_create_docpack_temp.py",
+        "content_key": "python_code"
+      }
+    },
+    {
+      "type": "set_context",
+      "config": {
+        "key": "docpack_result",
+        "value": "{% assign result = python_code | python_exec %}{{ result }}"
+      }
+    }
+  ]
+}

@@ -8,9 +8,10 @@ from typing import Any, Dict, List
 import gradio as gr
 from dotenv import load_dotenv
 
+from docpack import DocpackHandler
+
 from .executor.runner import generate_document
 from .models.outline import Outline, Resource, Section
-from docpack import DocpackHandler
 from .session import session_manager
 
 # Load environment variables from .env file
@@ -2433,11 +2434,7 @@ def create_app():
                                 elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=True
                             ):
                                 json_output = gr.Code(
-                                    value=initial_json, 
-                                    language="json", 
-                                    elem_classes="json-debug-output",
-                                    wrap_lines=True,
-                                    lines=20
+                                    value=initial_json, language="json", elem_classes="json-debug-output"
                                 )
 
         # Helper function to add AI block and regenerate outline
