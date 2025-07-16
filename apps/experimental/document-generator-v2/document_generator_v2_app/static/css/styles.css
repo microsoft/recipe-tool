@@ -43,10 +43,13 @@
     color: white !important;
     font-weight: 600 !important;
     font-size: 16px !important;
-    padding: 10px 24px !important;
+    padding: 10px 20px !important;
     border-radius: 6px !important;
     transition: all 0.2s ease !important;
     cursor: pointer !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: 300px !important;
 }
 
 .start-get-started-btn:hover {
@@ -88,6 +91,13 @@
 
 .start-intro-content ul {
     margin-left: 20px;
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.start-intro-content ul li {
+    margin-bottom: 8px;
+    list-style-type: disc;
 }
 
 .start-intro-content p {

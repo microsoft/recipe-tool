@@ -8,9 +8,10 @@ from typing import Any, Dict, List
 import gradio as gr
 from dotenv import load_dotenv
 
+from docpack import DocpackHandler
+
 from .executor.runner import generate_document
 from .models.outline import Outline, Resource, Section
-from docpack import DocpackHandler
 from .session import session_manager
 
 # Load environment variables from .env file
@@ -1735,7 +1736,7 @@ def create_app():
     with gr.Blocks(title="Document Generator", css=custom_css, head=custom_js) as app:
         # State to track selected tab
         selected_tab = gr.State(value=0)
-        
+
         # Create tabs at the highest level
         with gr.Tabs(selected=0) as tabs:
             # First tab - New tab that will show first
@@ -1743,36 +1744,33 @@ def create_app():
                 with gr.Column(elem_classes="start-tab-container"):
                     # Big centered welcome message
                     gr.Markdown("# Welcome to Document Generator", elem_classes="start-welcome-title")
-                    gr.Markdown(
-                        "Draft once. Regenerate forever.",
-                        elem_classes="start-welcome-subtitle"
-                    )
-                    
+                    gr.Markdown("Draft once. Regenerate forever.", elem_classes="start-welcome-subtitle")
+
                     # Get started button
                     with gr.Row(elem_classes="start-button-row"):
                         get_started_btn = gr.Button(
-                            "Get Started →",
+                            "Get Started",
                             variant="primary",
                             size="lg",
                             elem_classes="start-get-started-btn",
-                            elem_id="start-get-started-btn"
+                            elem_id="start-get-started-btn",
                         )
-                    
+
                     # Spacer for additional content
                     gr.Markdown("", elem_classes="start-content-spacer")
-                    
+
                     # Introduction section
                     with gr.Column(elem_classes="start-intro-section"):
                         gr.Markdown("""
-                        ### Ideal for:
-                        
-                        • Drafting business proposals  
-                        • Maintaining living documentation  
-                        • Generating AI assistant instructions  
-                        • Creating repeatable reports
-                        
-                        Document Generator uses a structured outline and linked resources to draft documents. As your content grows, you can update files or sections and regenerate without rebuilding your doc from scratch—all within a single workspace.
-                        """, elem_classes="start-intro-content")
+### Ideal for:
+
+- Drafting business proposals  
+- Maintaining living documentation  
+- Generating AI assistant instructions  
+- Creating repeatable reports
+
+Document Generator uses a structured outline and linked resources to draft documents. As your content grows, you can update files or sections and regenerate without rebuilding your doc from scratch—all within a single workspace.
+""", elem_classes="start-intro-content")
 
             # Second tab - Existing Document Builder content
             with gr.Tab("Draft + Generate", id="document_builder_tab", elem_id="tab-1"):
@@ -2496,7 +2494,6 @@ def create_app():
 
         # Connect button click to add Text block
 
-
         # Delete block handler
         delete_trigger.click(
             fn=delete_block,
@@ -2821,7 +2818,7 @@ def create_app():
             fn=lambda: None,
             outputs=replace_resource_file_input,
         )
-        
+
         # New button - reset document to initial state
         def reset_document():
             """Reset document to initial state with new session."""
@@ -2846,13 +2843,13 @@ def create_app():
                     "indent_level": 0,
                 },
             ]
-            
+
             # Generate initial outline
             initial_outline, initial_json = regenerate_outline_from_state("", "", [], new_blocks)
-            
+
             # New session ID
             new_session_id = str(uuid.uuid4())
-            
+
             # Return updates for all relevant components
             return (
                 "",  # doc_title
@@ -2867,7 +2864,7 @@ def create_app():
                 gr.update(interactive=False),  # save_doc_btn
                 None,  # focused_block_state
             )
-        
+
         new_doc_btn.click(
             fn=reset_document,
             outputs=[
@@ -2882,22 +2879,16 @@ def create_app():
                 generated_content,
                 save_doc_btn,
                 focused_block_state,
-            ]
-        ).then(
-            fn=render_blocks,
-            inputs=[blocks_state, focused_block_state],
-            outputs=blocks_display
-        )
-        
+            ],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
         # Create a hidden HTML component for tab switching trigger
         switch_tab_trigger = gr.HTML("", visible=False, elem_id="switch-tab-trigger")
-        
+
         # Get Started button - switch to Draft + Generate tab
         import time
-        get_started_btn.click(
-            fn=lambda: f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}",
-            outputs=switch_tab_trigger
-        )
+
+        get_started_btn.click(fn=lambda: f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}", outputs=switch_tab_trigger)
 
     return app
 
