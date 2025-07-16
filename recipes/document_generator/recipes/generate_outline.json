@@ -1,17 +1,48 @@
 {
+  "name": "Document Generator Outline",
+  "description": "Generates an outline to be used by the Document Generator.",
+  "inputs": {
+    "model": {
+      "description": "LLM model to use for generation.",
+      "type": "string",
+      "default": "openai/gpt-4o"
+    },
+    "output_root": {
+      "description": "Directory to save the generated outline.",
+      "type": "string",
+      "default": "output"
+    },
+    "document_description": {
+      "description": "Description of the document to generate.",
+      "type": "string",
+      "default": "Create a comprehensive document outline"
+    },
+    "resources": {
+      "description": "Comma-separated list of resources to include in the outline. Each resource should be a path to a file.",
+      "type": "string",
+      "default": ""
+    }
+  },
   "steps": [
     {
       "type": "set_context",
       "config": {
-        "key": "output_dir",
-        "value": "{{ output_dir | default: 'output' }}"
+        "key": "model",
+        "value": "{{ model | default: 'openai/gpt-4o' }}"
       }
     },
     {
       "type": "set_context",
       "config": {
-        "key": "description",
-        "value": "{{ description | default: 'Create a comprehensive document outline' }}"
+        "key": "output_root",
+        "value": "{{ output_root | default: 'output' }}"
+      }
+    },
+    {
+      "type": "set_context",
+      "config": {
+        "key": "document_description",
+        "value": "{{ document_description | default: 'Create a comprehensive document outline' }}"
       }
     },
     {
@@ -24,22 +55,22 @@
     {
       "type": "shell",
       "config": {
-        "command": "echo 'DEBUG: resources value is: {{ resources }}'",
+        "command": "python3 -c \"import json; resources = '{{ resources }}'; paths = [p.strip() for p in resources.split(',') if p.strip()] if resources else []; f = open('{{ output_root }}/.temp_resources_list.json', 'w'); json.dump(paths, f); f.close()\"",
         "capture_output": false
+      }
+    },
+    {
+      "type": "read_files",
+      "config": {
+        "path": "{{ output_root }}/.temp_resources_list.json",
+        "content_key": "resources_list"
       }
     },
     {
       "type": "set_context",
       "config": {
-        "key": "resources_list",
-        "value": ["{{ resources }}"]
-      }
-    },
-    {
-      "type": "shell",
-      "config": {
-        "command": "echo 'DEBUG: resources_list type check: {{ resources_list}}'",
-        "capture_output": false
+        "key": "has_resources",
+        "value": "{% if resources %}true{% else %}false{% endif %}"
       }
     },
     {
@@ -47,13 +78,6 @@
       "config": {
         "key": "resource_summaries",
         "value": []
-      }
-    },
-    {
-      "type": "set_context",
-      "config": {
-        "key": "has_resources",
-        "value": "{% if resources_list.size > 0 %}true{% else %}false{% endif %}"
       }
     },
     {
@@ -98,7 +122,7 @@
                   {
                     "type": "set_context",
                     "config": {
-                      "key": "summary_with_path",
+                      "key": "resource_path",
                       "value": {
                         "resource": "{{ resource_path }}",
                         "summary": "{{ summary.summary }}"
@@ -116,7 +140,7 @@
     {
       "type": "llm_generate",
       "config": {
-        "prompt": "Generate a detailed outline in JSON format based on the user description and resource summaries:\n\nUser description:\n{{ description }}\n\nResource summaries:\n{{ resource_summaries | json }}\n\nAvailable resource paths (ONLY use these - do not create any new resources):\n{{ resources_list | json }}\n\nThe outline must follow this exact JSON structure:\n{\n  \"title\": \"Document Title\",\n  \"general_instruction\": \"Overall instructions for document generation\",\n  \"resources\": [\n    {\n      \"key\": \"resource_1\",\n      \"path\": \"path/to/file\",\n      \"title\": \"filename\",\n      \"description\": \"description of what this resource contains or why it was included\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"title\": \"Section Title\",\n      \"prompt\": \"Instructions for generating this section's content\",\n      \"sections\": [],  // nested subsections if needed\n      \"refs\": [\"resource_1\", \"resource_2\"]  // array of resource keys\n    }\n  ]\n}\n\nIMPORTANT:\n- Each section must have: title, prompt, sections (can be empty array), and refs\n- The \"prompt\" field contains instructions for generating that section's content\n- The \"refs\" field is an array of resource keys (not full objects)\n- Sections can be nested by placing subsections in the \"sections\" array\n- Resource keys should match between the resources array and the refs arrays\n- CRITICAL: Only include resources from the 'Available resource paths' list above. Do NOT create or reference any resources that were not provided.\n- The 'path' field in each resource MUST exactly match one of the available resource paths\n\nReturn only the JSON object.",
+        "prompt": "Generate a detailed outline in JSON format based on the user provided document description and resource summaries:\n\nUser provided document description:\n{{ document_description }}\n\nResource summaries:\n{{ resource_summaries | json }}\n\nAvailable resource paths (ONLY use these - do not create any new resources):\n{{ resources_list | json }}\n\nThe outline must follow this exact JSON structure:\n{\n  \"title\": \"Document Title\",\n  \"general_instruction\": \"Overall instructions for document generation\",\n  \"resources\": [\n    {\n      \"key\": \"resource_1\",\n      \"path\": \"path/to/file\",\n      \"title\": \"filename\",\n      \"description\": \"description of what this resource contains or why it was included. Consider resources summaries for context here.\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"title\": \"Section Title\",\n      \"prompt\": \"Instructions for generating this section's content\",\n      \"sections\": [],  // nested subsections if needed\n      \"refs\": [\"resource_1\", \"resource_2\"]  // array of resource keys\n    }\n  ]\n}\n\nIMPORTANT:\n- Each section must have: title, prompt, sections (can be empty array), and refs\n- The \"prompt\" field contains instructions for generating that section's content\n- The \"refs\" field is an array of resource keys (not full objects)\n- Sections can be nested by placing subsections in the \"sections\" array\n- Resource keys should match between the resources array and the refs arrays.\n- Consider the resources provided for which ones would be the most appropriate to include in the refs for each section. If a resource based on its name and summary do not appear relevant to a section, do not include it as a ref. There can be none, one, or more up to the total resources provided for the refs.\n- CRITICAL: Only include resources from the 'Available resource paths' list above. Do NOT create or reference any resources that were not provided.\n- The 'path' field in each resource MUST exactly match one of the available resource paths\n\nReturn only the JSON object.",
         "model": "openai/gpt-4o",
         "output_format": {
           "type": "object",
@@ -220,7 +244,7 @@
             "content_key": "outline"
           }
         ],
-        "root": "{{ output_dir }}"
+        "root": "{{ output_root }}"
       }
     }
   ]
