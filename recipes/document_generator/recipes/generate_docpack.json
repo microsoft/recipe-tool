@@ -1,0 +1,67 @@
+{
+  "name": "Document Generator Docpack",
+  "description": "Generates a docpack outline to be used by the Document Generator.",
+  "inputs": {
+    "model": {
+      "description": "LLM model to use for generation.",
+      "type": "string",
+      "default": "openai/gpt-4o"
+    },
+    "output_root": {
+      "description": "Directory to save the generated docpack.",
+      "type": "string",
+      "default": "output"
+    },
+    "document_description": {
+      "description": "Description of the document to generate.",
+      "type": "string",
+      "default": "Create a comprehensive document outline"
+    },
+    "resources": {
+      "description": "Comma-separated list of resources to include in the outline. Each resource should be a path to a file.",
+      "type": "string",
+      "default": ""
+    },
+    "docpack_name": {
+      "description": "Name of the docpack to generate.",
+      "type": "string",
+      "default": ""
+    }
+  },
+  "steps": [
+    {
+      "type": "set_context",
+      "config": {
+        "key": "output_root",
+        "value": "{{ output_root | default: 'output' }}"
+      }
+    },
+    {
+      "type": "set_context",
+      "config": {
+        "key": "docpack_name",
+        "value": "{{ docpack_name | default: 'document.docpack' }}"
+      }
+    },
+        {
+      "type": "set_context",
+      "config": {
+        "key": "recipe_root",
+        "value": "{{ recipe_root | default: 'recipes/document_generator' }}"
+      }
+    },
+    {
+      "type": "execute_recipe",
+      "config": {
+        "recipe_path": "{{ recipe_root }}/recipes/generate_outline.json"
+      }
+    },
+    {
+      "type": "shell",
+      "config": {
+        "command": ".venv/bin/docpack create --outline {{ output_root }}/outline.json --output {{ output_root }}/{{ docpack_name }}",
+        "output_key": "docpack_result"
+      }
+    }
+  ]
+}
