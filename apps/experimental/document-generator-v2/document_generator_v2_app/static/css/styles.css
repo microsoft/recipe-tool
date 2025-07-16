@@ -356,9 +356,8 @@
 }
 
 .json-debug-output {
-    max-height: 400px;
-    overflow-y: auto;
     font-size: 12px;
+    max-height: 400px;
 }
 
 /* Resources */
