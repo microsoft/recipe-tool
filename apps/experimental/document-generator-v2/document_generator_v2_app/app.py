@@ -2889,24 +2889,14 @@ def create_app():
             outputs=blocks_display
         )
         
+        # Create a hidden HTML component for tab switching trigger
+        switch_tab_trigger = gr.HTML("", visible=False, elem_id="switch-tab-trigger")
+        
         # Get Started button - switch to Draft + Generate tab
-        def switch_to_draft_tab():
-            # Return JavaScript that clicks the second tab
-            return """<script>
-                setTimeout(() => {
-                    const tabs = document.querySelectorAll('button[role="tab"]');
-                    if (tabs.length > 1) {
-                        tabs[1].click();
-                    }
-                }, 100);
-            </script>"""
-        
-        # Create a hidden HTML component for JavaScript execution
-        js_executor = gr.HTML(visible=False, elem_id="js-executor")
-        
+        import time
         get_started_btn.click(
-            fn=switch_to_draft_tab,
-            outputs=js_executor
+            fn=lambda: f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}",
+            outputs=switch_tab_trigger
         )
 
     return app

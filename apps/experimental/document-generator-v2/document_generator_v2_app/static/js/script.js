@@ -48,7 +48,35 @@ function toggleDebugPanel() {
 
 // No longer needed - using Gradio's native file upload component
 
-// Tab switching is handled by inline JavaScript from button clicks
+// Tab switching helper
+function switchToDraftTab() {
+    console.log('Switching to Draft + Generate tab');
+    
+    // Find all tab buttons
+    const tabButtons = document.querySelectorAll('button[role="tab"]');
+    
+    // Find the Draft + Generate tab button and click it
+    tabButtons.forEach(button => {
+        if (button.textContent.includes('Draft + Generate')) {
+            button.click();
+            console.log('Clicked Draft + Generate tab');
+        }
+    });
+}
+
+// Track last trigger value to prevent repeated switching
+let lastTriggerValue = '';
+
+// Check for switch signal in a hidden element
+setInterval(() => {
+    const switchTrigger = document.getElementById('switch-tab-trigger');
+    if (switchTrigger && switchTrigger.innerHTML && switchTrigger.innerHTML !== lastTriggerValue) {
+        if (switchTrigger.innerHTML.includes('SWITCH_TO_DRAFT_TAB')) {
+            lastTriggerValue = switchTrigger.innerHTML;
+            switchToDraftTab();
+        }
+    }
+}, 100);
 
 // Delete block function
 function deleteBlock(blockId) {
