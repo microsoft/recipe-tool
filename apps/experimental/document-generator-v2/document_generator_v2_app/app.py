@@ -8,8 +8,7 @@ from typing import Any, Dict, List
 import gradio as gr
 from dotenv import load_dotenv
 
-from docpack import DocpackHandler
-
+from .docpack_handler import DocpackHandler
 from .executor.runner import generate_document
 from .models.outline import Outline, Resource, Section
 from .session import session_manager
@@ -1737,183 +1736,638 @@ def create_app():
         # State to track selected tab
         selected_tab = gr.State(value=0)
 
-        # Create tabs at the highest level
-        with gr.Tabs(selected=0) as tabs:
-            # First tab - New tab that will show first
-            with gr.Tab("Start", id="start_tab", elem_id="tab-0"):
-                with gr.Column(elem_classes="start-tab-container"):
-                    # Big centered welcome message
-                    gr.Markdown("# Welcome to Document Generator", elem_classes="start-welcome-title")
-                    gr.Markdown("Draft once. Regenerate forever.", elem_classes="start-welcome-subtitle")
+        # I need this button here (hidden) just so the Save button shows up in the deployed DOM. I don't understand why it doesn't show up otherwise.
+        gr.DownloadButton(
+            "Test 1",
+            elem_id="test-btn-id",
+            variant="secondary",
+            size="sm",
+            visible=True,
+            elem_classes="hidden-component",
+        )
+        # I need this button here (hidden) just so the Import, Example buttons work and the dropzone upload space shows up in the deployed DOM. I don't understand why it doesn't show up otherwise.
+        import_file = gr.File(
+            label="Import Docpack",
+            file_types=[".docpack"],
+            visible=True,
+            elem_id="import-file-input",
+            elem_classes="hidden-component",
+        )
+        # I need this textbox and textarea here (hidden) just so the Examples hidden texbox for js and the heading textboxes show up in the deployed DOM. I don't understand why it doesn't show up otherwise.
+        gr.Textbox(visible=True, elem_id="test", elem_classes="hidden-component")
+        gr.TextArea(visible=True, elem_id="TEST", elem_classes="hidden-component")
+        gr.Code(visible=True, elem_id="TEST_CODE", elem_classes="hidden-component")
 
-                    # Get started button
-                    with gr.Row(elem_classes="start-button-row"):
-                        get_started_btn = gr.Button(
-                            "Get Started",
-                            variant="primary",
-                            size="lg",
-                            elem_classes="start-get-started-btn",
-                            elem_id="start-get-started-btn",
-                        )
+        with gr.Tab("Start", id="start_tab"):
+            with gr.Column(elem_classes="start-tab-container"):
+                # Big centered welcome message
+                gr.Markdown("# Welcome to Document Generator", elem_classes="start-welcome-title")
+                gr.Markdown("Draft once. Regenerate forever.", elem_classes="start-welcome-subtitle")
 
-                    # Spacer for additional content
-                    gr.Markdown("", elem_classes="start-content-spacer")
+                # Get started button
+                with gr.Row(elem_classes="start-button-row"):
+                    get_started_btn = gr.Button(
+                        "Get Started",
+                        variant="primary",
+                        size="lg",
+                        elem_classes="start-get-started-btn",
+                        elem_id="start-get-started-btn",
+                    )
 
-                    # Introduction section
-                    with gr.Column(elem_classes="start-intro-section"):
-                        gr.Markdown("""
+                # Spacer for additional content
+                gr.Markdown("", elem_classes="start-content-spacer")
+
+                # Introduction section
+                with gr.Column(elem_classes="start-intro-section"):
+                    gr.Markdown(
+                        """
 ### Ideal for:
 
-- Drafting business proposals  
-- Maintaining living documentation  
-- Generating AI assistant instructions  
+- Drafting business proposals
+- Maintaining living documentation
+- Generating AI assistant instructions
 - Creating repeatable reports
 
 Document Generator uses a structured outline and linked resources to draft documents. As your content grows, you can update files or sections and regenerate without rebuilding your doc from scratch—all within a single workspace.
-""", elem_classes="start-intro-content")
+""",
+                        elem_classes="start-intro-content",
+                    )
 
-            # Second tab - Existing Document Builder content
-            with gr.Tab("Draft + Generate", id="document_builder_tab", elem_id="tab-1"):
-                # State to track resources and blocks
-                resources_state = gr.State([])
-                focused_block_state = gr.State(None)
-                session_state = gr.State(None)  # Track session ID
+        # Second tab - Existing Document Builder content
+        with gr.Tab("Draft + Generate", id="document_builder_tab"):
+            # State to track resources and blocks
+            resources_state = gr.State([])
+            focused_block_state = gr.State(None)
+            session_state = gr.State(None)  # Track session ID
 
-                # Initialize with default blocks
-                initial_blocks = [
-                    {
-                        "id": str(uuid.uuid4()),
-                        "type": "ai",
-                        "heading": "",
-                        "content": "",
-                        "resources": [],
-                        "collapsed": False,  # AI block starts expanded
-                        "indent_level": 0,
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "type": "text",
-                        "heading": "",
-                        "content": "",
-                        "resources": [],
-                        "collapsed": True,  # Text block starts collapsed
-                        "indent_level": 0,
-                    },
-                ]
-                blocks_state = gr.State(initial_blocks)
+            # Initialize with default blocks
+            initial_blocks = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "ai",
+                    "heading": "",
+                    "content": "",
+                    "resources": [],
+                    "collapsed": False,  # AI block starts expanded
+                    "indent_level": 0,
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "heading": "",
+                    "content": "",
+                    "resources": [],
+                    "collapsed": True,  # Text block starts collapsed
+                    "indent_level": 0,
+                },
+            ]
+            blocks_state = gr.State(initial_blocks)
 
-                # Initialize outline state with empty values
-                initial_outline, initial_json = regenerate_outline_from_state("", "", [], initial_blocks)
-                outline_state = gr.State(initial_outline)
+            # Initialize outline state with empty values
+            initial_outline, initial_json = regenerate_outline_from_state("", "", [], initial_blocks)
+            outline_state = gr.State(initial_outline)
 
-                with gr.Row():
-                    # App name and explanation
-                    with gr.Column(elem_classes="app-header-col"):
-                        gr.Markdown("# Document Generator")
-                        gr.Markdown(" An AI tool for creating structured documents with customizable sections.")
+            with gr.Row():
+                # App name and explanation
+                with gr.Column(elem_classes="app-header-col"):
+                    gr.Markdown("# Document Generator")
+                    gr.Markdown(" An AI tool for creating structured documents with customizable sections.")
 
-                    # Import and Save buttons
-                    with gr.Column(elem_classes="app-buttons-col"):
-                        with gr.Row():
-                            # Add empty space to push buttons to the right
-                            gr.HTML("<div style='flex: 1;'></div>")
-                            # Try Examples button with dropdown container
-                            with gr.Column(elem_classes="try-examples-container"):
-                                gr.Button(
-                                    "Try Examples",
-                                    elem_id="try-examples-btn-id",
-                                    variant="secondary",
-                                    size="sm",
-                                    elem_classes="try-examples-btn",
-                                )
-                                # Dropdown menu (hidden by default via CSS)
-                                with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
-                                    gr.HTML("""
-                                        <div class="examples-dropdown-item" data-example="1">
-                                            <div class="example-title">README</div>
-                                            <div class="example-desc">Technical documentation with code</div>
-                                        </div>
-                                        <div class="examples-dropdown-item" data-example="2">
-                                            <div class="example-title">Product Launch Documentation</div>
-                                            <div class="example-desc">Product research and strategy</div>
-                                        </div>
-                                        <div class="examples-dropdown-item" data-example="3">
-                                            <div class="example-title">Annual Performance Review</div>
-                                            <div class="example-desc">Employee evaluation and feedback</div>
-                                        </div>
-                                    """)
-                            # New button (for resetting document)
-                            new_doc_btn = gr.Button(
-                                "New",
-                                elem_id="new-builder-btn-id",
-                                variant="secondary",
-                                size="sm",
-                                elem_classes="new-builder-btn",
-                            )
+                # Import and Save buttons
+                with gr.Column():
+                    with gr.Row():
+                        # Add empty space to push buttons to the right
+                        gr.HTML("<div style='flex: 1;'></div>")
+                        # Try Examples button with dropdown container
+                        with gr.Column(elem_classes="try-examples-container"):
                             gr.Button(
-                                "Import",
-                                elem_id="import-builder-btn-id",
+                                "Try Examples",
+                                elem_id="try-examples-btn-id",
                                 variant="secondary",
                                 size="sm",
-                                elem_classes="import-builder-btn",
+                                elem_classes="try-examples-btn",
                             )
-                            save_outline_btn = gr.DownloadButton(
-                                "Save",
-                                elem_id="save-builder-btn-id",
-                                variant="secondary",
-                                size="sm",
-                                elem_classes="save-builder-btn",
-                                visible=True,
-                                value=create_docpack_from_current_state,
-                            )
-
-                        # Hidden file component for import
-                        import_file = gr.File(
-                            label="Import Docpack",
-                            file_types=[".docpack"],
+                            # Dropdown menu (hidden by default via CSS)
+                            with gr.Column(elem_classes="examples-dropdown", elem_id="examples-dropdown-id"):
+                                gr.HTML("""
+                                    <div class="examples-dropdown-item" data-example="1">
+                                        <div class="example-title">README</div>
+                                        <div class="example-desc">Technical documentation with code</div>
+                                    </div>
+                                    <div class="examples-dropdown-item" data-example="2">
+                                        <div class="example-title">Product Launch Documentation</div>
+                                        <div class="example-desc">Product research and strategy</div>
+                                    </div>
+                                    <div class="examples-dropdown-item" data-example="3">
+                                        <div class="example-title">Annual Performance Review</div>
+                                        <div class="example-desc">Employee evaluation and feedback</div>
+                                    </div>
+                                """)
+                        # New button (for resetting document)
+                        new_doc_btn = gr.Button(
+                            "New",
+                            elem_id="new-builder-btn-id",
+                            variant="secondary",
+                            size="sm",
+                            elem_classes="new-builder-btn",
+                        )
+                        gr.Button(
+                            "Import",
+                            elem_id="import-builder-btn-id",
+                            variant="secondary",
+                            size="sm",
+                            elem_classes="import-builder-btn",
+                        )
+                        save_outline_btn = gr.DownloadButton(
+                            "Save",
+                            elem_id="save-builder-btn-id",
+                            variant="secondary",
+                            size="sm",
+                            elem_classes="save-builder-btn",
                             visible=True,
-                            elem_id="import-file-input",
+                            value=create_docpack_from_current_state,
+                        )
+
+            # Document title and description
+            with gr.Row(elem_classes="header-section"):
+                # Document title (narrower width)
+                doc_title = gr.Textbox(
+                    value="",
+                    placeholder="Document Title",
+                    label=None,
+                    show_label=False,
+                    elem_id="doc-title-id",
+                    elem_classes="doc-title-box",
+                    scale=2,
+                    interactive=True,
+                    lines=1,
+                    max_lines=1,
+                    visible=True,
+                )
+
+                # Document description (wider width)
+                doc_description = gr.TextArea(
+                    value="",
+                    placeholder="Provide overall guidance for the document generation.\nSpecifics may include purpose, audience, style, format, etc.",
+                    label=None,
+                    show_label=False,
+                    elem_id="doc-description-id",
+                    elem_classes="doc-description-box",
+                    scale=5,
+                    lines=2,
+                    max_lines=10,
+                    interactive=True,
+                    visible=True,
+                )
+
+            # Main content area with three columns
+            with gr.Row():
+                # Resources column: Upload Resources button
+                with gr.Column(scale=1, elem_classes="resources-col"):
+                    # Drag and drop file upload component
+                    file_upload = gr.File(
+                        label="Drop Text File Here",
+                        file_count="multiple",
+                        file_types=[
+                            ".txt",
+                            ".md",
+                            ".py",
+                            ".c",
+                            ".cpp",
+                            ".h",
+                            ".java",
+                            ".js",
+                            ".ts",
+                            ".jsx",
+                            ".tsx",
+                            ".json",
+                            ".xml",
+                            ".yaml",
+                            ".yml",
+                            ".toml",
+                            ".ini",
+                            ".cfg",
+                            ".conf",
+                            ".sh",
+                            ".bash",
+                            ".zsh",
+                            ".fish",
+                            ".ps1",
+                            ".bat",
+                            ".cmd",
+                            ".rs",
+                            ".go",
+                            ".rb",
+                            ".php",
+                            ".pl",
+                            ".lua",
+                            ".r",
+                            ".m",
+                            ".swift",
+                            ".kt",
+                            ".scala",
+                            ".clj",
+                            ".ex",
+                            ".exs",
+                            ".elm",
+                            ".fs",
+                            ".ml",
+                            ".sql",
+                            ".html",
+                            ".htm",
+                            ".css",
+                            ".scss",
+                            ".sass",
+                            ".less",
+                            ".vue",
+                            ".svelte",
+                            ".astro",
+                            ".tex",
+                            ".rst",
+                            ".adoc",
+                            ".org",
+                            ".csv",
+                        ],
+                        elem_classes="file-upload-dropzone",
+                        visible=True,
+                        height=90,
+                        show_label=False,
+                    )
+
+                    # Container for dynamic resource components
+                    with gr.Column(elem_classes="resources-display-area"):
+
+                        @gr.render(inputs=resources_state)
+                        def render_resource_components(resources):
+                            if not resources:
+                                gr.HTML(
+                                    value="<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
+                                    "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>"
+                                )
+                            else:
+                                for idx, resource in enumerate(resources):
+                                    with gr.Group(elem_classes="resource-item-gradio"):
+                                        # Hidden element containing resource path for drag and drop
+                                        gr.HTML(
+                                            f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>'
+                                        )
+
+                                        with gr.Row(elem_classes="resource-row-gradio"):
+                                            with gr.Column(scale=1, elem_classes="resource-info-col"):
+                                                # Resource title
+                                                resource_title = gr.Textbox(
+                                                    value=resource.get("title", resource["name"]),
+                                                    placeholder="Title",
+                                                    label=None,
+                                                    show_label=False,
+                                                    elem_classes="resource-title-gradio",
+                                                    scale=1,
+                                                )
+
+                                                delete_btn = gr.Button(
+                                                    "🗑", elem_classes="resource-delete-btn", size="sm"
+                                                )
+
+                                                # Resource description
+                                                resource_desc = gr.Textbox(
+                                                    value=resource.get("description", ""),
+                                                    placeholder="Add a description for this resource...",
+                                                    label=None,
+                                                    show_label=False,
+                                                    elem_classes="resource-desc-gradio",
+                                                    lines=2,
+                                                    scale=1,
+                                                )
+
+                                                # Filename display
+                                                gr.HTML(
+                                                    elem_classes="resource-filename",
+                                                    value=f"<div>  {resource['name']}</div>",
+                                                )
+
+                                        # File replacement upload area
+                                        replace_file = gr.File(
+                                            label="Drop file here to replace",
+                                            file_types=[
+                                                ".txt",
+                                                ".md",
+                                                ".py",
+                                                ".c",
+                                                ".cpp",
+                                                ".h",
+                                                ".java",
+                                                ".js",
+                                                ".ts",
+                                                ".jsx",
+                                                ".tsx",
+                                                ".json",
+                                                ".xml",
+                                                ".yaml",
+                                                ".yml",
+                                                ".toml",
+                                                ".ini",
+                                                ".cfg",
+                                                ".conf",
+                                                ".sh",
+                                                ".bash",
+                                                ".zsh",
+                                                ".fish",
+                                                ".ps1",
+                                                ".bat",
+                                                ".cmd",
+                                                ".rs",
+                                                ".go",
+                                                ".rb",
+                                                ".php",
+                                                ".pl",
+                                                ".lua",
+                                                ".r",
+                                                ".m",
+                                                ".swift",
+                                                ".kt",
+                                                ".scala",
+                                                ".clj",
+                                                ".ex",
+                                                ".exs",
+                                                ".elm",
+                                                ".fs",
+                                                ".ml",
+                                                ".sql",
+                                                ".html",
+                                                ".htm",
+                                                ".css",
+                                                ".scss",
+                                                ".sass",
+                                                ".less",
+                                                ".vue",
+                                                ".svelte",
+                                                ".astro",
+                                                ".tex",
+                                                ".rst",
+                                                ".adoc",
+                                                ".org",
+                                                ".csv",
+                                            ],
+                                            elem_classes="resource-upload-gradio",
+                                            scale=1,
+                                            show_label=False,
+                                        )
+
+                                        # Connect events for this resource
+                                        resource_path = resource["path"]
+
+                                        # Title update - don't update resources_state to avoid re-render
+                                        resource_title.change(
+                                            fn=update_resource_title_gradio,
+                                            inputs=[
+                                                resources_state,
+                                                gr.State(resource_path),
+                                                resource_title,
+                                                doc_title,
+                                                doc_description,
+                                                blocks_state,
+                                            ],
+                                            outputs=[
+                                                gr.State(),
+                                                outline_state,
+                                                json_output,
+                                            ],  # Use dummy State to avoid re-render
+                                            trigger_mode="always_last",  # Only trigger after user stops typing
+                                        )
+
+                                        # Description update - don't update resources_state to avoid re-render
+                                        resource_desc.change(
+                                            fn=update_resource_description_gradio,
+                                            inputs=[
+                                                resources_state,
+                                                gr.State(resource_path),
+                                                resource_desc,
+                                                doc_title,
+                                                doc_description,
+                                                blocks_state,
+                                            ],
+                                            outputs=[
+                                                gr.State(),
+                                                outline_state,
+                                                json_output,
+                                            ],  # Use dummy State to avoid re-render
+                                            trigger_mode="always_last",  # Only trigger after user stops typing
+                                        )
+
+                                        # Delete button
+                                        def delete_gradio_and_render(resources, path, title, desc, blocks, focused):
+                                            """Delete resource via Gradio button and render blocks."""
+                                            print("\n=== delete_gradio_and_render called ===")
+                                            new_res, new_blocks, outline, json_str = delete_resource_gradio(
+                                                resources, path, title, desc, blocks
+                                            )
+                                            blocks_html = render_blocks(new_blocks, focused)
+                                            print("=== delete_gradio_and_render complete ===\n")
+                                            return new_res, new_blocks, outline, json_str, blocks_html
+
+                                        delete_btn.click(
+                                            fn=delete_gradio_and_render,
+                                            inputs=[
+                                                resources_state,
+                                                gr.State(resource_path),
+                                                doc_title,
+                                                doc_description,
+                                                blocks_state,
+                                                focused_block_state,
+                                            ],
+                                            outputs=[
+                                                resources_state,
+                                                blocks_state,
+                                                outline_state,
+                                                json_output,
+                                                blocks_display,
+                                            ],
+                                        )
+
+                                        # File replacement
+                                        replace_file.change(
+                                            fn=replace_resource_file_gradio,
+                                            inputs=[
+                                                resources_state,
+                                                gr.State(resource_path),
+                                                replace_file,
+                                                doc_title,
+                                                doc_description,
+                                                blocks_state,
+                                                session_state,
+                                            ],
+                                            outputs=[resources_state, outline_state, json_output, replace_file],
+                                        ).then(
+                                            # Force JSON update after resources render
+                                            fn=lambda title, desc, res, blocks: regenerate_outline_from_state(
+                                                title, desc, res, blocks
+                                            )[1],
+                                            inputs=[doc_title, doc_description, resources_state, blocks_state],
+                                            outputs=[json_output],
+                                        )
+
+                # Workspace column: AI, H, T buttons (aligned left)
+                with gr.Column(scale=1, elem_classes="workspace-col"):
+                    with gr.Row(elem_classes="square-btn-row"):
+                        ai_btn = gr.Button("+ Add Section", elem_classes="add-section-btn", size="sm")
+
+                    # Workspace panel for stacking content blocks
+                    with gr.Column(elem_classes="workspace-display"):
+                        blocks_display = gr.HTML(
+                            value=render_blocks(initial_blocks, None), elem_classes="blocks-container"
+                        )
+
+                        # Hidden components for JS communication
+                        delete_block_id = gr.Textbox(
+                            visible=True, elem_id="delete-block-id", elem_classes="hidden-component"
+                        )
+                        delete_trigger = gr.Button(
+                            "Delete", visible=True, elem_id="delete-trigger", elem_classes="hidden-component"
+                        )
+
+                        # Hidden HTML for JavaScript execution
+                        js_executor = gr.HTML(visible=False)
+
+                        # Hidden components for content updates
+                        update_block_id = gr.Textbox(
+                            visible=True, elem_id="update-block-id", elem_classes="hidden-component"
+                        )
+                        update_content_input = gr.Textbox(
+                            visible=True, elem_id="update-content-input", elem_classes="hidden-component"
+                        )
+                        update_trigger = gr.Button(
+                            "Update", visible=True, elem_id="update-trigger", elem_classes="hidden-component"
+                        )
+
+                        # Hidden components for toggle collapse
+                        toggle_block_id = gr.Textbox(
+                            visible=True, elem_id="toggle-block-id", elem_classes="hidden-component"
+                        )
+                        toggle_trigger = gr.Button(
+                            "Toggle", visible=True, elem_id="toggle-trigger", elem_classes="hidden-component"
+                        )
+
+                        # Hidden components for heading updates
+                        update_heading_block_id = gr.Textbox(
+                            visible=True, elem_id="update-heading-block-id", elem_classes="hidden-component"
+                        )
+                        update_heading_input = gr.Textbox(
+                            visible=True, elem_id="update-heading-input", elem_classes="hidden-component"
+                        )
+                        update_heading_trigger = gr.Button(
+                            "Update Heading",
+                            visible=True,
+                            elem_id="update-heading-trigger",
                             elem_classes="hidden-component",
                         )
 
-                # Document title and description
-                with gr.Row(elem_classes="header-section"):
-                    # Document title (narrower width)
-                    doc_title = gr.Textbox(
-                        value="",
-                        placeholder="Document Title",
-                        label=None,
-                        show_label=False,
-                        elem_id="doc-title-id",
-                        elem_classes="doc-title-box",
-                        scale=2,
-                        interactive=True,
-                        lines=1,
-                        max_lines=1,
-                    )
+                        # Hidden components for indent updates
+                        indent_block_id = gr.Textbox(
+                            visible=True, elem_id="indent-block-id", elem_classes="hidden-component"
+                        )
+                        indent_direction = gr.Textbox(
+                            visible=True, elem_id="indent-direction", elem_classes="hidden-component"
+                        )
+                        indent_trigger = gr.Button(
+                            "Update Indent", visible=True, elem_id="indent-trigger", elem_classes="hidden-component"
+                        )
 
-                    # Document description (wider width)
-                    doc_description = gr.TextArea(
-                        value="",
-                        placeholder="Provide overall guidance for the document generation.\nSpecifics may include purpose, audience, style, format, etc.",
-                        label=None,
-                        show_label=False,
-                        elem_id="doc-description-id",
-                        elem_classes="doc-description-box",
-                        scale=5,
-                        lines=2,
-                        max_lines=10,
-                        interactive=True,
-                    )
+                        # Hidden components for focus tracking
+                        focus_block_id = gr.Textbox(
+                            visible=True, elem_id="focus-block-id", elem_classes="hidden-component"
+                        )
+                        focus_trigger = gr.Button(
+                            "Set Focus", visible=True, elem_id="focus-trigger", elem_classes="hidden-component"
+                        )
 
-                # Main content area with three columns
-                with gr.Row():
-                    # Resources column: Upload Resources button
-                    with gr.Column(scale=1, elem_classes="resources-col"):
-                        # Drag and drop file upload component
-                        file_upload = gr.File(
-                            label="Drop Text File Here",
-                            file_count="multiple",
+                        # Hidden components for adding block after
+                        add_after_block_id = gr.Textbox(
+                            visible=True, elem_id="add-after-block-id", elem_classes="hidden-component"
+                        )
+                        add_after_type = gr.Textbox(
+                            visible=True, elem_id="add-after-type", elem_classes="hidden-component"
+                        )
+                        add_after_trigger = gr.Button(
+                            "Add After", visible=True, elem_id="add-after-trigger", elem_classes="hidden-component"
+                        )
+
+                        # Hidden components for converting block type
+                        convert_block_id = gr.Textbox(
+                            visible=True, elem_id="convert-block-id", elem_classes="hidden-component"
+                        )
+                        convert_type = gr.Textbox(visible=True, elem_id="convert-type", elem_classes="hidden-component")
+                        convert_trigger = gr.Button(
+                            "Convert", visible=True, elem_id="convert-trigger", elem_classes="hidden-component"
+                        )
+
+                        # Hidden components for updating block resources
+                        update_resources_block_id = gr.Textbox(
+                            visible=True, elem_id="update-resources-block-id", elem_classes="hidden-component"
+                        )
+                        update_resources_input = gr.Textbox(
+                            visible=True, elem_id="update-resources-input", elem_classes="hidden-component"
+                        )
+                        update_resources_trigger = gr.Button(
+                            "Update Resources",
+                            visible=True,
+                            elem_id="update-resources-trigger",
+                            elem_classes="hidden-component",
+                        )
+
+                        # Hidden components for removing block resources
+                        remove_resource_block_id = gr.Textbox(
+                            visible=True, elem_id="remove-resource-block-id", elem_classes="hidden-component"
+                        )
+                        remove_resource_path = gr.Textbox(
+                            visible=True, elem_id="remove-resource-path", elem_classes="hidden-component"
+                        )
+                        remove_resource_trigger = gr.Button(
+                            "Remove Resource",
+                            visible=True,
+                            elem_id="remove-resource-trigger",
+                            elem_classes="hidden-component",
+                        )
+
+                        # Hidden components for deleting resources from panel
+                        delete_panel_resource_path = gr.Textbox(visible=False, elem_id="delete-panel-resource-path")
+                        delete_panel_resource_trigger = gr.Button(
+                            "Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger"
+                        )
+
+                        # Hidden components for updating resource descriptions
+                        update_desc_block_id = gr.Textbox(visible=False, elem_id="update-desc-block-id")
+                        update_desc_resource_path = gr.Textbox(visible=False, elem_id="update-desc-resource-path")
+                        update_desc_text = gr.Textbox(visible=False, elem_id="update-desc-text")
+                        update_desc_trigger = gr.Button(
+                            "Update Description", visible=False, elem_id="update-desc-trigger"
+                        )
+
+                        # Hidden components for loading examples
+                        example_id_input = gr.Textbox(  # this shows up as textarea locally but as input deployed
+                            visible=True, elem_id="example-id-input", elem_classes="hidden-component"
+                        )
+                        load_example_trigger = gr.Button(
+                            "Load Example",
+                            visible=True,
+                            elem_id="load-example-trigger",
+                            elem_classes="hidden-component",
+                        )
+
+                        # Hidden components for updating resource titles
+                        update_title_resource_path = gr.Textbox(visible=False, elem_id="update-title-resource-path")
+                        update_title_text = gr.Textbox(visible=False, elem_id="update-title-text")
+                        update_title_trigger = gr.Button("Update Title", visible=False, elem_id="update-title-trigger")
+
+                        # Hidden button for updating resource panel descriptions
+                        update_panel_desc_trigger = gr.Button(
+                            "Update Panel Description", visible=False, elem_id="update-panel-desc-trigger"
+                        )
+
+                        # Hidden components for replacing resource files
+                        replace_resource_path = gr.Textbox(visible=False, elem_id="replace-resource-path")
+                        replace_resource_file_input = gr.File(
+                            visible=False,
+                            elem_id="replace-resource-file",
                             file_types=[
                                 ".txt",
                                 ".md",
@@ -1974,502 +2428,56 @@ Document Generator uses a structured outline and linked resources to draft docum
                                 ".org",
                                 ".csv",
                             ],
-                            elem_classes="file-upload-dropzone",
+                        )
+                        replace_resource_trigger = gr.Button(
+                            "Replace Resource", visible=False, elem_id="replace-resource-trigger"
+                        )
+                        replace_success_msg = gr.Textbox(visible=False, elem_id="replace-success-msg")
+
+                # Generated document column: Generate and Save Document buttons (aligned right)
+                with gr.Column(scale=1, elem_classes="generate-col"):
+                    with gr.Row(elem_classes="generate-btn-row"):
+                        # Add empty space to push buttons to the right
+                        gr.HTML("<div style='flex: 1;'></div>")
+                        generate_doc_btn = gr.Button(
+                            "▷ Generate", elem_classes="generate-btn", variant="primary", size="sm"
+                        )
+                        save_doc_btn = gr.DownloadButton(
+                            "Download",
+                            elem_classes="download-btn",
+                            variant="secondary",
+                            size="sm",
                             visible=True,
-                            height=90,
-                            show_label=False,
+                            interactive=False,  # Disabled until document is generated
                         )
 
-                        # Container for dynamic resource components
-                        with gr.Column(elem_classes="resources-display-area"):
+                    # Generated document display panel
+                    with gr.Column(elem_classes="generate-display"):
+                        generated_content_html = gr.HTML(
+                            value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>",
+                            elem_classes="generated-content",
+                            visible=True,
+                        )
+                        generated_content = gr.Markdown(visible=False)
 
-                            @gr.render(inputs=resources_state)
-                            def render_resource_components(resources):
-                                if not resources:
-                                    gr.HTML(
-                                        value="<p style='color: #666; font-size: 12px'>(.md, .csv, .py, .json, .txt, etc.)</p>"
-                                        "<p style='color: #666; font-size: 12px'>These reference files will be used for AI context.</p>"
-                                    )
-                                else:
-                                    for idx, resource in enumerate(resources):
-                                        with gr.Group(elem_classes="resource-item-gradio"):
-                                            # Hidden element containing resource path for drag and drop
-                                            gr.HTML(
-                                                f'<div class="resource-path-hidden" style="display:none;" data-path="{resource["path"]}">{resource["path"]}</div>'
-                                            )
+                    # Debug panel for JSON display (collapsible)
+                    with gr.Column(elem_classes="debug-panel", elem_id="debug-panel-container"):
+                        with gr.Row(elem_classes="debug-panel-header"):
+                            gr.HTML("""
+                                <div class="debug-panel-title" onclick="toggleDebugPanel()">
+                                    <span>Debug Panel (JSON Output)</span>
+                                    <span class="debug-collapse-icon" id="debug-collapse-icon">⌵</span>
+                                </div>
+                            """)
 
-                                            with gr.Row(elem_classes="resource-row-gradio"):
-                                                with gr.Column(scale=1, elem_classes="resource-info-col"):
-                                                    # Resource title
-                                                    resource_title = gr.Textbox(
-                                                        value=resource.get("title", resource["name"]),
-                                                        placeholder="Title",
-                                                        label=None,
-                                                        show_label=False,
-                                                        elem_classes="resource-title-gradio",
-                                                        scale=1,
-                                                    )
-
-                                                    delete_btn = gr.Button(
-                                                        "🗑", elem_classes="resource-delete-btn", size="sm"
-                                                    )
-
-                                                    # Resource description
-                                                    resource_desc = gr.Textbox(
-                                                        value=resource.get("description", ""),
-                                                        placeholder="Add a description for this resource...",
-                                                        label=None,
-                                                        show_label=False,
-                                                        elem_classes="resource-desc-gradio",
-                                                        lines=2,
-                                                        scale=1,
-                                                    )
-
-                                                    # Filename display
-                                                    gr.HTML(
-                                                        elem_classes="resource-filename",
-                                                        value=f"<div>  {resource['name']}</div>",
-                                                    )
-
-                                            # File replacement upload area
-                                            replace_file = gr.File(
-                                                label="Drop file here to replace",
-                                                file_types=[
-                                                    ".txt",
-                                                    ".md",
-                                                    ".py",
-                                                    ".c",
-                                                    ".cpp",
-                                                    ".h",
-                                                    ".java",
-                                                    ".js",
-                                                    ".ts",
-                                                    ".jsx",
-                                                    ".tsx",
-                                                    ".json",
-                                                    ".xml",
-                                                    ".yaml",
-                                                    ".yml",
-                                                    ".toml",
-                                                    ".ini",
-                                                    ".cfg",
-                                                    ".conf",
-                                                    ".sh",
-                                                    ".bash",
-                                                    ".zsh",
-                                                    ".fish",
-                                                    ".ps1",
-                                                    ".bat",
-                                                    ".cmd",
-                                                    ".rs",
-                                                    ".go",
-                                                    ".rb",
-                                                    ".php",
-                                                    ".pl",
-                                                    ".lua",
-                                                    ".r",
-                                                    ".m",
-                                                    ".swift",
-                                                    ".kt",
-                                                    ".scala",
-                                                    ".clj",
-                                                    ".ex",
-                                                    ".exs",
-                                                    ".elm",
-                                                    ".fs",
-                                                    ".ml",
-                                                    ".sql",
-                                                    ".html",
-                                                    ".htm",
-                                                    ".css",
-                                                    ".scss",
-                                                    ".sass",
-                                                    ".less",
-                                                    ".vue",
-                                                    ".svelte",
-                                                    ".astro",
-                                                    ".tex",
-                                                    ".rst",
-                                                    ".adoc",
-                                                    ".org",
-                                                    ".csv",
-                                                ],
-                                                elem_classes="resource-upload-gradio",
-                                                scale=1,
-                                                show_label=False,
-                                            )
-
-                                            # Connect events for this resource
-                                            resource_path = resource["path"]
-
-                                            # Title update - don't update resources_state to avoid re-render
-                                            resource_title.change(
-                                                fn=update_resource_title_gradio,
-                                                inputs=[
-                                                    resources_state,
-                                                    gr.State(resource_path),
-                                                    resource_title,
-                                                    doc_title,
-                                                    doc_description,
-                                                    blocks_state,
-                                                ],
-                                                outputs=[
-                                                    gr.State(),
-                                                    outline_state,
-                                                    json_output,
-                                                ],  # Use dummy State to avoid re-render
-                                                trigger_mode="always_last",  # Only trigger after user stops typing
-                                            )
-
-                                            # Description update - don't update resources_state to avoid re-render
-                                            resource_desc.change(
-                                                fn=update_resource_description_gradio,
-                                                inputs=[
-                                                    resources_state,
-                                                    gr.State(resource_path),
-                                                    resource_desc,
-                                                    doc_title,
-                                                    doc_description,
-                                                    blocks_state,
-                                                ],
-                                                outputs=[
-                                                    gr.State(),
-                                                    outline_state,
-                                                    json_output,
-                                                ],  # Use dummy State to avoid re-render
-                                                trigger_mode="always_last",  # Only trigger after user stops typing
-                                            )
-
-                                            # Delete button
-                                            def delete_gradio_and_render(resources, path, title, desc, blocks, focused):
-                                                """Delete resource via Gradio button and render blocks."""
-                                                print("\n=== delete_gradio_and_render called ===")
-                                                new_res, new_blocks, outline, json_str = delete_resource_gradio(
-                                                    resources, path, title, desc, blocks
-                                                )
-                                                blocks_html = render_blocks(new_blocks, focused)
-                                                print("=== delete_gradio_and_render complete ===\n")
-                                                return new_res, new_blocks, outline, json_str, blocks_html
-
-                                            delete_btn.click(
-                                                fn=delete_gradio_and_render,
-                                                inputs=[
-                                                    resources_state,
-                                                    gr.State(resource_path),
-                                                    doc_title,
-                                                    doc_description,
-                                                    blocks_state,
-                                                    focused_block_state,
-                                                ],
-                                                outputs=[
-                                                    resources_state,
-                                                    blocks_state,
-                                                    outline_state,
-                                                    json_output,
-                                                    blocks_display,
-                                                ],
-                                            )
-
-                                            # File replacement
-                                            replace_file.change(
-                                                fn=replace_resource_file_gradio,
-                                                inputs=[
-                                                    resources_state,
-                                                    gr.State(resource_path),
-                                                    replace_file,
-                                                    doc_title,
-                                                    doc_description,
-                                                    blocks_state,
-                                                    session_state,
-                                                ],
-                                                outputs=[resources_state, outline_state, json_output, replace_file],
-                                            ).then(
-                                                # Force JSON update after resources render
-                                                fn=lambda title, desc, res, blocks: regenerate_outline_from_state(
-                                                    title, desc, res, blocks
-                                                )[1],
-                                                inputs=[doc_title, doc_description, resources_state, blocks_state],
-                                                outputs=[json_output],
-                                            )
-
-                    # Workspace column: AI, H, T buttons (aligned left)
-                    with gr.Column(scale=1, elem_classes="workspace-col"):
-                        with gr.Row(elem_classes="square-btn-row"):
-                            ai_btn = gr.Button("+ Add Section", elem_classes="add-section-btn", size="sm")
-
-                        # Workspace panel for stacking content blocks
-                        with gr.Column(elem_classes="workspace-display"):
-                            blocks_display = gr.HTML(
-                                value=render_blocks(initial_blocks, None), elem_classes="blocks-container"
+                        with gr.Column(elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=True):
+                            json_output = gr.Code(
+                                value=initial_json,
+                                language="json",
+                                elem_classes="json-debug-output",
+                                wrap_lines=True,
+                                lines=20,
                             )
-
-                            # Hidden components for JS communication
-                            delete_block_id = gr.Textbox(
-                                visible=True, elem_id="delete-block-id", elem_classes="hidden-component"
-                            )
-                            delete_trigger = gr.Button(
-                                "Delete", visible=True, elem_id="delete-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden HTML for JavaScript execution
-                            js_executor = gr.HTML(visible=False)
-
-                            # Hidden components for content updates
-                            update_block_id = gr.Textbox(
-                                visible=True, elem_id="update-block-id", elem_classes="hidden-component"
-                            )
-                            update_content_input = gr.Textbox(
-                                visible=True, elem_id="update-content-input", elem_classes="hidden-component"
-                            )
-                            update_trigger = gr.Button(
-                                "Update", visible=True, elem_id="update-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for toggle collapse
-                            toggle_block_id = gr.Textbox(
-                                visible=True, elem_id="toggle-block-id", elem_classes="hidden-component"
-                            )
-                            toggle_trigger = gr.Button(
-                                "Toggle", visible=True, elem_id="toggle-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for heading updates
-                            update_heading_block_id = gr.Textbox(
-                                visible=True, elem_id="update-heading-block-id", elem_classes="hidden-component"
-                            )
-                            update_heading_input = gr.Textbox(
-                                visible=True, elem_id="update-heading-input", elem_classes="hidden-component"
-                            )
-                            update_heading_trigger = gr.Button(
-                                "Update Heading",
-                                visible=True,
-                                elem_id="update-heading-trigger",
-                                elem_classes="hidden-component",
-                            )
-
-                            # Hidden components for indent updates
-                            indent_block_id = gr.Textbox(
-                                visible=True, elem_id="indent-block-id", elem_classes="hidden-component"
-                            )
-                            indent_direction = gr.Textbox(
-                                visible=True, elem_id="indent-direction", elem_classes="hidden-component"
-                            )
-                            indent_trigger = gr.Button(
-                                "Update Indent", visible=True, elem_id="indent-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for focus tracking
-                            focus_block_id = gr.Textbox(
-                                visible=True, elem_id="focus-block-id", elem_classes="hidden-component"
-                            )
-                            focus_trigger = gr.Button(
-                                "Set Focus", visible=True, elem_id="focus-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for adding block after
-                            add_after_block_id = gr.Textbox(
-                                visible=True, elem_id="add-after-block-id", elem_classes="hidden-component"
-                            )
-                            add_after_type = gr.Textbox(
-                                visible=True, elem_id="add-after-type", elem_classes="hidden-component"
-                            )
-                            add_after_trigger = gr.Button(
-                                "Add After", visible=True, elem_id="add-after-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for converting block type
-                            convert_block_id = gr.Textbox(
-                                visible=True, elem_id="convert-block-id", elem_classes="hidden-component"
-                            )
-                            convert_type = gr.Textbox(
-                                visible=True, elem_id="convert-type", elem_classes="hidden-component"
-                            )
-                            convert_trigger = gr.Button(
-                                "Convert", visible=True, elem_id="convert-trigger", elem_classes="hidden-component"
-                            )
-
-                            # Hidden components for updating block resources
-                            update_resources_block_id = gr.Textbox(
-                                visible=True, elem_id="update-resources-block-id", elem_classes="hidden-component"
-                            )
-                            update_resources_input = gr.Textbox(
-                                visible=True, elem_id="update-resources-input", elem_classes="hidden-component"
-                            )
-                            update_resources_trigger = gr.Button(
-                                "Update Resources",
-                                visible=True,
-                                elem_id="update-resources-trigger",
-                                elem_classes="hidden-component",
-                            )
-
-                            # Hidden components for removing block resources
-                            remove_resource_block_id = gr.Textbox(
-                                visible=True, elem_id="remove-resource-block-id", elem_classes="hidden-component"
-                            )
-                            remove_resource_path = gr.Textbox(
-                                visible=True, elem_id="remove-resource-path", elem_classes="hidden-component"
-                            )
-                            remove_resource_trigger = gr.Button(
-                                "Remove Resource",
-                                visible=True,
-                                elem_id="remove-resource-trigger",
-                                elem_classes="hidden-component",
-                            )
-
-                            # Hidden components for deleting resources from panel
-                            delete_panel_resource_path = gr.Textbox(visible=False, elem_id="delete-panel-resource-path")
-                            delete_panel_resource_trigger = gr.Button(
-                                "Delete Panel Resource", visible=False, elem_id="delete-panel-resource-trigger"
-                            )
-
-                            # Hidden components for updating resource descriptions
-                            update_desc_block_id = gr.Textbox(visible=False, elem_id="update-desc-block-id")
-                            update_desc_resource_path = gr.Textbox(visible=False, elem_id="update-desc-resource-path")
-                            update_desc_text = gr.Textbox(visible=False, elem_id="update-desc-text")
-                            update_desc_trigger = gr.Button(
-                                "Update Description", visible=False, elem_id="update-desc-trigger"
-                            )
-
-                            # Hidden components for loading examples
-                            example_id_input = gr.Textbox(
-                                visible=True, elem_id="example-id-input", elem_classes="hidden-component"
-                            )
-                            load_example_trigger = gr.Button(
-                                "Load Example",
-                                visible=True,
-                                elem_id="load-example-trigger",
-                                elem_classes="hidden-component",
-                            )
-
-                            # Hidden components for updating resource titles
-                            update_title_resource_path = gr.Textbox(visible=False, elem_id="update-title-resource-path")
-                            update_title_text = gr.Textbox(visible=False, elem_id="update-title-text")
-                            update_title_trigger = gr.Button(
-                                "Update Title", visible=False, elem_id="update-title-trigger"
-                            )
-
-                            # Hidden button for updating resource panel descriptions
-                            update_panel_desc_trigger = gr.Button(
-                                "Update Panel Description", visible=False, elem_id="update-panel-desc-trigger"
-                            )
-
-                            # Hidden components for replacing resource files
-                            replace_resource_path = gr.Textbox(visible=False, elem_id="replace-resource-path")
-                            replace_resource_file_input = gr.File(
-                                visible=False,
-                                elem_id="replace-resource-file",
-                                file_types=[
-                                    ".txt",
-                                    ".md",
-                                    ".py",
-                                    ".c",
-                                    ".cpp",
-                                    ".h",
-                                    ".java",
-                                    ".js",
-                                    ".ts",
-                                    ".jsx",
-                                    ".tsx",
-                                    ".json",
-                                    ".xml",
-                                    ".yaml",
-                                    ".yml",
-                                    ".toml",
-                                    ".ini",
-                                    ".cfg",
-                                    ".conf",
-                                    ".sh",
-                                    ".bash",
-                                    ".zsh",
-                                    ".fish",
-                                    ".ps1",
-                                    ".bat",
-                                    ".cmd",
-                                    ".rs",
-                                    ".go",
-                                    ".rb",
-                                    ".php",
-                                    ".pl",
-                                    ".lua",
-                                    ".r",
-                                    ".m",
-                                    ".swift",
-                                    ".kt",
-                                    ".scala",
-                                    ".clj",
-                                    ".ex",
-                                    ".exs",
-                                    ".elm",
-                                    ".fs",
-                                    ".ml",
-                                    ".sql",
-                                    ".html",
-                                    ".htm",
-                                    ".css",
-                                    ".scss",
-                                    ".sass",
-                                    ".less",
-                                    ".vue",
-                                    ".svelte",
-                                    ".astro",
-                                    ".tex",
-                                    ".rst",
-                                    ".adoc",
-                                    ".org",
-                                    ".csv",
-                                ],
-                            )
-                            replace_resource_trigger = gr.Button(
-                                "Replace Resource", visible=False, elem_id="replace-resource-trigger"
-                            )
-                            replace_success_msg = gr.Textbox(visible=False, elem_id="replace-success-msg")
-
-                    # Generated document column: Generate and Save Document buttons (aligned right)
-                    with gr.Column(scale=1, elem_classes="generate-col"):
-                        with gr.Row(elem_classes="generate-btn-row"):
-                            # Add empty space to push buttons to the right
-                            gr.HTML("<div style='flex: 1;'></div>")
-                            generate_doc_btn = gr.Button(
-                                "▷ Generate", elem_classes="generate-btn", variant="primary", size="sm"
-                            )
-                            save_doc_btn = gr.DownloadButton(
-                                "Download",
-                                elem_classes="download-btn",
-                                variant="secondary",
-                                size="sm",
-                                visible=True,
-                                interactive=False,  # Disabled until document is generated
-                            )
-
-                        # Generated document display panel
-                        with gr.Column(elem_classes="generate-display"):
-                            generated_content_html = gr.HTML(
-                                value="<em>Click '▷ Generate' to see the generated content here.</em><br><br><br>",
-                                elem_classes="generated-content",
-                                visible=True,
-                            )
-                            generated_content = gr.Markdown(visible=False)
-
-                        # Debug panel for JSON display (collapsible)
-                        with gr.Column(elem_classes="debug-panel", elem_id="debug-panel-container"):
-                            with gr.Row(elem_classes="debug-panel-header"):
-                                gr.HTML("""
-                                    <div class="debug-panel-title" onclick="toggleDebugPanel()">
-                                        <span>Debug Panel (JSON Output)</span>
-                                        <span class="debug-collapse-icon" id="debug-collapse-icon">⌵</span>
-                                    </div>
-                                """)
-
-                            with gr.Column(
-                                elem_classes="debug-panel-content", elem_id="debug-panel-content", visible=True
-                            ):
-                                json_output = gr.Code(
-                                    value=initial_json,
-                                    language="json",
-                                    elem_classes="json-debug-output",
-                                    wrap_lines=True,
-                                    lines=20,
-                                )
 
         # Helper function to add AI block and regenerate outline
         def handle_add_ai_block_top(blocks, _, title, description, resources):
@@ -2887,7 +2895,7 @@ Document Generator uses a structured outline and linked resources to draft docum
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Create a hidden HTML component for tab switching trigger
-        switch_tab_trigger = gr.HTML("", visible=False, elem_id="switch-tab-trigger")
+        switch_tab_trigger = gr.HTML("", visible=True, elem_id="switch-tab-trigger", elem_classes="hidden-component")
 
         # Get Started button - switch to Draft + Generate tab
         import time

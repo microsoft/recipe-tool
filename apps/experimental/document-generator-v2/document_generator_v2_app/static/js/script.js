@@ -20,7 +20,7 @@ function toggleDebugPanel() {
     console.log('toggleDebugPanel called');
     const content = document.getElementById('debug-panel-content');
     const icon = document.getElementById('debug-collapse-icon');
-    
+
     console.log('Debug panel content element:', content);
     console.log('Current display style:', content ? content.style.display : 'content not found');
     console.log('Icon element:', icon);
@@ -51,10 +51,10 @@ function toggleDebugPanel() {
 // Tab switching helper
 function switchToDraftTab() {
     console.log('Switching to Draft + Generate tab');
-    
+
     // Find all tab buttons
     const tabButtons = document.querySelectorAll('button[role="tab"]');
-    
+
     // Find the Draft + Generate tab button and click it
     tabButtons.forEach(button => {
         if (button.textContent.includes('Draft + Generate')) {
@@ -84,12 +84,12 @@ function deleteBlock(blockId) {
     // Set the block ID in the hidden textbox
     const blockIdInput = document.getElementById('delete-block-id');
     console.log('Delete block ID input element:', blockIdInput);
-    
+
     if (blockIdInput) {
         // Find the textarea element and set its value
-        const textarea = blockIdInput.querySelector('textarea');
+        const textarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
         console.log('Delete block textarea element:', textarea);
-        
+
         if (textarea) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -99,7 +99,7 @@ function deleteBlock(blockId) {
             setTimeout(() => {
                 const deleteBtn = document.getElementById('delete-trigger');
                 console.log('Delete trigger button:', deleteBtn);
-                
+
                 if (deleteBtn) {
                     deleteBtn.click();
                     console.log('Clicked delete trigger button');
@@ -124,8 +124,8 @@ function updateBlockContent(blockId, content) {
     console.log('Update block ID input:', blockIdInput, 'Content input:', contentInput);
 
     if (blockIdInput && contentInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const contentTextarea = contentInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const contentTextarea = contentInput.querySelector('textarea') || contentInput.querySelector('input[type="text"]');
         console.log('Block ID textarea:', blockIdTextarea, 'Content textarea:', contentTextarea);
 
         if (blockIdTextarea && contentTextarea) {
@@ -142,7 +142,7 @@ function updateBlockContent(blockId, content) {
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-trigger');
                 console.log('Update trigger button:', updateBtn);
-                
+
                 if (updateBtn) {
                     updateBtn.click();
                     console.log('Clicked update trigger button');
@@ -168,8 +168,8 @@ function updateBlockHeading(blockId, heading) {
     console.log('Heading input element:', headingInput);
 
     if (blockIdInput && headingInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const headingTextarea = headingInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const headingTextarea = headingInput.querySelector('textarea') || headingInput.querySelector('input[type="text"]');
         console.log('Block ID textarea:', blockIdTextarea);
         console.log('Heading textarea:', headingTextarea);
 
@@ -188,7 +188,7 @@ function updateBlockHeading(blockId, heading) {
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-heading-trigger');
                 console.log('Update heading trigger button:', updateBtn);
-                
+
                 if (updateBtn) {
                     updateBtn.click();
                     console.log('Clicked update heading trigger button');
@@ -214,11 +214,11 @@ function toggleBlockCollapse(blockId) {
     // Set the block ID in the hidden input
     const blockIdInput = document.getElementById('toggle-block-id');
     console.log('Toggle block ID input:', blockIdInput);
-    
+
     if (blockIdInput) {
-        const textarea = blockIdInput.querySelector('textarea');
+        const textarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
         console.log('Toggle block textarea:', textarea);
-        
+
         if (textarea) {
             textarea.value = blockId;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -228,7 +228,7 @@ function toggleBlockCollapse(blockId) {
             setTimeout(() => {
                 const toggleBtn = document.getElementById('toggle-trigger');
                 console.log('Toggle trigger button:', toggleBtn);
-                
+
                 if (toggleBtn) {
                     toggleBtn.click();
                     console.log('Clicked toggle trigger button');
@@ -692,7 +692,7 @@ if (document.body) {
 // Update block indent function
 function updateBlockIndent(blockId, direction) {
     console.log('updateBlockIndent called with blockId:', blockId, 'direction:', direction);
-    
+
     // Set focused block when indenting
     setFocusedBlock(blockId);
     console.log('Called setFocusedBlock for blockId:', blockId);
@@ -704,8 +704,8 @@ function updateBlockIndent(blockId, direction) {
     console.log('Direction input element:', directionInput);
 
     if (blockIdInput && directionInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const directionTextarea = directionInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const directionTextarea = directionInput.querySelector('textarea') || directionInput.querySelector('input[type="text"]');
         console.log('Block ID textarea:', blockIdTextarea);
         console.log('Direction textarea:', directionTextarea);
 
@@ -724,7 +724,7 @@ function updateBlockIndent(blockId, direction) {
             setTimeout(() => {
                 const indentBtn = document.getElementById('indent-trigger');
                 console.log('Indent trigger button:', indentBtn);
-                
+
                 if (indentBtn) {
                     indentBtn.click();
                     console.log('Clicked indent trigger button');
@@ -747,18 +747,18 @@ function updateBlockIndent(blockId, direction) {
 // Set focused block function
 function setFocusedBlock(blockId, skipRender = false) {
     console.log('setFocusedBlock called with blockId:', blockId, 'skipRender:', skipRender);
-    
+
     const focusIdInput = document.getElementById('focus-block-id');
     console.log('Focus ID input element:', focusIdInput);
-    
+
     if (focusIdInput) {
-        const textarea = focusIdInput.querySelector('textarea');
+        const textarea = focusIdInput.querySelector('textarea') || focusIdInput.querySelector('input[type="text"]');
         console.log('Focus ID textarea:', textarea);
-        
+
         if (textarea) {
             textarea.value = blockId;
             console.log('Set focus block ID:', blockId);
-            
+
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
             console.log('Dispatched input event');
 
@@ -768,7 +768,7 @@ function setFocusedBlock(blockId, skipRender = false) {
                 setTimeout(() => {
                     const focusBtn = document.getElementById('focus-trigger');
                     console.log('Focus trigger button:', focusBtn);
-                    
+
                     if (focusBtn) {
                         focusBtn.click();
                         console.log('Clicked focus trigger button');
@@ -804,8 +804,8 @@ function addBlockAfter(blockId) {
         const typeInput = document.getElementById('add-after-type');
 
         if (blockIdInput && typeInput) {
-            const blockIdTextarea = blockIdInput.querySelector('textarea');
-            const typeTextarea = typeInput.querySelector('textarea');
+            const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+            const typeTextarea = typeInput.querySelector('textarea') || typeInput.querySelector('input[type="text"]');
 
             if (blockIdTextarea && typeTextarea) {
                 blockIdTextarea.value = blockId;
@@ -830,7 +830,7 @@ function addBlockAfter(blockId) {
 // Convert block type function
 function convertBlock(blockId, toType) {
     console.log('convertBlock called with blockId:', blockId, 'toType:', toType);
-    
+
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('convert-block-id');
     const typeInput = document.getElementById('convert-type');
@@ -838,8 +838,8 @@ function convertBlock(blockId, toType) {
     console.log('Type input element:', typeInput);
 
     if (blockIdInput && typeInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const typeTextarea = typeInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const typeTextarea = typeInput.querySelector('textarea') || typeInput.querySelector('input[type="text"]');
         console.log('Block ID textarea:', blockIdTextarea);
         console.log('Type textarea:', typeTextarea);
 
@@ -858,20 +858,20 @@ function convertBlock(blockId, toType) {
             setTimeout(() => {
                 const convertBtn = document.getElementById('convert-trigger');
                 console.log('Convert trigger button:', convertBtn);
-                
+
                 if (convertBtn) {
                     convertBtn.click();
                     console.log('Clicked convert trigger button');
-                    
+
                     // Focus the textarea after conversion
                     setTimeout(() => {
                         const block = document.querySelector(`[data-id="${blockId}"]`);
                         console.log('Found converted block:', block);
-                        
+
                         if (block) {
-                            const textarea = block.querySelector('textarea');
+                            const textarea = block.querySelector('textarea') || block.querySelector('input[type="text"]');
                             console.log('Found textarea in converted block:', textarea);
-                            
+
                             if (textarea) {
                                 textarea.focus();
                                 console.log('Focused textarea in converted block');
@@ -898,7 +898,7 @@ function convertBlock(blockId, toType) {
 function focusBlockTextarea(blockId) {
     const block = document.querySelector(`[data-id="${blockId}"]`);
     if (block) {
-        const textarea = block.querySelector('textarea');
+        const textarea = block.querySelector('textarea') || block.querySelector('input[type="text"]');
         if (textarea) {
             textarea.focus();
         }
@@ -911,7 +911,7 @@ function deleteResourceFromPanel(resourcePath) {
     const resourcePathInput = document.getElementById('delete-panel-resource-path');
 
     if (resourcePathInput) {
-        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea') || resourcePathInput.querySelector('input[type="text"]');
 
         if (resourcePathTextarea) {
             resourcePathTextarea.value = resourcePath;
@@ -939,8 +939,8 @@ function removeBlockResource(blockId, resourcePath) {
     console.log('Block ID input:', blockIdInput, 'Resource path input:', resourcePathInput);
 
     if (blockIdInput && resourcePathInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea') || resourcePathInput.querySelector('input[type="text"]');
         console.log('Block ID textarea:', blockIdTextarea, 'Resource path textarea:', resourcePathTextarea);
 
         if (blockIdTextarea && resourcePathTextarea) {
@@ -957,7 +957,7 @@ function removeBlockResource(blockId, resourcePath) {
             setTimeout(() => {
                 const removeBtn = document.getElementById('remove-resource-trigger');
                 console.log('Remove resource trigger button:', removeBtn);
-                
+
                 if (removeBtn) {
                     removeBtn.click();
                     console.log('Clicked remove resource trigger button');
@@ -1005,9 +1005,9 @@ function updateResourceDescription(blockId, resourcePath, description) {
         const descTextInput = document.getElementById('update-desc-text');
 
         if (blockIdInput && resourcePathInput && descTextInput) {
-            const blockIdTextarea = blockIdInput.querySelector('textarea');
-            const resourcePathTextarea = resourcePathInput.querySelector('textarea');
-            const descTextTextarea = descTextInput.querySelector('textarea');
+            const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+            const resourcePathTextarea = resourcePathInput.querySelector('textarea') || resourcePathInput.querySelector('input[type="text"]');
+            const descTextTextarea = descTextInput.querySelector('textarea') || descTextInput.querySelector('input[type="text"]');
 
             if (blockIdTextarea && resourcePathTextarea && descTextTextarea) {
                 blockIdTextarea.value = blockId;
@@ -1041,8 +1041,8 @@ function loadResourceContent(blockId, resourcePath) {
     const resourcePathInput = document.getElementById('load-resource-path');
 
     if (blockIdInput && resourcePathInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
-        const resourcePathTextarea = resourcePathInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
+        const resourcePathTextarea = resourcePathInput.querySelector('textarea') || resourcePathInput.querySelector('input[type="text"]');
 
         if (blockIdTextarea && resourcePathTextarea) {
             blockIdTextarea.value = blockId;
@@ -1066,7 +1066,7 @@ function loadResourceContent(blockId, resourcePath) {
 // Setup description expand/collapse button
 function setupDescriptionToggle() {
     const container = document.querySelector('#doc-description-id');
-    const textarea = container?.querySelector('textarea');
+    const textarea = container?.querySelector('textarea') || container?.querySelector('input[type="text"]');
 
     if (!container || !textarea || container.dataset.toggleSetup) {
         return;
@@ -1636,22 +1636,22 @@ function updateBlockResources(blockId, resource) {
     // Set the values in hidden inputs
     const blockIdInput = document.getElementById('update-resources-block-id');
     console.log('Update resources block ID input element:', blockIdInput);
-    
+
     const resourceInput = document.getElementById('update-resources-input');
     console.log('Update resources input element:', resourceInput);
 
     if (blockIdInput && resourceInput) {
-        const blockIdTextarea = blockIdInput.querySelector('textarea');
+        const blockIdTextarea = blockIdInput.querySelector('textarea') || blockIdInput.querySelector('input[type="text"]');
         console.log('Block ID textarea element:', blockIdTextarea);
-        
-        const resourceTextarea = resourceInput.querySelector('textarea');
+
+        const resourceTextarea = resourceInput.querySelector('textarea') || resourceInput.querySelector('input[type="text"]');
         console.log('Resource textarea element:', resourceTextarea);
 
         if (blockIdTextarea && resourceTextarea) {
             // Set block ID
             blockIdTextarea.value = blockId;
             console.log('Set block ID in textarea:', blockId);
-            
+
             // Set resource JSON
             const resourceJson = JSON.stringify(resource);
             resourceTextarea.value = resourceJson;
@@ -1660,7 +1660,7 @@ function updateBlockResources(blockId, resource) {
             // Dispatch input events
             console.log('Dispatching input event for block ID textarea');
             blockIdTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             console.log('Dispatching input event for resource textarea');
             resourceTextarea.dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -1669,7 +1669,7 @@ function updateBlockResources(blockId, resource) {
             setTimeout(() => {
                 const updateBtn = document.getElementById('update-resources-trigger');
                 console.log('Update resources trigger button:', updateBtn);
-                
+
                 if (updateBtn) {
                     updateBtn.click();
                     console.log('Clicked update resources trigger button');
@@ -1702,7 +1702,7 @@ function setupExampleSelection() {
             // Set the example ID in hidden input
             const exampleIdInput = document.getElementById('example-id-input');
             if (exampleIdInput) {
-                const textarea = exampleIdInput.querySelector('textarea');
+                const textarea = exampleIdInput.querySelector('textarea') || exampleIdInput.querySelector('input[type="text"]');
                 if (textarea) {
                     textarea.value = exampleId;
                     textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1786,8 +1786,8 @@ function updateResourceTitle(resourcePath, newTitle) {
         const titleInput = document.getElementById('update-title-text');
 
         if (pathInput && titleInput) {
-            const pathTextarea = pathInput.querySelector('textarea');
-            const titleTextarea = titleInput.querySelector('textarea');
+            const pathTextarea = pathInput.querySelector('textarea') || pathInput.querySelector('input[type="text"]');
+            const titleTextarea = titleInput.querySelector('textarea') || titleInput.querySelector('input[type="text"]');
 
             if (pathTextarea && titleTextarea) {
                 pathTextarea.value = resourcePath;
@@ -1832,8 +1832,8 @@ function updateResourcePanelDescription(resourcePath, newDescription) {
         const descInput = document.getElementById('update-title-text');
 
         if (pathInput && descInput) {
-            const pathTextarea = pathInput.querySelector('textarea');
-            const descTextarea = descInput.querySelector('textarea');
+            const pathTextarea = pathInput.querySelector('textarea') || pathInput.querySelector('input[type="text"]');
+            const descTextarea = descInput.querySelector('textarea') || descInput.querySelector('input[type="text"]');
 
             if (pathTextarea && descTextarea) {
                 pathTextarea.value = resourcePath;
@@ -2247,7 +2247,7 @@ function handleResourceFileUpload(resourcePath, fileInput) {
     // Set the resource path
     const pathInput = document.getElementById('replace-resource-path');
     if (pathInput) {
-        const pathTextarea = pathInput.querySelector('textarea');
+        const pathTextarea = pathInput.querySelector('textarea') || pathInput.querySelector('input[type="text"]');
         if (pathTextarea) {
             pathTextarea.value = resourcePath;
             pathTextarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -2457,39 +2457,39 @@ function setupResourceUploadZones() {
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOMContentLoaded - Starting initialization');
-    
+
     refresh();
     console.log('Called refresh()');
-    
+
     setupImportButton();
     console.log('Called setupImportButton()');
-    
+
     // Upload resource setup no longer needed - using Gradio's native component
     setupExampleSelection();
     console.log('Called setupExampleSelection()');
-    
+
     // Delay initial drag and drop setup
     setTimeout(() => {
         console.log('Starting delayed setup functions');
-        
+
         setupDragAndDrop();
         console.log('Called setupDragAndDrop()');
-        
+
         // Removed setupResourceDescriptions() - causes phantom Gradio events
         // console.log('Called setupResourceDescriptions()');
-        
+
         setupResourceTitleObservers();
         console.log('Called setupResourceTitleObservers()');
-        
+
         setupResourceUploadZones();
         console.log('Called setupResourceUploadZones()');
-        
+
         setupResourceUploadText();
         console.log('Called setupResourceUploadText()');
-        
+
         preventResourceDrops();
         console.log('Called preventResourceDrops()');
-        
+
         console.log('All initialization complete');
     }, 100);
 });
