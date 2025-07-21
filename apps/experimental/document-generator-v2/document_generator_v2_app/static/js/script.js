@@ -136,64 +136,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
-// Expandable input section
-document.addEventListener('DOMContentLoaded', function() {
-    // Use MutationObserver to wait for the element to be available
-    const observer = new MutationObserver((mutations, obs) => {
-        const promptInput = document.querySelector('#start-prompt-input textarea');
-        const expandableSection = document.getElementById('start-expandable-section');
-        
-        if (promptInput && expandableSection) {
-            console.log('Found expandable elements');
-            
-            // Expand on focus
-            promptInput.addEventListener('focus', () => {
-                console.log('Input focused - expanding');
-                expandableSection.classList.add('expanded');
-                expandableSection.style.display = 'flex';
-                // Force reflow for animation
-                expandableSection.offsetHeight;
-                expandableSection.style.opacity = '1';
-            });
-            
-            // Also expand on click for better reliability
-            promptInput.addEventListener('click', () => {
-                if (!expandableSection.classList.contains('expanded')) {
-                    expandableSection.classList.add('expanded');
-                    expandableSection.style.display = 'flex';
-                    // Force reflow for animation
-                    expandableSection.offsetHeight;
-                    expandableSection.style.opacity = '1';
-                }
-            });
-            
-            // Optional: Collapse when clicking outside if no content
-            document.addEventListener('click', (e) => {
-                const inputCard = document.querySelector('.start-input-card');
-                const expandableArea = document.getElementById('start-expandable-section');
-                const isClickInInput = inputCard && inputCard.contains(e.target);
-                const isClickInExpandable = expandableArea && expandableArea.contains(e.target);
-                const hasContent = promptInput.value.trim().length > 0;
-                const hasFiles = document.querySelectorAll('.start-resource-item').length > 0;
-                
-                // Only collapse if clicking outside both areas and no content
-                if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
-                    expandableSection.classList.remove('expanded');
-                    expandableSection.style.opacity = '0';
-                    setTimeout(() => {
-                        expandableSection.style.display = 'none';
-                    }, 400);
-                }
-            });
-            
-            obs.disconnect();
-        }
-    });
+// Expandable input section - try multiple approaches
+console.log('Script loaded - setting up expandable section');
+
+// Function to set up the expandable behavior
+function setupExpandableInput() {
+    console.log('Attempting to set up expandable input...');
     
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    const promptInput = document.querySelector('#start-prompt-input textarea');
+    const expandableSection = document.getElementById('start-expandable-section');
+    
+    if (promptInput && expandableSection) {
+        console.log('Found elements:', promptInput, expandableSection);
+        
+        // Remove any existing listeners to avoid duplicates
+        const newPromptInput = promptInput.cloneNode(true);
+        promptInput.parentNode.replaceChild(newPromptInput, promptInput);
+        
+        // Expand on focus
+        newPromptInput.addEventListener('focus', () => {
+            console.log('Input focused - expanding');
+            expandableSection.classList.add('expanded');
+            expandableSection.style.display = 'block';
+            expandableSection.style.opacity = '1';
+            // Add class to card for styling
+            const card = document.querySelector('.start-input-card');
+            if (card) card.classList.add('has-expanded');
+        });
+        
+        // Also expand on click
+        newPromptInput.addEventListener('click', () => {
+            if (!expandableSection.classList.contains('expanded')) {
+                console.log('Input clicked - expanding');
+                expandableSection.classList.add('expanded');
+                expandableSection.style.display = 'block';
+                expandableSection.style.opacity = '1';
+                // Add class to card for styling
+                const card = document.querySelector('.start-input-card');
+                if (card) card.classList.add('has-expanded');
+            }
+        });
+        
+        // Collapse when clicking outside
+        document.addEventListener('click', (e) => {
+            const inputCard = document.querySelector('.start-input-card');
+            const expandableArea = document.getElementById('start-expandable-section');
+            const isClickInInput = inputCard && inputCard.contains(e.target);
+            const isClickInExpandable = expandableArea && expandableArea.contains(e.target);
+            const hasContent = newPromptInput.value.trim().length > 0;
+            const hasFiles = document.querySelectorAll('.start-resource-item').length > 0;
+            
+            if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
+                expandableSection.classList.remove('expanded');
+                expandableSection.style.opacity = '0';
+                setTimeout(() => {
+                    expandableSection.style.display = 'none';
+                    // Remove class from card
+                    const card = document.querySelector('.start-input-card');
+                    if (card) card.classList.remove('has-expanded');
+                }, 400);
+            }
+        });
+        
+        return true;
+    }
+    
+    console.log('Elements not found yet');
+    return false;
+}
+
+// Try multiple times with different delays
+setTimeout(() => setupExpandableInput(), 500);
+setTimeout(() => setupExpandableInput(), 1000);
+setTimeout(() => setupExpandableInput(), 2000);
+setTimeout(() => setupExpandableInput(), 3000);
+
+// Also use MutationObserver as backup
+const expandableObserver = new MutationObserver((mutations) => {
+    if (setupExpandableInput()) {
+        expandableObserver.disconnect();
+    }
+});
+
+expandableObserver.observe(document.body, {
+    childList: true,
+    subtree: true
 });
 
 // Tab switching helper

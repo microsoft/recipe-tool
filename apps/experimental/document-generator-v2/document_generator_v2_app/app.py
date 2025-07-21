@@ -1743,139 +1743,145 @@ def create_app():
                 gr.Markdown("# Welcome to Document Generator", elem_classes="start-welcome-title")
                 gr.Markdown("Draft once. Regenerate forever.", elem_classes="start-welcome-subtitle")
 
-                # Textbox card - on its own
-                with gr.Column(elem_classes="start-input-card"):
-                    # User prompt input
-                    start_prompt_input = gr.TextArea(
-                        placeholder="Describe the document you want to create...\nFor example: 'Create a technical README for my Python project' or 'Draft a product launch documentation'",
-                        label="What would you like to create?",
-                        elem_classes="start-prompt-input",
-                        lines=4,
-                        max_lines=10,
-                        elem_id="start-prompt-input",
-                    )
-
-                # Bottom row - upload area on left, button on right - initially hidden
-                with gr.Row(elem_classes="start-bottom-row start-expandable-content", elem_id="start-expandable-section"):
-                    # Left side - Upload area card
-                    with gr.Column(scale=3, elem_classes="start-upload-card"):
-                        gr.Markdown("### Reference Files (optional)", elem_classes="start-resources-title")
-                        gr.Markdown(
-                            "Upload any supporting documents, code files, or resources",
-                            elem_classes="start-resources-subtitle",
+                # Single expanding card
+                with gr.Column(elem_classes="start-input-card-container"):
+                    with gr.Column(elem_classes="start-input-card"):
+                        # User prompt input
+                        start_prompt_input = gr.TextArea(
+                            placeholder="Describe the document you want to create...\nFor example: 'Create a technical README for my Python project' or 'Draft a product launch documentation'",
+                            label="What would you like to create?",
+                            elem_classes="start-prompt-input",
+                            lines=4,
+                            max_lines=10,
+                            elem_id="start-prompt-input",
                         )
-
-                        # File upload dropzone
-                        start_file_upload = gr.File(
-                            label="Drop files here or click to upload",
-                            file_count="multiple",
-                            file_types=[
-                                ".txt",
-                                ".md",
-                                ".py",
-                                ".c",
-                                ".cpp",
-                                ".h",
-                                ".java",
-                                ".js",
-                                ".ts",
-                                ".jsx",
-                                ".tsx",
-                                ".json",
-                                ".xml",
-                                ".yaml",
-                                ".yml",
-                                ".toml",
-                                ".ini",
-                                ".cfg",
-                                ".conf",
-                                ".sh",
-                                ".bash",
-                                ".zsh",
-                                ".fish",
-                                ".ps1",
-                                ".bat",
-                                ".cmd",
-                                ".rs",
-                                ".go",
-                                ".rb",
-                                ".php",
-                                ".pl",
-                                ".lua",
-                                ".r",
-                                ".m",
-                                ".swift",
-                                ".kt",
-                                ".scala",
-                                ".clj",
-                                ".ex",
-                                ".exs",
-                                ".elm",
-                                ".fs",
-                                ".ml",
-                                ".sql",
-                                ".html",
-                                ".htm",
-                                ".css",
-                                ".scss",
-                                ".sass",
-                                ".less",
-                                ".vue",
-                                ".svelte",
-                                ".astro",
-                                ".tex",
-                                ".rst",
-                                ".adoc",
-                                ".org",
-                                ".csv",
-                            ],
-                            elem_classes="start-file-upload-dropzone",
-                            show_label=False,
-                            height=90,
-                        )
-
-                        # Display uploaded resources
-                        with gr.Column(elem_classes="start-resources-display"):
-
-                            @gr.render(inputs=start_resources_state)
-                            def render_start_resources(resources):
-                                if not resources:
-                                    gr.HTML(
-                                        value="<p style='color: #666; font-size: 12px; text-align: center; margin-top: 10px;'>No files uploaded yet</p>"
+                        
+                        # Expandable content within the same card
+                        with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
+                            # Divider
+                            gr.HTML('<div class="start-card-divider"></div>')
+                            
+                            # Bottom row - upload area on left, button on right
+                            with gr.Row(elem_classes="start-bottom-row"):
+                                # Left side - Upload area
+                                with gr.Column(scale=3, elem_classes="start-upload-area"):
+                                    gr.Markdown("### Reference Files (optional)", elem_classes="start-resources-title")
+                                    gr.Markdown(
+                                        "Upload any supporting documents, code files, or resources",
+                                        elem_classes="start-resources-subtitle",
                                     )
-                                else:
-                                    for idx, resource in enumerate(resources):
-                                        with gr.Group(elem_classes="start-resource-item"):
-                                            with gr.Row():
-                                                gr.HTML(
-                                                    f'<div class="start-resource-info">'
-                                                    f'<span class="start-resource-name">{resource["name"]}</span>'
-                                                    f'<span class="start-resource-size">{resource.get("size", "")}</span>'
-                                                    f"</div>"
-                                                )
-                                                remove_btn = gr.Button(
-                                                    "Remove",
-                                                    elem_classes="start-resource-remove-btn",
-                                                    size="sm",
-                                                    variant="secondary",
-                                                )
 
-                                                # Handle remove button click
-                                                remove_btn.click(
-                                                    fn=lambda res, i=idx: res[:i] + res[i + 1 :],
-                                                    inputs=[start_resources_state],
-                                                    outputs=[start_resources_state],
-                                                )
-
-                    # Right side - Get Started button
-                    with gr.Column(scale=1, elem_classes="start-button-column"):
-                        get_started_btn = gr.Button(
-                            "Get Started",
-                            variant="primary",
-                            size="lg",
-                            elem_classes="start-get-started-btn",
-                            elem_id="start-get-started-btn",
+                                    # File upload dropzone
+                                    start_file_upload = gr.File(
+                                        label="Drop files here or click to upload",
+                                        file_count="multiple",
+                                        file_types=[
+                                            ".txt",
+                                            ".md",
+                                            ".py",
+                                            ".c",
+                                            ".cpp",
+                                            ".h",
+                                            ".java",
+                                            ".js",
+                                            ".ts",
+                                            ".jsx",
+                                            ".tsx",
+                                            ".json",
+                                            ".xml",
+                                            ".yaml",
+                                            ".yml",
+                                            ".toml",
+                                            ".ini",
+                                            ".cfg",
+                                            ".conf",
+                                            ".sh",
+                                            ".bash",
+                                            ".zsh",
+                                            ".fish",
+                                            ".ps1",
+                                            ".bat",
+                                            ".cmd",
+                                            ".rs",
+                                            ".go",
+                                            ".rb",
+                                            ".php",
+                                            ".pl",
+                                            ".lua",
+                                            ".r",
+                                            ".m",
+                                            ".swift",
+                                            ".kt",
+                                            ".scala",
+                                            ".clj",
+                                            ".ex",
+                                            ".exs",
+                                            ".elm",
+                                            ".fs",
+                                            ".ml",
+                                            ".sql",
+                                            ".html",
+                                            ".htm",
+                                            ".css",
+                                            ".scss",
+                                            ".sass",
+                                            ".less",
+                                            ".vue",
+                                            ".svelte",
+                                            ".astro",
+                                            ".tex",
+                                            ".rst",
+                                            ".adoc",
+                                            ".org",
+                                            ".csv",
+                            ],
+                                        elem_classes="start-file-upload-dropzone",
+                                        show_label=False,
+                                        height=90,
                         )
+
+                                    # Display uploaded resources
+                                    with gr.Column(elem_classes="start-resources-display"):
+
+                                        @gr.render(inputs=start_resources_state)
+                                        def render_start_resources(resources):
+                                            if not resources:
+                                                gr.HTML(
+                                                    value="<p style='color: #666; font-size: 12px; text-align: center; margin-top: 10px;'>No files uploaded yet</p>"
+                                                )
+                                            else:
+                                                for idx, resource in enumerate(resources):
+                                                    with gr.Group(elem_classes="start-resource-item"):
+                                                        with gr.Row():
+                                                            gr.HTML(
+                                                                f'<div class="start-resource-info">'
+                                                                f'<span class="start-resource-name">{resource["name"]}</span>'
+                                                                f'<span class="start-resource-size">{resource.get("size", "")}</span>'
+                                                                f"</div>"
+                                                            )
+                                                            remove_btn = gr.Button(
+                                                                "Remove",
+                                                                elem_classes="start-resource-remove-btn",
+                                                                size="sm",
+                                                                variant="secondary",
+                                                            )
+
+                                                            # Handle remove button click
+                                                            remove_btn.click(
+                                                                fn=lambda res, i=idx: res[:i] + res[i + 1 :],
+                                                                inputs=[start_resources_state],
+                                                                outputs=[start_resources_state],
+                                                            )
+
+                                # Right side - Get Started button
+                                with gr.Column(scale=1, elem_classes="start-button-column"):
+                                    get_started_btn = gr.Button(
+                                        "Get Started",
+                                        variant="primary",
+                                        size="lg",
+                                        elem_classes="start-get-started-btn",
+                                        elem_id="start-get-started-btn",
+                                    )
 
                 # Main feature card with three examples
                 with gr.Column(elem_classes="start-feature-card"):

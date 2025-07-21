@@ -115,23 +115,32 @@
     display: none !important;
 }
 
-/* Start tab input card - textbox on its own */
-.start-input-card {
+/* Start tab input card container */
+.start-input-card-container {
     max-width: 800px;
     margin: 0px auto 20px;
+}
+
+/* Start tab input card - single expanding card */
+.start-input-card {
     background: white;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid #e5e5e5;
+    transition: border-radius 0.3s ease;
+}
+
+.start-input-card.has-expanded {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 /* Start tab bottom row */
 .start-bottom-row {
-    max-width: 800px;
-    margin: 0 auto 30px;
     gap: 20px;
     align-items: stretch;
+    padding: 0 30px 30px 30px;
 }
 
 /* Expandable content - initially hidden */
@@ -139,13 +148,20 @@
     display: none;
     opacity: 0;
     transition: opacity 0.4s ease-in-out;
-    margin-top: 20px;
+    margin: 0 -30px -30px -30px; /* Negative margins to align with card padding */
 }
 
 .start-expandable-content.expanded {
-    display: flex !important;
+    display: block !important;
     opacity: 1 !important;
     animation: slideDown 0.4s ease-out;
+}
+
+/* Card divider */
+.start-card-divider {
+    height: 1px;
+    background: #e5e5e5;
+    margin: 20px 0;
 }
 
 @keyframes slideDown {
@@ -166,13 +182,10 @@
     margin-bottom: 0;
 }
 
-/* Start tab upload card - left side */
-.start-upload-card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e5e5;
+/* Start tab upload area - left side */
+.start-upload-area {
+    padding: 0;
+    background: transparent;
 }
 
 /* Start tab button column - right side */
