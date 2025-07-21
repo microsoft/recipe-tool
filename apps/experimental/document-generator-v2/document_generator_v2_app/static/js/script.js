@@ -48,6 +48,154 @@ function toggleDebugPanel() {
 
 // No longer needed - using Gradio's native file upload component
 
+// Process steps hover interaction
+document.addEventListener('DOMContentLoaded', function() {
+    // Process step visuals
+    const stepVisuals = {
+        1: {
+            svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Document with AI sparkle -->
+                    <rect x="100" y="50" width="200" height="250" rx="8" fill="#f0f9f9" stroke="#4a9d9e" stroke-width="2"/>
+                    <rect x="120" y="80" width="160" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+                    <rect x="120" y="100" width="140" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+                    <rect x="120" y="120" width="150" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+                    <g transform="translate(250, 70)">
+                        <path d="M0,-10 L3,-3 L10,0 L3,3 L0,10 L-3,3 L-10,0 L-3,-3 Z" fill="#4a9d9e" opacity="0.8"/>
+                    </g>
+                    <rect x="120" y="150" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                    <rect x="120" y="200" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                    <rect x="120" y="250" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                </svg>`,
+            caption: "Your document takes shape with AI assistance"
+        },
+        2: {
+            svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Document with edit icon and files -->
+                    <rect x="80" y="50" width="180" height="220" rx="8" fill="#f0f9f9" stroke="#4a9d9e" stroke-width="2"/>
+                    <!-- Edit pencil -->
+                    <g transform="translate(240, 60)">
+                        <path d="M0,20 L5,15 L20,0 L25,5 L10,20 Z" fill="#4a9d9e"/>
+                        <rect x="0" y="20" width="5" height="5" fill="#4a9d9e"/>
+                    </g>
+                    <!-- File icons -->
+                    <rect x="280" y="80" width="40" height="50" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                    <rect x="280" y="140" width="40" height="50" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                    <!-- Arrow from files to doc -->
+                    <path d="M280,105 L260,150" stroke="#4a9d9e" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#4a9d9e"/>
+                        </marker>
+                    </defs>
+                </svg>`,
+            caption: "Edit content and update resources as needed"
+        },
+        3: {
+            svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Multiple export formats -->
+                    <rect x="50" y="100" width="80" height="100" rx="8" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="2"/>
+                    <text x="90" y="155" text-anchor="middle" fill="#4a9d9e" font-size="14" font-weight="bold">PDF</text>
+                    <rect x="160" y="100" width="80" height="100" rx="8" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="2"/>
+                    <text x="200" y="155" text-anchor="middle" fill="#4a9d9e" font-size="14" font-weight="bold">DOCX</text>
+                    <rect x="270" y="100" width="80" height="100" rx="8" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="2"/>
+                    <text x="310" y="155" text-anchor="middle" fill="#4a9d9e" font-size="14" font-weight="bold">MD</text>
+                    <!-- Export arrow -->
+                    <path d="M200,50 L200,80" stroke="#4a9d9e" stroke-width="3" marker-end="url(#arrowhead2)"/>
+                    <defs>
+                        <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="5" refY="7" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#4a9d9e"/>
+                        </marker>
+                    </defs>
+                </svg>`,
+            caption: "Generate and export in multiple formats"
+        }
+    };
+
+    // Function to update visual
+    function updateProcessVisual(stepNumber) {
+        const visualContent = document.querySelector('.visual-content');
+        if (visualContent && stepVisuals[stepNumber]) {
+            visualContent.innerHTML = stepVisuals[stepNumber].svg + 
+                `<p class="visual-caption">${stepVisuals[stepNumber].caption}</p>`;
+        }
+    }
+
+    // Set up hover listeners with delay
+    setTimeout(() => {
+        const steps = document.querySelectorAll('.start-process-step-vertical');
+        steps.forEach((step, index) => {
+            step.addEventListener('mouseenter', () => {
+                // Remove active class from all steps
+                steps.forEach(s => s.classList.remove('active'));
+                // Add active class to hovered step
+                step.classList.add('active');
+                // Update visual
+                updateProcessVisual(index + 1);
+            });
+        });
+    }, 1000);
+});
+
+// Expandable input section
+document.addEventListener('DOMContentLoaded', function() {
+    // Use MutationObserver to wait for the element to be available
+    const observer = new MutationObserver((mutations, obs) => {
+        const promptInput = document.querySelector('#start-prompt-input textarea');
+        const expandableSection = document.getElementById('start-expandable-section');
+        
+        if (promptInput && expandableSection) {
+            console.log('Found expandable elements');
+            
+            // Expand on focus
+            promptInput.addEventListener('focus', () => {
+                console.log('Input focused - expanding');
+                expandableSection.classList.add('expanded');
+                expandableSection.style.display = 'flex';
+                // Force reflow for animation
+                expandableSection.offsetHeight;
+                expandableSection.style.opacity = '1';
+            });
+            
+            // Also expand on click for better reliability
+            promptInput.addEventListener('click', () => {
+                if (!expandableSection.classList.contains('expanded')) {
+                    expandableSection.classList.add('expanded');
+                    expandableSection.style.display = 'flex';
+                    // Force reflow for animation
+                    expandableSection.offsetHeight;
+                    expandableSection.style.opacity = '1';
+                }
+            });
+            
+            // Optional: Collapse when clicking outside if no content
+            document.addEventListener('click', (e) => {
+                const inputCard = document.querySelector('.start-input-card');
+                const expandableArea = document.getElementById('start-expandable-section');
+                const isClickInInput = inputCard && inputCard.contains(e.target);
+                const isClickInExpandable = expandableArea && expandableArea.contains(e.target);
+                const hasContent = promptInput.value.trim().length > 0;
+                const hasFiles = document.querySelectorAll('.start-resource-item').length > 0;
+                
+                // Only collapse if clicking outside both areas and no content
+                if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
+                    expandableSection.classList.remove('expanded');
+                    expandableSection.style.opacity = '0';
+                    setTimeout(() => {
+                        expandableSection.style.display = 'none';
+                    }, 400);
+                }
+            });
+            
+            obs.disconnect();
+        }
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
 // Tab switching helper
 function switchToDraftTab() {
     console.log('Switching to Draft + Generate tab');

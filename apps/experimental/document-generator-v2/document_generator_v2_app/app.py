@@ -1464,6 +1464,38 @@ def render_blocks(blocks, focused_block_id=None):
     return html
 
 
+def handle_start_file_upload(files, current_resources):
+    """Handle file uploads on the Start tab."""
+    if not files:
+        return current_resources
+
+    # Add new files to resources
+    new_resources = current_resources.copy() if current_resources else []
+
+    for file_path in files:
+        if file_path:
+            file_name = os.path.basename(file_path)
+            file_size = os.path.getsize(file_path)
+
+            # Format file size
+            if file_size < 1024:
+                size_str = f"{file_size} B"
+            elif file_size < 1024 * 1024:
+                size_str = f"{file_size / 1024:.1f} KB"
+            else:
+                size_str = f"{file_size / (1024 * 1024):.1f} MB"
+
+            # Check if already in resources (by name)
+            if not any(r["name"] == file_name for r in new_resources):
+                new_resources.append({
+                    "path": file_path,
+                    "name": file_name,
+                    "size": size_str,
+                })
+
+    return new_resources
+
+
 def handle_file_upload(files, current_resources, title, description, blocks, session_id=None):
     """Handle uploaded files and return HTML display of file names."""
     if not files:
@@ -1694,65 +1726,275 @@ def create_app():
     custom_js = f"<script>{js_content}</script>"
 
     with gr.Blocks(title="Document Generator", css=custom_css, head=custom_js) as app:
-        # State to track selected tab
-        selected_tab = gr.State(value=0)
+        # Needed to declare up front, so elements will appear in deployed DOM
+        gr.DownloadButton(visible=True, elem_classes="hidden-component")
+        gr.File(visible=True, elem_classes="hidden-component")
+        gr.Textbox(visible=True, elem_classes="hidden-component")
+        gr.TextArea(visible=True, elem_classes="hidden-component")
+        gr.Code(visible=True, elem_classes="hidden-component")
 
-        # I need this button here (hidden) just so the Save button shows up in the deployed DOM. I don't understand why it doesn't show up otherwise.
-        gr.DownloadButton(
-            "Test 1",
-            elem_id="test-btn-id",
-            variant="secondary",
-            size="sm",
-            visible=True,
-            elem_classes="hidden-component",
-        )
-        # I need this button here (hidden) just so the Import, Example buttons work and the dropzone upload space shows up in the deployed DOM. I don't understand why it doesn't show up otherwise.
-        import_file = gr.File(
-            label="Import Docpack",
-            file_types=[".docpack"],
-            visible=True,
-            elem_id="import-file-input",
-            elem_classes="hidden-component",
-        )
-        # I need this textbox and textarea here (hidden) just so the Examples hidden texbox for js and the heading textboxes show up in the deployed DOM. I don't understand why it doesn't show up otherwise.
-        gr.Textbox(visible=True, elem_id="test", elem_classes="hidden-component")
-        gr.TextArea(visible=True, elem_id="TEST", elem_classes="hidden-component")
-        gr.Code(visible=True, elem_id="TEST_CODE", elem_classes="hidden-component")
-
+        # Main app layout
         with gr.Tab("Start", id="start_tab"):
+            # State for start tab resources
+            start_resources_state = gr.State([])
+
             with gr.Column(elem_classes="start-tab-container"):
                 # Big centered welcome message
                 gr.Markdown("# Welcome to Document Generator", elem_classes="start-welcome-title")
                 gr.Markdown("Draft once. Regenerate forever.", elem_classes="start-welcome-subtitle")
 
-                # Get started button
-                with gr.Row(elem_classes="start-button-row"):
-                    get_started_btn = gr.Button(
-                        "Get Started",
-                        variant="primary",
-                        size="lg",
-                        elem_classes="start-get-started-btn",
-                        elem_id="start-get-started-btn",
+                # Textbox card - on its own
+                with gr.Column(elem_classes="start-input-card"):
+                    # User prompt input
+                    start_prompt_input = gr.TextArea(
+                        placeholder="Describe the document you want to create...\nFor example: 'Create a technical README for my Python project' or 'Draft a product launch documentation'",
+                        label="What would you like to create?",
+                        elem_classes="start-prompt-input",
+                        lines=4,
+                        max_lines=10,
+                        elem_id="start-prompt-input",
                     )
 
-                # Spacer for additional content
-                gr.Markdown("", elem_classes="start-content-spacer")
+                # Bottom row - upload area on left, button on right - initially hidden
+                with gr.Row(elem_classes="start-bottom-row start-expandable-content", elem_id="start-expandable-section"):
+                    # Left side - Upload area card
+                    with gr.Column(scale=3, elem_classes="start-upload-card"):
+                        gr.Markdown("### Reference Files (optional)", elem_classes="start-resources-title")
+                        gr.Markdown(
+                            "Upload any supporting documents, code files, or resources",
+                            elem_classes="start-resources-subtitle",
+                        )
 
-                # Introduction section
-                with gr.Column(elem_classes="start-intro-section"):
+                        # File upload dropzone
+                        start_file_upload = gr.File(
+                            label="Drop files here or click to upload",
+                            file_count="multiple",
+                            file_types=[
+                                ".txt",
+                                ".md",
+                                ".py",
+                                ".c",
+                                ".cpp",
+                                ".h",
+                                ".java",
+                                ".js",
+                                ".ts",
+                                ".jsx",
+                                ".tsx",
+                                ".json",
+                                ".xml",
+                                ".yaml",
+                                ".yml",
+                                ".toml",
+                                ".ini",
+                                ".cfg",
+                                ".conf",
+                                ".sh",
+                                ".bash",
+                                ".zsh",
+                                ".fish",
+                                ".ps1",
+                                ".bat",
+                                ".cmd",
+                                ".rs",
+                                ".go",
+                                ".rb",
+                                ".php",
+                                ".pl",
+                                ".lua",
+                                ".r",
+                                ".m",
+                                ".swift",
+                                ".kt",
+                                ".scala",
+                                ".clj",
+                                ".ex",
+                                ".exs",
+                                ".elm",
+                                ".fs",
+                                ".ml",
+                                ".sql",
+                                ".html",
+                                ".htm",
+                                ".css",
+                                ".scss",
+                                ".sass",
+                                ".less",
+                                ".vue",
+                                ".svelte",
+                                ".astro",
+                                ".tex",
+                                ".rst",
+                                ".adoc",
+                                ".org",
+                                ".csv",
+                            ],
+                            elem_classes="start-file-upload-dropzone",
+                            show_label=False,
+                            height=90,
+                        )
+
+                        # Display uploaded resources
+                        with gr.Column(elem_classes="start-resources-display"):
+
+                            @gr.render(inputs=start_resources_state)
+                            def render_start_resources(resources):
+                                if not resources:
+                                    gr.HTML(
+                                        value="<p style='color: #666; font-size: 12px; text-align: center; margin-top: 10px;'>No files uploaded yet</p>"
+                                    )
+                                else:
+                                    for idx, resource in enumerate(resources):
+                                        with gr.Group(elem_classes="start-resource-item"):
+                                            with gr.Row():
+                                                gr.HTML(
+                                                    f'<div class="start-resource-info">'
+                                                    f'<span class="start-resource-name">{resource["name"]}</span>'
+                                                    f'<span class="start-resource-size">{resource.get("size", "")}</span>'
+                                                    f"</div>"
+                                                )
+                                                remove_btn = gr.Button(
+                                                    "Remove",
+                                                    elem_classes="start-resource-remove-btn",
+                                                    size="sm",
+                                                    variant="secondary",
+                                                )
+
+                                                # Handle remove button click
+                                                remove_btn.click(
+                                                    fn=lambda res, i=idx: res[:i] + res[i + 1 :],
+                                                    inputs=[start_resources_state],
+                                                    outputs=[start_resources_state],
+                                                )
+
+                    # Right side - Get Started button
+                    with gr.Column(scale=1, elem_classes="start-button-column"):
+                        get_started_btn = gr.Button(
+                            "Get Started",
+                            variant="primary",
+                            size="lg",
+                            elem_classes="start-get-started-btn",
+                            elem_id="start-get-started-btn",
+                        )
+
+                # Main feature card with three examples
+                with gr.Column(elem_classes="start-feature-card"):
+                    gr.Markdown("### Why Choose Document Generator?", elem_classes="start-feature-title")
                     gr.Markdown(
-                        """
-### Ideal for:
-
-- Drafting business proposals
-- Maintaining living documentation
-- Generating AI assistant instructions
-- Creating repeatable reports
-
-Document Generator uses a structured outline and linked resources to draft documents. As your content grows, you can update files or sections and regenerate without rebuilding your doc from scratch—all within a single workspace.
-""",
-                        elem_classes="start-intro-content",
+                        "Ideal for content that needs regular updates, follows consistent structures, or requires collaborative workflows - saving hours while maintaining quality.",
+                        elem_classes="start-feature-description",
                     )
+
+                    # Three feature columns
+                    with gr.Row(elem_classes="start-features-grid"):
+                        with gr.Column(scale=1, elem_classes="start-feature-item"):
+                            gr.Markdown("### 📝 Living Documentation", elem_classes="start-feature-item-title")
+                            gr.Markdown(
+                                "**Perfect for:** Technical docs, READMEs, API guides",
+                                elem_classes="start-feature-use-case",
+                            )
+                            gr.Markdown(
+                                "Your documents evolve naturally. Update sections and regenerate without starting from scratch. As your codebase changes, your docs stay in sync.",
+                                elem_classes="start-feature-item-text",
+                            )
+
+                        with gr.Column(scale=1, elem_classes="start-feature-item"):
+                            gr.Markdown("### 🎯 Knowledge Base", elem_classes="start-feature-item-title")
+                            gr.Markdown(
+                                "**Perfect for:** FAQs, onboarding guides, process docs",
+                                elem_classes="start-feature-use-case",
+                            )
+                            gr.Markdown(
+                                "Build comprehensive knowledge repositories. Structure information hierarchically and update specific sections as policies or procedures change.",
+                                elem_classes="start-feature-item-text",
+                            )
+
+                        with gr.Column(scale=1, elem_classes="start-feature-item"):
+                            gr.Markdown("### 🔄 Repeatable Reports", elem_classes="start-feature-item-title")
+                            gr.Markdown(
+                                "**Perfect for:** Status updates, reviews, analytics",
+                                elem_classes="start-feature-use-case",
+                            )
+                            gr.Markdown(
+                                "Save document structures as templates. Generate consistent reports with fresh data while maintaining professional formatting.",
+                                elem_classes="start-feature-item-text",
+                            )
+
+                # Process section
+                with gr.Column(elem_classes="start-process-section"):
+                    gr.Markdown("## How It Works", elem_classes="start-process-title")
+                    gr.Markdown(
+                        "Three simple steps to transform your ideas into polished documents",
+                        elem_classes="start-process-subtitle",
+                    )
+
+                    with gr.Row(elem_classes="start-process-container"):
+                        # Left side - Steps
+                        with gr.Column(scale=1, elem_classes="start-process-steps-vertical"):
+                            # Step 1
+                            with gr.Row(elem_classes="start-process-step-vertical active"):
+                                with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
+                                    gr.Markdown("1", elem_classes="start-step-number-vertical")
+                                with gr.Column(scale=1, elem_classes="start-step-content"):
+                                    gr.Markdown("### Draft Your Template", elem_classes="start-step-title")
+                                    gr.Markdown(
+                                        "Start with AI assistance to create your initial document structure. Describe what you need and upload reference materials.",
+                                        elem_classes="start-step-description",
+                                    )
+
+                            # Step 2
+                            with gr.Row(elem_classes="start-process-step-vertical"):
+                                with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
+                                    gr.Markdown("2", elem_classes="start-step-number-vertical")
+                                with gr.Column(scale=1, elem_classes="start-step-content"):
+                                    gr.Markdown("### Edit & Update", elem_classes="start-step-title")
+                                    gr.Markdown(
+                                        "Refine your outline and keep resources current. Update reference files as content changes, adjust prompts, and reorganize sections to match your evolving needs.",
+                                        elem_classes="start-step-description",
+                                    )
+
+                            # Step 3
+                            with gr.Row(elem_classes="start-process-step-vertical"):
+                                with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
+                                    gr.Markdown("3", elem_classes="start-step-number-vertical")
+                                with gr.Column(scale=1, elem_classes="start-step-content"):
+                                    gr.Markdown("### Generate & Export", elem_classes="start-step-title")
+                                    gr.Markdown(
+                                        "Click generate to create your final document. Export in multiple formats and regenerate anytime with updated content.",
+                                        elem_classes="start-step-description",
+                                    )
+
+                        # Right side - Visual placeholder
+                        with gr.Column(scale=1, elem_classes="start-process-visual"):
+                            gr.HTML(
+                                """
+                                <div class="process-visual-placeholder">
+                                    <div class="visual-content">
+                                        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                                            <!-- Document icon -->
+                                            <rect x="100" y="50" width="200" height="250" rx="8" fill="#f0f9f9" stroke="#4a9d9e" stroke-width="2"/>
+
+                                            <!-- Lines representing text -->
+                                            <rect x="120" y="80" width="160" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+                                            <rect x="120" y="100" width="140" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+                                            <rect x="120" y="120" width="150" height="8" rx="4" fill="#4a9d9e" opacity="0.3"/>
+
+                                            <!-- AI sparkle -->
+                                            <g transform="translate(250, 70)">
+                                                <path d="M0,-10 L3,-3 L10,0 L3,3 L0,10 L-3,3 L-10,0 L-3,-3 Z" fill="#4a9d9e" opacity="0.8"/>
+                                            </g>
+
+                                            <!-- Sections -->
+                                            <rect x="120" y="150" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                                            <rect x="120" y="200" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                                            <rect x="120" y="250" width="160" height="40" rx="4" fill="#e8f5f5" stroke="#4a9d9e" stroke-width="1"/>
+                                        </svg>
+                                        <p class="visual-caption">Your document takes shape with AI assistance</p>
+                                    </div>
+                                </div>
+                            """,
+                                elem_classes="start-process-visual-content",
+                            )
 
         # Second tab - Existing Document Builder content
         with gr.Tab("Draft + Generate", id="document_builder_tab"):
@@ -1848,6 +2090,14 @@ Document Generator uses a structured outline and linked resources to draft docum
                             visible=True,
                             value=create_docpack_from_current_state,
                         )
+
+                    import_file = gr.File(
+                        label="Import Docpack",
+                        file_types=[".docpack"],
+                        visible=True,
+                        elem_id="import-file-input",
+                        elem_classes="hidden-component",
+                    )
 
             # Document title and description
             with gr.Row(elem_classes="header-section"):
@@ -2862,6 +3112,13 @@ Document Generator uses a structured outline and linked resources to draft docum
         import time
 
         get_started_btn.click(fn=lambda: f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}", outputs=switch_tab_trigger)
+
+        # Start tab file upload handler
+        start_file_upload.upload(
+            fn=handle_start_file_upload,
+            inputs=[start_file_upload, start_resources_state],
+            outputs=[start_resources_state],
+        )
 
     return app
 
