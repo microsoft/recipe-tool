@@ -1,9 +1,56 @@
 /* Document Builder Custom Styles */
 
+/* Color Palette */
+:root {
+    --primary-teal: #4a9d9e;
+    --primary-teal-dark: #2d7474;
+    --primary-teal-light: #e8f5f5;
+    --secondary-tangerine: #ff9966;
+    --secondary-tangerine-dark: #d47239;
+    --secondary-tangerine-light: #fff7f0;
+    --gradient-primary: linear-gradient(135deg, #4a9d9e 0%, #ff9966 100%);
+    --gradient-reverse: linear-gradient(135deg, #ff9966 0%, #4a9d9e 100%);
+    --gradient-subtle: linear-gradient(135deg, #f0f9f9 0%, #fff7f0 100%);
+}
+
 /* Ensure tab content is visible when active */
 .gradio-container .tab-nav + div > div[id^="component-"]:not([style*="display: none"]) {
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Remove all focus outlines from specific inputs */
+.doc-title-box input,
+.doc-title-box textarea,
+.doc-description-box input,
+.doc-description-box textarea,
+.start-prompt-input input,
+.start-prompt-input textarea {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+}
+
+.doc-title-box input:focus,
+.doc-title-box textarea:focus,
+.doc-description-box input:focus,
+.doc-description-box textarea:focus,
+.start-prompt-input input:focus,
+.start-prompt-input textarea:focus {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+}
+
+/* Override Gradio's focus styles */
+.doc-title-box .wrap:has(textarea:focus),
+.doc-description-box .wrap:has(textarea:focus),
+.start-prompt-input .wrap:has(textarea:focus) {
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Start Tab Styles */
@@ -16,6 +63,7 @@
 /* Welcome message styles */
 .start-welcome-title {
     text-align: center;
+    padding-top: 40px;
 }
 
 .start-welcome-title h1 {
@@ -28,35 +76,42 @@
 
 .start-welcome-subtitle {
     text-align: center;
-    margin-bottom: 30px !important;
-    font-size: 36px;
     color: #666;
     font-weight: 400;
     letter-spacing: 0.5px;
 }
 
+.start-welcome-subtitle .prose {
+    font-size: 16px;
+}
 /* Get Started button */
 .start-get-started-btn {
-    background-color: #4a9d9e !important;
+    background: #4a9d9e !important;
     border: 1px solid #4a9d9e !important;
     color: white !important;
     font-weight: 600 !important;
-    font-size: 18px !important;
-    padding: 14px 32px !important;
-    border-radius: 8px !important;
-    transition: all 0.2s ease !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
     cursor: pointer !important;
     width: 100% !important;
-    min-width: 140px !important;
     height: auto !important;
-    min-height: 56px !important;
+}
+
+/* Draft button specific styling */
+.start-draft-btn {
+    margin-top: 20px !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+    width: calc(100% - 24px) !important;
 }
 
 .start-get-started-btn:hover {
-    background-color: #3a8d8e !important;
+    background: #3a8d8e !important;
     border-color: #3a8d8e !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(74, 157, 158, 0.3) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 157, 158, 0.3) !important;
 }
 
 /* Spacer for future content */
@@ -118,50 +173,72 @@
 /* Start tab input card container */
 .start-input-card-container {
     max-width: 800px;
-    margin: 0px auto 20px;
+    margin: 70px auto 120px;
 }
 
 /* Start tab input card - single expanding card */
 .start-input-card {
     background: white;
-    padding: 30px;
+    padding: 15px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid #e5e5e5;
-    transition: border-radius 0.3s ease;
+    transition: all 0.4s ease;
+    gap: 0px;
+}
+
+.start-input-card .form {
+    border: 1px solid white;
 }
 
 .start-input-card.has-expanded {
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* Start tab bottom row */
 .start-bottom-row {
     gap: 20px;
     align-items: stretch;
-    padding: 0 30px 30px 30px;
 }
 
 /* Expandable content - initially hidden */
 .start-expandable-content {
-    display: none;
+    gap: 0px;
+    max-height: 0;
     opacity: 0;
-    transition: opacity 0.4s ease-in-out;
-    margin: 0 -30px -30px -30px; /* Negative margins to align with card padding */
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 }
 
 .start-expandable-content.expanded {
-    display: block !important;
-    opacity: 1 !important;
-    animation: slideDown 0.4s ease-out;
+    max-height: 500px; /* Adjust based on your content */
+    opacity: 1;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 }
 
-/* Card divider */
-.start-card-divider {
-    height: 1px;
-    background: #e5e5e5;
-    margin: 20px 0;
+/* Resources display container */
+.start-resources-display-container {
+    min-height: 0;
+}
+
+/* Resources list */
+.start-resources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+/* Override any Gradio row styling for resources */
+.start-resources-list.row {
+    flex-direction: row !important;
+}
+
+.start-resources-list .wrap {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
 }
 
 @keyframes slideDown {
@@ -186,6 +263,7 @@
 .start-upload-area {
     padding: 0;
     background: transparent;
+    gap: 0;
 }
 
 /* Start tab button column - right side */
@@ -197,13 +275,20 @@
 
 /* Start tab feature card */
 .start-feature-card {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 40px;
+    margin-bottom: 40px;
+    background: #e4e4e7;
+    padding: 60px 20px;
+}
+
+/* Inner container to maintain max-width for content */
+.start-feature-card > * {
     max-width: 1000px;
-    margin: 30px auto;
-    background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e5e5;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .start-feature-title {
@@ -212,8 +297,8 @@
 }
 
 .start-feature-title h3 {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 600;
     color: #1a1a1a;
     margin: 0;
 }
@@ -223,7 +308,7 @@
     color: #666;
     font-size: 16px;
     line-height: 1.6;
-    max-width: 600px;
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -244,18 +329,17 @@
 
 .start-feature-item {
     text-align: center;
-    padding: 24px;
-    background: #f8f9fa;
+    padding: 28px 24px;
+    background: white;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #e5e5e5;
     transition: all 0.2s ease;
 }
 
 .start-feature-item:hover {
-    background: #f5f6f8;
-    border-color: #dee2e6;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #4a9d9e;
 }
 
 .start-feature-item-title h3 {
@@ -268,15 +352,16 @@
 .start-feature-use-case {
     background: #e8f5f5;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 6px 12px;
     margin-bottom: 12px;
     font-size: 13px;
-    color: #2d7474;
+    color: #555;
+    display: inline-block;
 }
 
 .start-feature-use-case strong {
     font-weight: 600;
-    color: #1a5a5a;
+    color: #2d7474;
 }
 
 .start-feature-item-text {
@@ -311,9 +396,10 @@
 .start-process-section {
     max-width: 1000px;
     margin: 40px auto;
-    background: #f8f9fa;
+    background: white;
     padding: 40px;
-    border-radius: 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
 }
 
 .start-process-title {
@@ -385,14 +471,15 @@
     justify-content: center;
     font-size: 20px;
     font-weight: 700;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .start-process-step-vertical:hover .start-step-number-vertical,
 .start-process-step-vertical.active .start-step-number-vertical {
-    background: #4a9d9e;
+    background: #ff9966;
     color: white;
-    box-shadow: 0 4px 12px rgba(74, 157, 158, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 153, 102, 0.3);
+    transform: scale(1.05);
 }
 
 .start-step-content {
@@ -466,6 +553,7 @@
 
 .start-prompt-input {
     width: 100%;
+    border: 0px;
 }
 
 .start-prompt-input textarea {
@@ -478,8 +566,9 @@
 }
 
 .start-prompt-input textarea:focus {
-    border-color: #4a9d9e;
-    outline: none;
+    border-color: #ddd !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* Start tab resources title */
@@ -505,13 +594,14 @@
 
 /* Start tab file upload dropzone - matching tab 2 style */
 .start-file-upload-dropzone {
-    width: 100% !important;
+    width: calc(100% - 24px) !important;
     min-height: 90px !important;
     max-height: 90px !important;
     border: 1px dashed #4a9d9e !important;
     border-radius: 8px !important;
     background-color: #f8fafa !important;
     transition: all 0.3s ease !important;
+    margin: 0 12px 12px 12px !important;
 }
 
 .start-file-upload-dropzone:hover {
@@ -572,6 +662,30 @@
 }
 
 /* Start tab resources display */
+.resource-drop-label {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+.resource-drop-label .input-container *{
+    height: 0px;
+}
+
+/* Hide the textbox but keep the label */
+.resource-drop-label textarea,
+.resource-drop-label input[type="text"] {
+    display: none !important;
+}
+
+/* Also hide the container wrapper if it has padding/margin */
+.resource-drop-label .wrap,
+.resource-drop-label .input-container {
+    min-height: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
 .start-resources-display {
     margin-top: 15px;
     gap: 8px;

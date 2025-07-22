@@ -157,8 +157,9 @@ function setupExpandableInput() {
         newPromptInput.addEventListener('focus', () => {
             console.log('Input focused - expanding');
             expandableSection.classList.add('expanded');
-            expandableSection.style.display = 'block';
-            expandableSection.style.opacity = '1';
+            // Remove inline styles to let CSS handle the transition
+            expandableSection.style.removeProperty('display');
+            expandableSection.style.removeProperty('opacity');
             // Add class to card for styling
             const card = document.querySelector('.start-input-card');
             if (card) card.classList.add('has-expanded');
@@ -169,8 +170,9 @@ function setupExpandableInput() {
             if (!expandableSection.classList.contains('expanded')) {
                 console.log('Input clicked - expanding');
                 expandableSection.classList.add('expanded');
-                expandableSection.style.display = 'block';
-                expandableSection.style.opacity = '1';
+                // Remove inline styles to let CSS handle the transition
+                expandableSection.style.removeProperty('display');
+                expandableSection.style.removeProperty('opacity');
                 // Add class to card for styling
                 const card = document.querySelector('.start-input-card');
                 if (card) card.classList.add('has-expanded');
@@ -188,13 +190,12 @@ function setupExpandableInput() {
             
             if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
                 expandableSection.classList.remove('expanded');
-                expandableSection.style.opacity = '0';
-                setTimeout(() => {
-                    expandableSection.style.display = 'none';
-                    // Remove class from card
-                    const card = document.querySelector('.start-input-card');
-                    if (card) card.classList.remove('has-expanded');
-                }, 400);
+                // Remove inline styles to let CSS handle the transition
+                expandableSection.style.removeProperty('display');
+                expandableSection.style.removeProperty('opacity');
+                // Remove class from card
+                const card = document.querySelector('.start-input-card');
+                if (card) card.classList.remove('has-expanded');
             }
         });
         
@@ -221,6 +222,32 @@ const expandableObserver = new MutationObserver((mutations) => {
 expandableObserver.observe(document.body, {
     childList: true,
     subtree: true
+});
+
+// Function to remove resource from start tab
+function removeStartResource(index) {
+    // Find the current resources state and update it
+    const event = new CustomEvent('remove-start-resource', { detail: { index: index } });
+    document.dispatchEvent(event);
+}
+
+// Listen for remove resource events and handle them
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up listener for resource removal
+    document.addEventListener('remove-start-resource', function(e) {
+        const index = e.detail.index;
+        // Trigger a click on the hidden remove buttons that Gradio creates
+        const removeButtons = document.querySelectorAll('.start-resources-list button');
+        if (removeButtons[index]) {
+            // Find the corresponding Gradio button and click it
+            const gradioButtons = document.querySelectorAll('[id*="component-"][id*="button"]');
+            gradioButtons.forEach(btn => {
+                if (btn.textContent === 'Remove' && btn.offsetParent) {
+                    btn.click();
+                }
+            });
+        }
+    });
 });
 
 // Tab switching helper
@@ -2627,6 +2654,38 @@ function setupResourceUploadZones() {
             }
         });
     });
+}
+
+// Function to remove a resource from the Start tab
+function removeStartResourceByIndex(index, resourceName) {
+    console.log('removeStartResourceByIndex called with index:', index, 'resourceName:', resourceName);
+    
+    // Find the hidden inputs for start tab resource removal
+    const indexInput = document.getElementById('start-remove-resource-index');
+    const nameInput = document.getElementById('start-remove-resource-name');
+    
+    if (indexInput && nameInput) {
+        // Find the actual input elements (Gradio wraps them)
+        const indexTextarea = indexInput.querySelector('textarea') || indexInput.querySelector('input[type="text"]');
+        const nameTextarea = nameInput.querySelector('textarea') || nameInput.querySelector('input[type="text"]');
+        
+        if (indexTextarea && nameTextarea) {
+            // Set the values
+            indexTextarea.value = index.toString();
+            nameTextarea.value = resourceName;
+            
+            // Dispatch input events to trigger Gradio update
+            indexTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            nameTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Find and click the remove button
+            const removeBtn = document.getElementById('start-remove-resource-btn');
+            if (removeBtn) {
+                removeBtn.click();
+                console.log('Clicked remove button');
+            }
+        }
+    }
 }
 
 // Call setup on initial load
