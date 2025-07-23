@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateProcessVisual(stepNumber) {
         const visualContent = document.querySelector('.visual-content');
         if (visualContent && stepVisuals[stepNumber]) {
-            visualContent.innerHTML = stepVisuals[stepNumber].svg + 
+            visualContent.innerHTML = stepVisuals[stepNumber].svg +
                 `<p class="visual-caption">${stepVisuals[stepNumber].caption}</p>`;
         }
     }
@@ -142,19 +142,15 @@ console.log('Script loaded - setting up expandable section');
 // Function to set up the expandable behavior
 function setupExpandableInput() {
     console.log('Attempting to set up expandable input...');
-    
+
     const promptInput = document.querySelector('#start-prompt-input textarea');
     const expandableSection = document.getElementById('start-expandable-section');
-    
+
     if (promptInput && expandableSection) {
         console.log('Found elements:', promptInput, expandableSection);
-        
-        // Remove any existing listeners to avoid duplicates
-        const newPromptInput = promptInput.cloneNode(true);
-        promptInput.parentNode.replaceChild(newPromptInput, promptInput);
-        
+
         // Expand on focus
-        newPromptInput.addEventListener('focus', () => {
+        promptInput.addEventListener('focus', () => {
             console.log('Input focused - expanding');
             expandableSection.classList.add('expanded');
             // Remove inline styles to let CSS handle the transition
@@ -164,9 +160,9 @@ function setupExpandableInput() {
             const card = document.querySelector('.start-input-card');
             if (card) card.classList.add('has-expanded');
         });
-        
+
         // Also expand on click
-        newPromptInput.addEventListener('click', () => {
+        promptInput.addEventListener('click', () => {
             if (!expandableSection.classList.contains('expanded')) {
                 console.log('Input clicked - expanding');
                 expandableSection.classList.add('expanded');
@@ -178,16 +174,16 @@ function setupExpandableInput() {
                 if (card) card.classList.add('has-expanded');
             }
         });
-        
+
         // Collapse when clicking outside
         document.addEventListener('click', (e) => {
             const inputCard = document.querySelector('.start-input-card');
             const expandableArea = document.getElementById('start-expandable-section');
             const isClickInInput = inputCard && inputCard.contains(e.target);
             const isClickInExpandable = expandableArea && expandableArea.contains(e.target);
-            const hasContent = newPromptInput.value.trim().length > 0;
+            const hasContent = promptInput.value.trim().length > 0;
             const hasFiles = document.querySelectorAll('.start-resource-item').length > 0;
-            
+
             if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
                 expandableSection.classList.remove('expanded');
                 // Remove inline styles to let CSS handle the transition
@@ -198,19 +194,34 @@ function setupExpandableInput() {
                 if (card) card.classList.remove('has-expanded');
             }
         });
-        
+
         return true;
     }
-    
+
     console.log('Elements not found yet');
     return false;
 }
 
-// Try multiple times with different delays
-setTimeout(() => setupExpandableInput(), 500);
-setTimeout(() => setupExpandableInput(), 1000);
-setTimeout(() => setupExpandableInput(), 2000);
-setTimeout(() => setupExpandableInput(), 3000);
+// Try to set up expandable input with exponential backoff
+let expandableSetupAttempts = 0;
+const maxExpandableAttempts = 4;
+
+function trySetupExpandableInput() {
+    if (setupExpandableInput()) {
+        console.log('Expandable input setup successful');
+        return;
+    }
+    
+    expandableSetupAttempts++;
+    if (expandableSetupAttempts < maxExpandableAttempts) {
+        const delay = 500 * Math.pow(2, expandableSetupAttempts - 1); // 500ms, 1000ms, 2000ms
+        console.log(`Expandable input not ready, retrying in ${delay}ms...`);
+        setTimeout(trySetupExpandableInput, delay);
+    }
+}
+
+// Initial attempt after a short delay
+setTimeout(trySetupExpandableInput, 500);
 
 // Also use MutationObserver as backup
 const expandableObserver = new MutationObserver((mutations) => {
@@ -2659,25 +2670,25 @@ function setupResourceUploadZones() {
 // Function to remove a resource from the Start tab
 function removeStartResourceByIndex(index, resourceName) {
     console.log('removeStartResourceByIndex called with index:', index, 'resourceName:', resourceName);
-    
+
     // Find the hidden inputs for start tab resource removal
     const indexInput = document.getElementById('start-remove-resource-index');
     const nameInput = document.getElementById('start-remove-resource-name');
-    
+
     if (indexInput && nameInput) {
         // Find the actual input elements (Gradio wraps them)
         const indexTextarea = indexInput.querySelector('textarea') || indexInput.querySelector('input[type="text"]');
         const nameTextarea = nameInput.querySelector('textarea') || nameInput.querySelector('input[type="text"]');
-        
+
         if (indexTextarea && nameTextarea) {
             // Set the values
             indexTextarea.value = index.toString();
             nameTextarea.value = resourceName;
-            
+
             // Dispatch input events to trigger Gradio update
             indexTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             nameTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             // Find and click the remove button
             const removeBtn = document.getElementById('start-remove-resource-btn');
             if (removeBtn) {

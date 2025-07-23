@@ -55,6 +55,13 @@
     {
       "type": "shell",
       "config": {
+        "command": "mkdir -p {{ output_root }}",
+        "capture_output": false
+      }
+    },
+    {
+      "type": "shell",
+      "config": {
         "command": "python3 -c \"import json; resources = '{{ resources }}'; paths = [p.strip() for p in resources.split(',') if p.strip()] if resources else []; f = open('{{ output_root }}/.temp_resources_list.json', 'w'); json.dump(paths, f); f.close()\"",
         "capture_output": false
       }

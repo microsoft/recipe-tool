@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List
@@ -8,8 +9,9 @@ from typing import Any, Dict, List
 import gradio as gr
 from dotenv import load_dotenv
 
-from .docpack_handler import DocpackHandler
-from .executor.runner import generate_document
+from docpack import DocpackHandler
+
+from .executor.runner import generate_docpack_from_prompt, generate_document
 from .models.outline import Outline, Resource, Section
 from .session import session_manager
 
@@ -1182,8 +1184,7 @@ def save_outline(title, outline_json, blocks):
     try:
         # Create filename from title and timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
-        docpack_name = f"{safe_title}_{timestamp}.docpack"
+        docpack_name = f"{timestamp}.docpack"
 
         # Create a temporary file for the docpack
         temp_dir = Path(tempfile.gettempdir())
@@ -1496,6 +1497,192 @@ def handle_start_file_upload(files, current_resources):
     return new_resources, None  # Return None to clear the file upload component
 
 
+def handle_start_draft_click_wrapper(prompt, resources, session_id=None):
+    """Wrapper to handle the Draft button click synchronously."""
+    print("DEBUG: handle_start_draft_click_wrapper called")
+    print(f"DEBUG: prompt type: {type(prompt)}, value: '{prompt}'")
+    print(f"DEBUG: resources type: {type(resources)}, value: {resources}")
+    print(f"DEBUG: session_id: {session_id}")
+
+    # Run the async function synchronously
+    import asyncio
+
+    return asyncio.run(handle_start_draft_click(prompt, resources, session_id))
+
+
+async def handle_start_draft_click(prompt, resources, session_id=None):
+    """Handle the Draft button click on the Start tab."""
+    print("DEBUG: In async handle_start_draft_click")
+    print(f"DEBUG: prompt value in async: '{prompt}'")
+
+    if not prompt or not prompt.strip():
+        error_msg = "Please enter a description of what you'd like to create."
+        print(f"DEBUG: No prompt provided, returning error: {error_msg}")
+        # Return 11 values to match outputs
+        return (
+            gr.update(),  # doc_title
+            gr.update(),  # doc_description
+            gr.update(),  # resources_state
+            gr.update(),  # blocks_state
+            gr.update(),  # outline_state
+            gr.update(),  # json_output
+            session_id,  # session_state
+            gr.update(),  # generated_content_html
+            gr.update(),  # generated_content
+            gr.update(),  # save_doc_btn
+            gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+        )
+
+    try:
+        # Get or create session ID
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            print(f"DEBUG: Created new session_id: {session_id}")
+
+        print(f"DEBUG: Calling generate_docpack_from_prompt with {len(resources) if resources else 0} resources")
+
+        # Call the docpack generation function
+        docpack_path, outline_json = await generate_docpack_from_prompt(
+            prompt=prompt.strip(), resources=resources or [], session_id=session_id
+        )
+
+        print(f"DEBUG: Received docpack_path: {docpack_path}")
+        print(f"DEBUG: Received outline_json length: {len(outline_json) if outline_json else 0}")
+
+        # Parse the outline JSON
+        if outline_json:
+            outline_data = json.loads(outline_json)
+            print(f"DEBUG: Successfully parsed outline with title: {outline_data.get('title', 'No title')}")
+
+            # Process the outline data similar to import_outline function
+            title = outline_data.get("title", "Untitled Document")
+            description = outline_data.get("general_instruction", "")
+
+            # Process resources
+            resources = []
+            session_files_dir = session_manager.get_files_dir(session_id)
+
+            for res_data in outline_data.get("resources", []):
+                resource_path = res_data.get("path", "")
+                if resource_path:
+                    # Copy resource to session files directory if it exists
+                    source_path = Path(resource_path)
+                    if source_path.exists():
+                        target_path = session_files_dir / source_path.name
+                        if source_path != target_path:
+                            import shutil
+
+                            shutil.copy2(source_path, target_path)
+
+                        resources.append({
+                            "key": res_data.get("key", ""),
+                            "name": source_path.name,
+                            "path": str(target_path),
+                            "description": res_data.get("description", ""),
+                        })
+
+            # Convert sections to blocks
+            blocks = []
+
+            def sections_to_blocks(sections, parent_indent=-1):
+                """Recursively convert sections to blocks."""
+                for section in sections:
+                    block = {
+                        "id": str(uuid.uuid4()),
+                        "heading": section.get("title", ""),
+                        "content": "",
+                        "resources": [],
+                        "collapsed": True,
+                        "indent_level": parent_indent + 1,
+                    }
+
+                    if "prompt" in section:
+                        # AI block
+                        block["type"] = "ai"
+                        block["content"] = section.get("prompt", "")
+                        block["ai_content"] = section.get("prompt", "")
+
+                        # Handle refs
+                        refs = section.get("refs", [])
+                        if refs and resources:
+                            for ref in refs:
+                                for resource in resources:
+                                    if resource.get("key") == ref:
+                                        block["resources"].append(resource)
+                                        break
+                    else:
+                        # Text block
+                        block["type"] = "text"
+                        block["content"] = ""
+
+                    blocks.append(block)
+
+                    # Process nested sections
+                    if "sections" in section and section["sections"]:
+                        sections_to_blocks(section["sections"], parent_indent=block["indent_level"])
+
+            # Convert top-level sections
+            sections_to_blocks(outline_data.get("sections", []))
+
+            # Generate the JSON for the outline
+            outline = json_to_outline(outline_data)
+            json_str = json.dumps(outline_data, indent=2)
+
+            # Return all the values needed to populate the Draft+Generate tab
+            # This matches what import_outline returns
+            return (
+                title,  # doc_title
+                description,  # doc_description
+                resources,  # resources_state
+                blocks,  # blocks_state
+                outline,  # outline_state
+                json_str,  # json_output
+                session_id,  # session_state
+                gr.update(visible=False),  # generated_content_html
+                gr.update(visible=False),  # generated_content
+                gr.update(interactive=False),  # save_doc_btn
+                gr.update(visible=True, value=f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}"),  # switch_tab_trigger
+            )
+        else:
+            error_msg = "Failed to generate outline. Please try again."
+            print(f"DEBUG: No outline generated, returning error: {error_msg}")
+            # Return 11 values to match outputs
+            return (
+                gr.update(),  # doc_title
+                gr.update(),  # doc_description
+                gr.update(),  # resources_state
+                gr.update(),  # blocks_state
+                gr.update(),  # outline_state
+                gr.update(),  # json_output
+                session_id,  # session_state
+                gr.update(),  # generated_content_html
+                gr.update(),  # generated_content
+                gr.update(),  # save_doc_btn
+                gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+            )
+
+    except Exception as e:
+        import traceback
+
+        error_msg = f"Error: {str(e)}"
+        print(f"ERROR in handle_start_draft_click: {error_msg}")
+        print(f"Traceback: {traceback.format_exc()}")
+        # Return 11 values to match outputs
+        return (
+            gr.update(),  # doc_title
+            gr.update(),  # doc_description
+            gr.update(),  # resources_state
+            gr.update(),  # blocks_state
+            gr.update(),  # outline_state
+            gr.update(),  # json_output
+            session_id,  # session_state
+            gr.update(),  # generated_content_html
+            gr.update(),  # generated_content
+            gr.update(),  # save_doc_btn
+            gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+        )
+
+
 def handle_file_upload(files, current_resources, title, description, blocks, session_id=None):
     """Handle uploaded files and return HTML display of file names."""
     if not files:
@@ -1748,12 +1935,13 @@ def create_app():
                     with gr.Column(elem_classes="start-input-card"):
                         # User prompt input
                         start_prompt_input = gr.TextArea(
-                            placeholder="Describe your structured document here...\n",
-                            label="What would you like to create?",
+                            placeholder="Describe your document here...\n",
+                            label="What structured document would you like to create?",
                             elem_classes="start-prompt-input",
                             lines=4,
                             max_lines=10,
                             elem_id="start-prompt-input",
+                            value="",  # Explicitly set initial value
                         )
 
                         # Expandable content within the same card
@@ -1852,7 +2040,7 @@ def create_app():
                                 show_label=False,
                                 height=90,
                             )
-                            
+
                             # Draft button - full width below dropzone
                             get_started_btn = gr.Button(
                                 "Draft",
@@ -3093,10 +3281,25 @@ def create_app():
         # Create a hidden HTML component for tab switching trigger
         switch_tab_trigger = gr.HTML("", visible=True, elem_id="switch-tab-trigger", elem_classes="hidden-component")
 
-        # Get Started button - switch to Draft + Generate tab
-        import time
+        # Get Started button - generate docpack and switch to Draft + Generate tab
 
-        get_started_btn.click(fn=lambda: f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}", outputs=switch_tab_trigger)
+        get_started_btn.click(
+            fn=handle_start_draft_click,
+            inputs=[start_prompt_input, start_resources_state, session_state],
+            outputs=[
+                doc_title,
+                doc_description,
+                resources_state,
+                blocks_state,
+                outline_state,
+                json_output,
+                session_state,
+                generated_content_html,
+                generated_content,
+                save_doc_btn,
+                switch_tab_trigger,
+            ],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Start tab file upload handler
         start_file_upload.upload(
@@ -3173,7 +3376,7 @@ def main():
     import logging
 
     logging.basicConfig(level=logging.DEBUG)
-    app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True, debug=True)
+    app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True)
 
 
 if __name__ == "__main__":

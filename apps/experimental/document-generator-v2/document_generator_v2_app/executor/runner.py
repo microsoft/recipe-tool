@@ -6,17 +6,17 @@ import json
 import logging
 import traceback
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
+from recipe_executor.config import load_configuration
 from recipe_executor.context import Context
 from recipe_executor.executor import Executor
 from recipe_executor.logger import init_logger
-from recipe_executor.config import load_configuration
 
-from ..models.outline import Outline
-from ..session import session_manager
-from ..resource_resolver import resolve_all_resources
 from ..config import settings
+from ..models.outline import Outline
+from ..resource_resolver import resolve_all_resources
+from ..session import session_manager
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -134,3 +134,116 @@ async def generate_document(outline: Optional[Outline], session_id: Optional[str
         logger.error(f"Error generating document: {str(e)}")
         logger.error(f"Full traceback: {traceback.format_exc()}")
         return f"Error generating document: {str(e)}\n\nFull traceback:\n{traceback.format_exc()}"
+
+
+async def generate_docpack_from_prompt(
+    prompt: str, resources: List[Dict[str, str]], session_id: Optional[str] = None
+) -> Tuple[str, str]:
+    """
+    Generate a docpack outline from user prompt and uploaded resources.
+
+    Args:
+        prompt: User's description of the document they want to create
+        resources: List of uploaded resource files with 'path' and 'name' keys
+        session_id: Optional session ID for file management
+
+    Returns:
+        Tuple of (docpack_path, outline_json) where:
+        - docpack_path: Path to the generated .docpack file
+        - outline_json: JSON string of the generated outline
+    """
+    logger.info(f"Starting docpack generation for session: {session_id}")
+    logger.info(f"Prompt: {prompt}")
+    logger.info(f"Resources: {len(resources)} files")
+
+    # Setup paths
+    APP_ROOT = Path(__file__).resolve().parents[2]
+    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v2_app" / "recipes" / "generate_docpack.json"
+
+    if BUNDLED_RECIPE_PATH.exists():
+        RECIPE_PATH = BUNDLED_RECIPE_PATH
+        RECIPE_ROOT = RECIPE_PATH.parent
+        logger.info(f"Using bundled recipe: {RECIPE_PATH}")
+    else:
+        # Fall back to repo structure
+        REPO_ROOT = Path(__file__).resolve().parents[5]
+        RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "generate_docpack.json"
+        RECIPE_ROOT = RECIPE_PATH.parent.parent
+        logger.info(f"Using development recipe: {RECIPE_PATH}")
+
+    # Use session-scoped temp directory
+    session_dir = session_manager.get_session_dir(session_id)
+    tmpdir = str(session_dir / "docpack_generation")
+    Path(tmpdir).mkdir(exist_ok=True)
+    logger.info(f"Using temp directory: {tmpdir}")
+
+    try:
+        # Prepare resource paths as comma-separated string
+        resource_paths = []
+        for resource in resources:
+            if "path" in resource and resource["path"]:
+                resource_paths.append(resource["path"])
+        resources_str = ",".join(resource_paths)
+        logger.info(f"Resource paths: {resources_str}")
+
+        # Initialize recipe logger
+        recipe_logger = init_logger(log_dir=tmpdir)
+
+        # Load configuration
+        config = load_configuration()
+
+        # Create timestamp-based docpack name
+        from datetime import datetime
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        docpack_name = f"{timestamp}.docpack"
+
+        # Create context for the recipe
+        context = Context(
+            artifacts={
+                "model": settings.model_id,
+                "output_root": str(session_dir),
+                "document_description": prompt,
+                "resources": resources_str,
+                "docpack_name": docpack_name,
+                "recipe_root": str(RECIPE_ROOT),
+            },
+            config=config,
+        )
+        logger.info(f"Context artifacts: {context.dict()}")
+
+        # Execute the generate_docpack recipe
+        executor = Executor(recipe_logger)
+        logger.info(f"Executing recipe: {RECIPE_PATH}")
+        await executor.execute(str(RECIPE_PATH), context)
+        logger.info("Recipe execution completed")
+
+        # Get the generated files
+        output_root = Path(context.get("output_root", tmpdir))
+        docpack_path = output_root / docpack_name
+        outline_path = output_root / "outline.json"
+
+        # Read the generated outline
+        outline_json = ""
+        if outline_path.exists():
+            outline_json = outline_path.read_text()
+            logger.info(f"Generated outline loaded from: {outline_path}")
+        else:
+            logger.error(f"Outline file not found at: {outline_path}")
+
+        # Check if docpack was created
+        if not docpack_path.exists():
+            logger.error(f"Docpack file not found at: {docpack_path}")
+            # List files for debugging
+            if output_root.exists():
+                files = list(output_root.glob("*"))
+                logger.info(f"Files in output directory: {files}")
+            return "", outline_json
+
+        logger.info(f"Successfully generated docpack at: {docpack_path}")
+        return str(docpack_path), outline_json
+
+    except Exception as e:
+        logger.error(f"Error generating docpack: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise
