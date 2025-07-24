@@ -9,7 +9,7 @@ requires-python = ">=3.11"
 dependencies = [
     "gradio>=4.0.0",
     "recipe-executor>=0.1.1",
-    "docpack>=0.1.0",
+    "docpack-file>=0.1.0",
     "jsonschema>=4.0.0",
     "python-dotenv>=0.20.0",
 ]

@@ -55,6 +55,13 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
     else:
         print(f"    Warning: Main recipe not found at {main_recipe}")
 
+    docpack_recipe = recipes_source / "generate_docpack.json"
+    if docpack_recipe.exists():
+        shutil.copy2(docpack_recipe, recipes_dest / "generate_docpack.json")
+        print(f"    Copied: {docpack_recipe.name}")
+    else:
+        print(f"    Warning: Main recipe not found at {docpack_recipe}")
+
     # Copy recipes subdirectory
     recipes_subdir_source = recipes_source / "recipes"
     recipes_subdir_dest = recipes_dest / "recipes"

@@ -159,6 +159,7 @@ async def generate_docpack_from_prompt(
     # Setup paths
     APP_ROOT = Path(__file__).resolve().parents[2]
     BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v2_app" / "recipes" / "generate_docpack.json"
+    DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "docpack-file"
 
     if BUNDLED_RECIPE_PATH.exists():
         RECIPE_PATH = BUNDLED_RECIPE_PATH
@@ -207,6 +208,7 @@ async def generate_docpack_from_prompt(
                 "resources": resources_str,
                 "docpack_name": docpack_name,
                 "recipe_root": str(RECIPE_ROOT),
+                "docpack_file_package_path": str(DOCPACK_FILE_PACKAGE_PATH),
             },
             config=config,
         )

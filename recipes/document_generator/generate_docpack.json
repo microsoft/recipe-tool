@@ -43,13 +43,21 @@
         "value": "{{ docpack_name | default: 'document.docpack' }}"
       }
     },
-        {
+    {
       "type": "set_context",
       "config": {
         "key": "recipe_root",
         "value": "{{ recipe_root | default: 'recipes/document_generator' }}"
       }
     },
+    {
+      "type": "set_context",
+      "config": {
+        "key": "docpack_file_package_path",
+        "value": "{{ docpack_file_package_path | default: '.venv/bin/docpack_file' }}"
+      }
+    },
+
     {
       "type": "execute_recipe",
       "config": {
@@ -59,7 +67,7 @@
     {
       "type": "shell",
       "config": {
-        "command": ".venv/bin/docpack create --outline {{ output_root }}/outline.json --output {{ output_root }}/{{ docpack_name }}",
+        "command": "{{docpack_file_package_path}} create --outline {{ output_root }}/outline.json --output {{ output_root }}/{{ docpack_name }}",
         "output_key": "docpack_result"
       }
     }
