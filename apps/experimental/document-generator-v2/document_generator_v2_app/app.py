@@ -7,9 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import gradio as gr
+from docpack_file import DocpackHandler
 from dotenv import load_dotenv
-
-from docpack import DocpackHandler
 
 from .executor.runner import generate_docpack_from_prompt, generate_document
 from .models.outline import Outline, Resource, Section
@@ -1518,7 +1517,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
     if not prompt or not prompt.strip():
         error_msg = "Please enter a description of what you'd like to create."
         print(f"DEBUG: No prompt provided, returning error: {error_msg}")
-        # Return 11 values to match outputs
+        # Return 13 values to match outputs (added error message and prompt input)
         return (
             gr.update(),  # doc_title
             gr.update(),  # doc_description
@@ -1530,7 +1529,12 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
             gr.update(),  # generated_content_html
             gr.update(),  # generated_content
             gr.update(),  # save_doc_btn
-            gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+            gr.update(),  # switch_tab_trigger
+            gr.update(
+                value=f'<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px;">{error_msg}</div>',
+                visible=True,
+            ),  # start_error_message
+            gr.update(),  # start_prompt_input - no change
         )
 
     try:
@@ -1642,11 +1646,15 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 gr.update(visible=False),  # generated_content
                 gr.update(interactive=False),  # save_doc_btn
                 gr.update(visible=True, value=f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}"),  # switch_tab_trigger
+                gr.update(visible=False),  # start_error_message - hide on success
+                gr.update(
+                    lines=4, max_lines=10, interactive=True, elem_classes="start-prompt-input"
+                ),  # start_prompt_input - preserve value but reset display properties
             )
         else:
             error_msg = "Failed to generate outline. Please try again."
             print(f"DEBUG: No outline generated, returning error: {error_msg}")
-            # Return 11 values to match outputs
+            # Return 13 values to match outputs
             return (
                 gr.update(),  # doc_title
                 gr.update(),  # doc_description
@@ -1658,7 +1666,12 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 gr.update(),  # generated_content_html
                 gr.update(),  # generated_content
                 gr.update(),  # save_doc_btn
-                gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+                gr.update(),  # switch_tab_trigger
+                gr.update(
+                    value=f'<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px;">{error_msg}</div>',
+                    visible=True,
+                ),  # start_error_message
+                gr.update(lines=4, max_lines=10),  # start_prompt_input - preserve lines
             )
 
     except Exception as e:
@@ -1667,7 +1680,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
         error_msg = f"Error: {str(e)}"
         print(f"ERROR in handle_start_draft_click: {error_msg}")
         print(f"Traceback: {traceback.format_exc()}")
-        # Return 11 values to match outputs
+        # Return 13 values to match outputs
         return (
             gr.update(),  # doc_title
             gr.update(),  # doc_description
@@ -1679,7 +1692,12 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
             gr.update(),  # generated_content_html
             gr.update(),  # generated_content
             gr.update(),  # save_doc_btn
-            gr.update(visible=True, value=f'<div style="color: red;">{error_msg}</div>'),  # switch_tab_trigger
+            gr.update(),  # switch_tab_trigger
+            gr.update(
+                value=f'<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px;">{error_msg}</div>',
+                visible=True,
+            ),  # start_error_message
+            gr.update(),  # start_prompt_input
         )
 
 
@@ -1936,13 +1954,16 @@ def create_app():
                         # User prompt input
                         start_prompt_input = gr.TextArea(
                             placeholder="Describe your document here...\n",
-                            label="What structured document would you like to create?",
+                            label="What would you like to create?",
                             elem_classes="start-prompt-input",
                             lines=4,
                             max_lines=10,
                             elem_id="start-prompt-input",
                             value="",  # Explicitly set initial value
                         )
+
+                        # Error message component (hidden by default)
+                        start_error_message = gr.HTML(value="", visible=False, elem_classes="start-error-message")
 
                         # Expandable content within the same card
                         with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
@@ -2054,42 +2075,66 @@ def create_app():
                 with gr.Column(elem_classes="start-feature-card"):
                     gr.Markdown("### Why Choose Document Generator?", elem_classes="start-feature-title")
                     gr.Markdown(
-                        "Ideal for content that needs regular updates, follows consistent structures, or requires collaborative workflows - saving hours while maintaining quality.",
+                        "Build living document templates you control. Fine-tune sections, lock in what works, regenerate what needs updating. Perfect for content that evolves with your codebase, grows with new resources, or needs to stay current automatically.",
                         elem_classes="start-feature-description",
                     )
 
                     # Three feature columns
                     with gr.Row(elem_classes="start-features-grid"):
                         with gr.Column(scale=1, elem_classes="start-feature-item"):
-                            gr.Markdown("### 📝 Living Documentation", elem_classes="start-feature-item-title")
-                            gr.Markdown(
-                                "**Perfect for:** Technical docs, READMEs, API guides",
-                                elem_classes="start-feature-use-case",
+                            template_img_path = (
+                                Path(__file__).parent / "static" / "images" / "template_control-removebg-preview.jpg"
                             )
+                            gr.Image(
+                                value=str(template_img_path),
+                                show_label=False,
+                                height=150,
+                                container=False,
+                                elem_classes="start-feature-image",
+                                show_download_button=False,
+                                show_fullscreen_button=False,
+                            )
+                            gr.Markdown("### Template Control", elem_classes="start-feature-item-title")
                             gr.Markdown(
-                                "Your documents evolve naturally. Update sections and regenerate without starting from scratch. As your codebase changes, your docs stay in sync.",
+                                "Get started fast, then own the template. Edit sections, adjust prompts, preserve what's perfect. Maintain exactly the structure you need.",
                                 elem_classes="start-feature-item-text",
                             )
 
                         with gr.Column(scale=1, elem_classes="start-feature-item"):
-                            gr.Markdown("### 🎯 Knowledge Base", elem_classes="start-feature-item-title")
-                            gr.Markdown(
-                                "**Perfect for:** FAQs, onboarding guides, process docs",
-                                elem_classes="start-feature-use-case",
+                            evergreen_img_path = (
+                                Path(__file__).parent / "static" / "images" / "evergreen_content-removebg-preview.jpg"
                             )
+                            gr.Image(
+                                value=str(evergreen_img_path),
+                                show_label=False,
+                                height=150,
+                                container=False,
+                                elem_classes="start-feature-image",
+                                show_download_button=False,
+                                show_fullscreen_button=False,
+                            )
+                            gr.Markdown("### Evergreen Content", elem_classes="start-feature-item-title")
                             gr.Markdown(
-                                "Build comprehensive knowledge repositories. Structure information hierarchically and update specific sections as policies or procedures change.",
+                                "Link to evolving resources - code, docs, notes. Regenerate anytime to pull in the latest context. Perfect for READMEs, API docs, AI assistant guides, or any content that tracks changing information.",
                                 elem_classes="start-feature-item-text",
                             )
 
                         with gr.Column(scale=1, elem_classes="start-feature-item"):
-                            gr.Markdown("### 🔄 Repeatable Reports", elem_classes="start-feature-item-title")
-                            gr.Markdown(
-                                "**Perfect for:** Status updates, reviews, analytics",
-                                elem_classes="start-feature-use-case",
+                            smart_img_path = (
+                                Path(__file__).parent / "static" / "images" / "smart_regeneration-removebg-preview.jpg"
                             )
+                            gr.Image(
+                                value=str(smart_img_path),
+                                show_label=False,
+                                height=150,
+                                container=False,
+                                elem_classes="start-feature-image",
+                                show_download_button=False,
+                                show_fullscreen_button=False,
+                            )
+                            gr.Markdown("### Smart Regeneration", elem_classes="start-feature-item-title")
                             gr.Markdown(
-                                "Save document structures as templates. Generate consistent reports with fresh data while maintaining professional formatting.",
+                                "Refresh while keeping refined content intact. Regenerate specific parts with new data - your polished introduction stays perfect while metrics update automatically.",
                                 elem_classes="start-feature-item-text",
                             )
 
@@ -2105,7 +2150,7 @@ def create_app():
                         # Left side - Steps
                         with gr.Column(scale=1, elem_classes="start-process-steps-vertical"):
                             # Step 1
-                            with gr.Row(elem_classes="start-process-step-vertical active"):
+                            with gr.Row(elem_classes="start-process-step-vertical start-step-1"):
                                 with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
                                     gr.Markdown("1", elem_classes="start-step-number-vertical")
                                 with gr.Column(scale=1, elem_classes="start-step-content"):
@@ -2116,7 +2161,7 @@ def create_app():
                                     )
 
                             # Step 2
-                            with gr.Row(elem_classes="start-process-step-vertical"):
+                            with gr.Row(elem_classes="start-process-step-vertical start-step-2"):
                                 with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
                                     gr.Markdown("2", elem_classes="start-step-number-vertical")
                                 with gr.Column(scale=1, elem_classes="start-step-content"):
@@ -2127,7 +2172,7 @@ def create_app():
                                     )
 
                             # Step 3
-                            with gr.Row(elem_classes="start-process-step-vertical"):
+                            with gr.Row(elem_classes="start-process-step-vertical start-step-3"):
                                 with gr.Column(scale=0, min_width=60, elem_classes="start-step-number-col"):
                                     gr.Markdown("3", elem_classes="start-step-number-vertical")
                                 with gr.Column(scale=1, elem_classes="start-step-content"):
@@ -3283,7 +3328,25 @@ def create_app():
 
         # Get Started button - generate docpack and switch to Draft + Generate tab
 
+        # Add event handlers for the Draft button
+        def check_prompt_before_submit(prompt):
+            """Check if prompt exists and show error if not."""
+            if not prompt or not prompt.strip():
+                # Show error message
+                return gr.update(
+                    value='<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px; font-size: 14px;">Please enter a description of what you\'d like to create.</div>',
+                    visible=True,
+                )
+            else:
+                # Hide error message
+                return gr.update(visible=False)
+
         get_started_btn.click(
+            fn=check_prompt_before_submit,
+            inputs=[start_prompt_input],
+            outputs=[start_error_message],
+            queue=False,  # Run immediately
+        ).success(
             fn=handle_start_draft_click,
             inputs=[start_prompt_input, start_resources_state, session_state],
             outputs=[
@@ -3298,6 +3361,8 @@ def create_app():
                 generated_content,
                 save_doc_btn,
                 switch_tab_trigger,
+                start_error_message,
+                start_prompt_input,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
@@ -3307,6 +3372,9 @@ def create_app():
             inputs=[start_file_upload, start_resources_state],
             outputs=[start_resources_state, start_file_upload],
         )
+
+        # Clear error message when user starts typing
+        start_prompt_input.input(fn=lambda: gr.update(visible=False), outputs=[start_error_message], queue=False)
 
         # Hidden inputs for Start tab resource removal
         with gr.Row(visible=False):

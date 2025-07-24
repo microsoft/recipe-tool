@@ -189,6 +189,7 @@ function setupExpandableInput() {
                 // Remove inline styles to let CSS handle the transition
                 expandableSection.style.removeProperty('display');
                 expandableSection.style.removeProperty('opacity');
+                // No need to clear error message here - it's cleared when user types
                 // Remove class from card
                 const card = document.querySelector('.start-input-card');
                 if (card) card.classList.remove('has-expanded');
@@ -234,6 +235,8 @@ expandableObserver.observe(document.body, {
     childList: true,
     subtree: true
 });
+
+// Removed watchExpandableState to prevent potential infinite loops
 
 // Function to remove resource from start tab
 function removeStartResource(index) {
@@ -2735,6 +2738,41 @@ document.addEventListener('DOMContentLoaded', function () {
         preventResourceDrops();
         console.log('Called preventResourceDrops()');
 
+        setupHowItWorksHover();
+        console.log('Called setupHowItWorksHover()');
+
         console.log('All initialization complete');
     }, 100);
 });
+
+// Handle How It Works section hover effects
+function setupHowItWorksHover() {
+    const steps = document.querySelectorAll('.start-process-step-vertical');
+    
+    if (steps.length === 3) {
+        console.log('Setting up How It Works hover effects');
+        
+        // Set step 1 as active by default
+        steps[0].classList.add('active');
+        
+        steps.forEach((step, index) => {
+            step.addEventListener('mouseenter', () => {
+                // Remove active from all steps
+                steps.forEach(s => s.classList.remove('active'));
+                // Add active to hovered step
+                step.classList.add('active');
+            });
+        });
+        
+        // When not hovering any step, default to step 1
+        const container = document.querySelector('.start-process-steps-vertical');
+        if (container) {
+            container.addEventListener('mouseleave', () => {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            });
+        }
+    } else {
+        console.log('How It Works steps not found or incorrect count:', steps.length);
+    }
+}

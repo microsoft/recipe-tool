@@ -418,7 +418,6 @@
     text-align: center;
     font-size: 16px;
     color: #666;
-    margin-bottom: 40px;
 }
 
 /* Process container */
@@ -563,6 +562,8 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     padding: 12px;
+    min-height: 120px !important;  /* Ensure minimum height for 4 lines */
+    resize: vertical;
 }
 
 .start-prompt-input textarea:focus {
@@ -2500,5 +2501,22 @@ input.no-drop,
 /* Also style file upload zones to show they're not valid drop targets */
 .resource-upload-gradio.no-drop {
     opacity: 0.6;
+}
+
+/* Start tab error message styling */
+.start-error-message {
+    margin-top: 8px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
