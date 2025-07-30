@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import tempfile
@@ -16,6 +17,9 @@ from .session import session_manager
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Global variable to track if app is running in dev mode
+IS_DEV_MODE = False
 
 
 def json_to_outline(json_data: Dict[str, Any]) -> Outline:
@@ -355,7 +359,7 @@ async def handle_document_generation(title, description, resources, blocks, sess
         outline = json_to_outline(json_data)
 
         # Generate the document
-        generated_content = await generate_document(outline, session_id)
+        generated_content = await generate_document(outline, session_id, IS_DEV_MODE)
 
         # Save to temporary file for download
         filename = f"{title}.md" if title else "document.md"
@@ -1547,7 +1551,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
 
         # Call the docpack generation function
         docpack_path, outline_json = await generate_docpack_from_prompt(
-            prompt=prompt.strip(), resources=resources or [], session_id=session_id
+            prompt=prompt.strip(), resources=resources or [], session_id=session_id, dev_mode=IS_DEV_MODE
         )
 
         print(f"DEBUG: Received docpack_path: {docpack_path}")
@@ -1938,6 +1942,9 @@ def create_app():
         gr.TextArea(visible=True, elem_classes="hidden-component")
         gr.Code(visible=True, elem_classes="hidden-component")
 
+        # Shared session state for the entire app
+        session_state = gr.State(None)
+        
         # Main app layout
         with gr.Tab("Start", id="start_tab"):
             # State for start tab resources
@@ -1951,10 +1958,32 @@ def create_app():
                 # Single expanding card
                 with gr.Column(elem_classes="start-input-card-container"):
                     with gr.Column(elem_classes="start-input-card"):
+                        # Example buttons container - always visible at the top
+                        with gr.Column(elem_classes="start-examples-container"):
+                            with gr.Row(elem_classes="start-examples-buttons"):
+                                example_code_readme_btn = gr.Button(
+                                    "📝 Code README",
+                                    variant="secondary",
+                                    size="sm",
+                                    elem_classes="start-example-btn"
+                                )
+                                example_product_launch_btn = gr.Button(
+                                    "🚀 Product Launch",
+                                    variant="secondary",
+                                    size="sm",
+                                    elem_classes="start-example-btn"
+                                )
+                                example_performance_review_btn = gr.Button(
+                                    "📈 Performance Review",
+                                    variant="secondary",
+                                    size="sm",
+                                    elem_classes="start-example-btn"
+                                )
+
                         # User prompt input
                         start_prompt_input = gr.TextArea(
-                            placeholder="Describe your document here...\n",
-                            label="What would you like to create?",
+                            placeholder="Describe your structured document here...\n",
+                            label="What document would you like to create?",
                             elem_classes="start-prompt-input",
                             lines=4,
                             max_lines=10,
@@ -1970,23 +1999,31 @@ def create_app():
                             # Display uploaded resources (above dropzone and button)
                             with gr.Column(elem_classes="start-resources-display-container"):
 
-                                @gr.render(inputs=start_resources_state)
+                                # Create a placeholder for the resources display
+                                start_resources_display = gr.HTML(
+                                    value='<div class="start-resources-list"></div>',
+                                    elem_classes="start-resources-display"
+                                )
+                                
+                                # Function to render resources
                                 def render_start_resources(resources):
+                                    print(f"DEBUG render_start_resources called with {len(resources) if resources else 0} resources")
                                     if resources and len(resources) > 0:
                                         # Create a flex container for resources
                                         html_content = '<div class="start-resources-list">'
                                         for idx, resource in enumerate(resources):
+                                            print(f"  Rendering resource: {resource['name']}")
                                             html_content += f"""
                                                 <div class="dropped-resource">
                                                     <span>{resource["name"]}</span>
-                                                    <button class="remove-resource" onclick="removeStartResourceByIndex({idx}, '{resource["name"]}')">×</button>
+                                                    <button class="remove-resource" onclick="event.stopPropagation(); removeStartResourceByIndex({idx}, '{resource["name"]}'); return false;">×</button>
                                                 </div>
                                             """
                                         html_content += "</div>"
-                                        return gr.HTML(html_content)
+                                        return html_content
                                     else:
                                         # Return empty div when no resources
-                                        return gr.HTML('<div class="start-resources-list"></div>')
+                                        return '<div class="start-resources-list"></div>'
 
                             # Upload area - full width
                             gr.TextArea(
@@ -2219,7 +2256,6 @@ def create_app():
             # State to track resources and blocks
             resources_state = gr.State([])
             focused_block_state = gr.State(None)
-            session_state = gr.State(None)  # Track session ID
 
             # Initialize with default blocks
             initial_blocks = [
@@ -3366,15 +3402,192 @@ def create_app():
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
+        # Wrapper for file upload that includes rendering
+        def handle_start_file_upload_with_render(files, current_resources):
+            """Handle file uploads and render the resources."""
+            new_resources, clear_upload = handle_start_file_upload(files, current_resources)
+            resources_html = render_start_resources(new_resources)
+            return new_resources, clear_upload, resources_html
+        
         # Start tab file upload handler
         start_file_upload.upload(
-            fn=handle_start_file_upload,
+            fn=handle_start_file_upload_with_render,
             inputs=[start_file_upload, start_resources_state],
-            outputs=[start_resources_state, start_file_upload],
+            outputs=[start_resources_state, start_file_upload, start_resources_display],
         )
 
         # Clear error message when user starts typing
         start_prompt_input.input(fn=lambda: gr.update(visible=False), outputs=[start_error_message], queue=False)
+
+        # Example button handlers
+        def extract_resources_from_docpack(docpack_path, session_id=None):
+            """Extract resources from a docpack file."""
+            # Define allowed extensions for start tab (same as file upload)
+            ALLOWED_EXTENSIONS = {
+                ".txt", ".md", ".py", ".c", ".cpp", ".h", ".java", ".js", ".ts", ".jsx", ".tsx",
+                ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".sh",
+                ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".rs", ".go", ".rb", ".php",
+                ".pl", ".lua", ".r", ".m", ".swift", ".kt", ".scala", ".clj", ".ex", ".erl",
+                ".hs", ".ml", ".fs", ".nim", ".d", ".dart", ".jl", ".v", ".zig", ".html", ".htm",
+                ".css", ".scss", ".sass", ".less", ".vue", ".svelte", ".astro", ".tex", ".rst",
+                ".adoc", ".org", ".csv"
+            }
+            
+            resources = []
+            if docpack_path.exists():
+                print(f"DEBUG: Docpack exists at {docpack_path}")
+                try:
+                    # Use provided session ID or create a new one
+                    if not session_id:
+                        session_id = str(uuid.uuid4())
+                        print(f"DEBUG: Created new session ID: {session_id}")
+                    else:
+                        print(f"DEBUG: Using existing session ID: {session_id}")
+                    
+                    # Create a temporary directory for extraction
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        print(f"DEBUG: Created temp directory: {temp_dir}")
+                        # Extract the docpack - convert temp_dir to Path object
+                        print(f"DEBUG: Extracting docpack from {docpack_path} to {temp_dir}")
+                        json_data, extracted_files = DocpackHandler.extract_package(str(docpack_path), Path(temp_dir))
+                        print(f"DEBUG: Extraction successful. Found {len(extracted_files)} files")
+                        print(f"DEBUG: JSON data has {len(json_data.get('resources', []))} resources")
+                        
+                        # Process resources from the docpack
+                        for res_data in json_data.get("resources", []):
+                            # Skip inline resources
+                            if res_data.get("is_inline", False) or res_data.get("key", "").startswith("inline_resource_"):
+                                continue
+                            
+                            # Get the actual file from extracted files
+                            resource_filename = Path(res_data.get("path", "")).name
+                            file_ext = Path(resource_filename).suffix.lower()
+                            
+                            # Check if file extension is allowed
+                            if file_ext not in ALLOWED_EXTENSIONS:
+                                continue
+                            
+                            for extracted_file in extracted_files:
+                                if Path(extracted_file).name == resource_filename:
+                                    # Read the file content
+                                    with open(extracted_file, 'r', encoding='utf-8') as f:
+                                        content = f.read()
+                                    
+                                    # Use the session ID created at the beginning
+                                    session_dir = session_manager.get_session_dir(session_id)
+                                    
+                                    # Convert Path to string for os.path operations
+                                    session_dir_str = str(session_dir)
+                                    
+                                    # Save the file to session directory
+                                    files_dir = os.path.join(session_dir_str, "files")
+                                    os.makedirs(files_dir, exist_ok=True)
+                                    target_path = os.path.join(files_dir, resource_filename)
+                                    with open(target_path, 'w', encoding='utf-8') as f:
+                                        f.write(content)
+                                    
+                                    # Calculate file size
+                                    file_size = len(content.encode('utf-8'))
+                                    if file_size < 1024:
+                                        size_str = f"{file_size} B"
+                                    elif file_size < 1024 * 1024:
+                                        size_str = f"{file_size / 1024:.1f} KB"
+                                    else:
+                                        size_str = f"{file_size / (1024 * 1024):.1f} MB"
+                                    
+                                    # Use the same format as handle_start_file_upload
+                                    resources.append({
+                                        "path": target_path,
+                                        "name": resource_filename,
+                                        "size": size_str,
+                                    })
+                                    break
+                except Exception as e:
+                    print(f"Error extracting resources from docpack: {e}")
+            
+            print(f"DEBUG extract_resources_from_docpack: Returning {len(resources)} resources")
+            for r in resources:
+                print(f"  Resource: {r}")
+            return resources
+
+        def load_code_readme_example(session_id):
+            """Load the code README example prompt and resources."""
+            # Get or create session
+            if not session_id:
+                session_id = str(uuid.uuid4())
+            
+            prompt = "Generate a comprehensive README for my open-source Python library. Include installation instructions, usage examples, API documentation, and contribution guidelines."
+            
+            # Extract resources from the README docpack
+            examples_dir = Path(__file__).parent.parent / "examples"
+            docpack_path = examples_dir / "readme-generation" / "readme.docpack"
+            resources = extract_resources_from_docpack(docpack_path, session_id)
+            
+            print(f"DEBUG: Loaded {len(resources)} resources for README example")
+            for r in resources:
+                print(f"  - {r['name']} ({r['size']})")
+            
+            # Render the resources HTML
+            resources_html = render_start_resources(resources)
+            
+            return prompt, resources, session_id, resources_html
+
+        def load_product_launch_example(session_id):
+            """Load the product launch example prompt and resources."""
+            # Get or create session
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                
+            prompt = "Create a product launch documentation package including: announcement blog post, press release, internal team briefing, and customer FAQ. The product is an AI-powered code review tool."
+            
+            # Extract resources from the product launch docpack
+            examples_dir = Path(__file__).parent.parent / "examples"
+            docpack_path = examples_dir / "launch-documentation" / "launch-documentation.docpack"
+            resources = extract_resources_from_docpack(docpack_path, session_id)
+            
+            # Render the resources HTML
+            resources_html = render_start_resources(resources)
+            
+            return prompt, resources, session_id, resources_html
+
+        def load_performance_review_example(session_id):
+            """Load the performance review example prompt and resources."""
+            # Get or create session
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                
+            prompt = "Generate an annual performance review for a software engineer. Include accomplishments, areas for growth, peer feedback summary, and goals for next year. Make it constructive and motivating."
+            
+            # Extract resources from the performance review docpack
+            examples_dir = Path(__file__).parent.parent / "examples"
+            docpack_path = examples_dir / "scenario-4-annual-performance-review" / "Annual Employee Performance Review_20250709_153352.docpack"
+            resources = extract_resources_from_docpack(docpack_path, session_id)
+            
+            # Render the resources HTML
+            resources_html = render_start_resources(resources)
+            
+            return prompt, resources, session_id, resources_html
+
+        example_code_readme_btn.click(
+            fn=load_code_readme_example,
+            inputs=[session_state],
+            outputs=[start_prompt_input, start_resources_state, session_state, start_resources_display],
+            queue=False
+        )
+
+        example_product_launch_btn.click(
+            fn=load_product_launch_example,
+            inputs=[session_state],
+            outputs=[start_prompt_input, start_resources_state, session_state, start_resources_display],
+            queue=False
+        )
+
+        example_performance_review_btn.click(
+            fn=load_performance_review_example,
+            inputs=[session_state],
+            outputs=[start_prompt_input, start_resources_state, session_state, start_resources_display],
+            queue=False
+        )
 
         # Hidden inputs for Start tab resource removal
         with gr.Row(visible=False):
@@ -3386,7 +3599,8 @@ def create_app():
         def remove_start_resource(resources, index_str, name):
             """Remove a resource from the Start tab by index."""
             if not resources or not index_str:
-                return resources
+                resources_html = render_start_resources(resources)
+                return resources, resources_html
 
             try:
                 index = int(index_str)
@@ -3395,17 +3609,19 @@ def create_app():
                     if resources[index]["name"] == name:
                         new_resources = resources.copy()
                         new_resources.pop(index)
-                        return new_resources
+                        resources_html = render_start_resources(new_resources)
+                        return new_resources, resources_html
             except (ValueError, IndexError):
                 pass
 
-            return resources
+            resources_html = render_start_resources(resources)
+            return resources, resources_html
 
         # Start tab resource removal handler
         start_remove_resource_btn.click(
             fn=remove_start_resource,
             inputs=[start_resources_state, start_remove_resource_index, start_remove_resource_name],
-            outputs=[start_resources_state],
+            outputs=[start_resources_state, start_resources_display],
         )
 
     return app
@@ -3428,6 +3644,16 @@ def check_deployment_status():
 
 def main():
     """Main entry point for the Document Builder app."""
+    global IS_DEV_MODE
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Document Generator v2 App")
+    parser.add_argument("--dev", action="store_true", help="Run in development mode")
+    args = parser.parse_args()
+    
+    # Set global dev mode variable
+    IS_DEV_MODE = args.dev
+    
     # Load environment variables from .env file
     load_dotenv()
 
@@ -3435,16 +3661,25 @@ def main():
     check_deployment_status()
 
     # Configuration for hosting - Azure App Service uses PORT environment variable
+    if args.dev:
+        print(f"Running in DEVELOPMENT mode")
+        
+    # Production mode settings
     server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")
     server_port = int(os.getenv("PORT", os.getenv("GRADIO_SERVER_PORT", "8000")))
+    
     print(f"Server: {server_name}:{server_port}")
 
     app = create_app()
 
     import logging
 
-    logging.basicConfig(level=logging.DEBUG)
-    app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True)
+    if args.dev:
+        logging.basicConfig(level=logging.DEBUG)
+        app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True, share=False)
+    else:
+        logging.basicConfig(level=logging.INFO)
+        app.launch(server_name=server_name, server_port=server_port, mcp_server=True, pwa=True)
 
 
 if __name__ == "__main__":

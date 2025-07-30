@@ -23,11 +23,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def generate_document(outline: Optional[Outline], session_id: Optional[str] = None) -> str:
+async def generate_document(outline: Optional[Outline], session_id: Optional[str] = None, dev_mode: bool = False) -> str:
     """
     Run the document-generator recipe with the given outline and return the generated Markdown.
     """
     logger.info(f"Starting document generation for session: {session_id}")
+    logger.info(f"Running in {'development' if dev_mode else 'production'} mode")
 
     # Allow stub invocation without an outline for initial tests
     if outline is None:
@@ -52,7 +53,7 @@ async def generate_document(outline: Optional[Outline], session_id: Optional[str
         REPO_ROOT = Path(__file__).resolve().parents[5]
         RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
         RECIPE_ROOT = RECIPE_PATH.parent
-        logger.info(f"Using development recipes: {RECIPE_PATH}")
+        logger.info(f"Using repo recipes: {RECIPE_PATH}")
         logger.info(f"Recipe exists: {RECIPE_PATH.exists()}")
 
     # Use session-scoped temp directory
@@ -137,7 +138,7 @@ async def generate_document(outline: Optional[Outline], session_id: Optional[str
 
 
 async def generate_docpack_from_prompt(
-    prompt: str, resources: List[Dict[str, str]], session_id: Optional[str] = None
+    prompt: str, resources: List[Dict[str, str]], session_id: Optional[str] = None, dev_mode: bool = False
 ) -> Tuple[str, str]:
     """
     Generate a docpack outline from user prompt and uploaded resources.
@@ -146,6 +147,7 @@ async def generate_docpack_from_prompt(
         prompt: User's description of the document they want to create
         resources: List of uploaded resource files with 'path' and 'name' keys
         session_id: Optional session ID for file management
+        dev_mode: Whether running in development mode
 
     Returns:
         Tuple of (docpack_path, outline_json) where:
@@ -153,6 +155,7 @@ async def generate_docpack_from_prompt(
         - outline_json: JSON string of the generated outline
     """
     logger.info(f"Starting docpack generation for session: {session_id}")
+    logger.info(f"Running in {'development' if dev_mode else 'production'} mode")
     logger.info(f"Prompt: {prompt}")
     logger.info(f"Resources: {len(resources)} files")
 
@@ -161,16 +164,25 @@ async def generate_docpack_from_prompt(
     BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v2_app" / "recipes" / "generate_docpack.json"
     DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "docpack-file"
 
+    logger.info(f"APP_ROOT: {APP_ROOT}")
+    logger.info(f"BUNDLED_RECIPE_PATH: {BUNDLED_RECIPE_PATH}")
+    logger.info(f"Bundled recipe exists: {BUNDLED_RECIPE_PATH.exists()}")
+
     if BUNDLED_RECIPE_PATH.exists():
         RECIPE_PATH = BUNDLED_RECIPE_PATH
         RECIPE_ROOT = RECIPE_PATH.parent
-        logger.info(f"Using bundled recipe: {RECIPE_PATH}")
+        logger.info(f"Using bundled recipes: {RECIPE_PATH}")
+        logger.info(f"DOCPACK_FILE_PACKAGE_PATH: {DOCPACK_FILE_PACKAGE_PATH}")
     else:
         # Fall back to repo structure
         REPO_ROOT = Path(__file__).resolve().parents[5]
         RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "generate_docpack.json"
         RECIPE_ROOT = RECIPE_PATH.parent.parent
-        logger.info(f"Using development recipe: {RECIPE_PATH}")
+        logger.info(f"Using repo recipes: {RECIPE_PATH}")
+
+    if dev_mode:
+        DOCPACK_FILE_PACKAGE_PATH = ""  # use default path in development mode, set in recipe
+        logger.info(f"DOCPACK_FILE_PACKAGE_PATH: {DOCPACK_FILE_PACKAGE_PATH}")
 
     # Use session-scoped temp directory
     session_dir = session_manager.get_session_dir(session_id)

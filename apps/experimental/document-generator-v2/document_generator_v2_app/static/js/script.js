@@ -175,21 +175,43 @@ function setupExpandableInput() {
             }
         });
 
+        // Function to expand the card
+        function expandCard() {
+            console.log('Expanding card');
+            expandableSection.classList.add('expanded');
+            // Remove inline styles to let CSS handle the transition
+            expandableSection.style.removeProperty('display');
+            expandableSection.style.removeProperty('opacity');
+            // Add class to card for styling
+            const card = document.querySelector('.start-input-card');
+            if (card) card.classList.add('has-expanded');
+        }
+
+        // Expand when example buttons are clicked
+        const exampleButtons = document.querySelectorAll('.start-example-btn');
+        exampleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('Example button clicked - expanding card');
+                // Small delay to ensure the content is loaded first
+                setTimeout(expandCard, 100);
+            });
+        });
+
         // Collapse when clicking outside
         document.addEventListener('click', (e) => {
             const inputCard = document.querySelector('.start-input-card');
             const expandableArea = document.getElementById('start-expandable-section');
             const isClickInInput = inputCard && inputCard.contains(e.target);
             const isClickInExpandable = expandableArea && expandableArea.contains(e.target);
-            const hasContent = promptInput.value.trim().length > 0;
-            const hasFiles = document.querySelectorAll('.start-resource-item').length > 0;
+            const isExampleButton = e.target.closest('.start-example-btn');
+            const isRemoveButton = e.target.closest('.remove-resource');
 
-            if (!isClickInInput && !isClickInExpandable && !hasContent && !hasFiles) {
+            // Always collapse when clicking outside, unless it's a remove resource button
+            if (!isClickInInput && !isClickInExpandable && !isExampleButton && !isRemoveButton) {
                 expandableSection.classList.remove('expanded');
                 // Remove inline styles to let CSS handle the transition
                 expandableSection.style.removeProperty('display');
                 expandableSection.style.removeProperty('opacity');
-                // No need to clear error message here - it's cleared when user types
                 // Remove class from card
                 const card = document.querySelector('.start-input-card');
                 if (card) card.classList.remove('has-expanded');
@@ -2673,6 +2695,10 @@ function setupResourceUploadZones() {
 // Function to remove a resource from the Start tab
 function removeStartResourceByIndex(index, resourceName) {
     console.log('removeStartResourceByIndex called with index:', index, 'resourceName:', resourceName);
+    
+    // Prevent the card from collapsing
+    const expandableSection = document.getElementById('start-expandable-section');
+    const wasExpanded = expandableSection && expandableSection.classList.contains('expanded');
 
     // Find the hidden inputs for start tab resource removal
     const indexInput = document.getElementById('start-remove-resource-index');
@@ -2697,6 +2723,19 @@ function removeStartResourceByIndex(index, resourceName) {
             if (removeBtn) {
                 removeBtn.click();
                 console.log('Clicked remove button');
+                
+                // Ensure the card stays expanded if it was expanded
+                if (wasExpanded) {
+                    setTimeout(() => {
+                        if (expandableSection && !expandableSection.classList.contains('expanded')) {
+                            expandableSection.classList.add('expanded');
+                            expandableSection.style.removeProperty('display');
+                            expandableSection.style.removeProperty('opacity');
+                            const card = document.querySelector('.start-input-card');
+                            if (card) card.classList.add('has-expanded');
+                        }
+                    }, 100);
+                }
             }
         }
     }
