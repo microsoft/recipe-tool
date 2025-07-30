@@ -2815,3 +2815,49 @@ function setupHowItWorksHover() {
         console.log('How It Works steps not found or incorrect count:', steps.length);
     }
 }
+
+// Tab switching watcher
+let switchTabInterval = null;
+
+// Function to watch for tab switch trigger
+function watchForTabSwitch() {
+    const trigger = document.getElementById('switch-tab-trigger');
+    if (trigger) {
+        const value = trigger.textContent || trigger.innerText;
+        if (value && value.startsWith('SWITCH_TO_DRAFT_TAB_')) {
+            console.log('Tab switch trigger detected:', value);
+            
+            // Clear the trigger immediately
+            trigger.textContent = '';
+            
+            // Find and click the Draft + Generate tab
+            const tabs = document.querySelectorAll('.tab-nav button');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes('Draft + Generate')) {
+                    console.log('Clicking Draft + Generate tab');
+                    tab.click();
+                }
+            });
+        }
+    }
+}
+
+// Start watching for tab switches
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing interval
+    if (switchTabInterval) {
+        clearInterval(switchTabInterval);
+    }
+    
+    // Start new interval
+    switchTabInterval = setInterval(watchForTabSwitch, 100);
+    console.log('Tab switch watcher started');
+});
+
+// Clear interval when navigating away
+window.addEventListener('beforeunload', function() {
+    if (switchTabInterval) {
+        clearInterval(switchTabInterval);
+        switchTabInterval = null;
+    }
+});

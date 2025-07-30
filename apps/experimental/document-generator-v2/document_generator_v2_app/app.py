@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import os
 import tempfile
@@ -1521,7 +1522,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
     if not prompt or not prompt.strip():
         error_msg = "Please enter a description of what you'd like to create."
         print(f"DEBUG: No prompt provided, returning error: {error_msg}")
-        # Return 13 values to match outputs (added error message and prompt input)
+        # Return 15 values to match outputs (added loading message and button)
         return (
             gr.update(),  # doc_title
             gr.update(),  # doc_description
@@ -1539,6 +1540,8 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 visible=True,
             ),  # start_error_message
             gr.update(),  # start_prompt_input - no change
+            gr.update(visible=False),  # start_loading_message - hide
+            gr.update(interactive=True),  # get_started_btn
         )
 
     try:
@@ -1638,6 +1641,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
 
             # Return all the values needed to populate the Draft+Generate tab
             # This matches what import_outline returns
+            # Now switch to the draft tab since generation is complete
             return (
                 title,  # doc_title
                 description,  # doc_description
@@ -1654,11 +1658,13 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 gr.update(
                     lines=4, max_lines=10, interactive=True, elem_classes="start-prompt-input"
                 ),  # start_prompt_input - preserve value but reset display properties
+                gr.update(visible=False),  # start_loading_message - hide
+                gr.update(interactive=True),  # get_started_btn
             )
         else:
             error_msg = "Failed to generate outline. Please try again."
             print(f"DEBUG: No outline generated, returning error: {error_msg}")
-            # Return 13 values to match outputs
+            # Return 15 values to match outputs
             return (
                 gr.update(),  # doc_title
                 gr.update(),  # doc_description
@@ -1676,6 +1682,8 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                     visible=True,
                 ),  # start_error_message
                 gr.update(lines=4, max_lines=10),  # start_prompt_input - preserve lines
+                gr.update(visible=False),  # start_loading_message - hide
+                gr.update(interactive=True),  # get_started_btn
             )
 
     except Exception as e:
@@ -1684,7 +1692,7 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
         error_msg = f"Error: {str(e)}"
         print(f"ERROR in handle_start_draft_click: {error_msg}")
         print(f"Traceback: {traceback.format_exc()}")
-        # Return 13 values to match outputs
+        # Return 15 values to match outputs
         return (
             gr.update(),  # doc_title
             gr.update(),  # doc_description
@@ -1702,6 +1710,8 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 visible=True,
             ),  # start_error_message
             gr.update(),  # start_prompt_input
+            gr.update(visible=False),  # start_loading_message - hide
+            gr.update(interactive=True),  # get_started_btn
         )
 
 
@@ -1946,7 +1956,7 @@ def create_app():
         session_state = gr.State(None)
         
         # Main app layout
-        with gr.Tab("Start", id="start_tab"):
+        with gr.Tab("Draft", id="start_tab"):
             # State for start tab resources
             start_resources_state = gr.State([])
 
@@ -1958,6 +1968,10 @@ def create_app():
                 # Single expanding card
                 with gr.Column(elem_classes="start-input-card-container"):
                     with gr.Column(elem_classes="start-input-card"):
+                        gr.TextArea(
+                                label="What document would you like to create?",
+                                elem_classes="resource-drop-label",
+                            )
                         # Example buttons container - always visible at the top
                         with gr.Column(elem_classes="start-examples-container"):
                             with gr.Row(elem_classes="start-examples-buttons"):
@@ -1983,7 +1997,7 @@ def create_app():
                         # User prompt input
                         start_prompt_input = gr.TextArea(
                             placeholder="Describe your structured document here...\n",
-                            label="What document would you like to create?",
+                            show_label=False,
                             elem_classes="start-prompt-input",
                             lines=4,
                             max_lines=10,
@@ -1993,6 +2007,9 @@ def create_app():
 
                         # Error message component (hidden by default)
                         start_error_message = gr.HTML(value="", visible=False, elem_classes="start-error-message")
+                        
+                        # Loading indicator (hidden by default)
+                        start_loading_message = gr.HTML(value="", visible=False, elem_classes="start-loading-message")
 
                         # Expandable content within the same card
                         with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
@@ -2099,7 +2116,7 @@ def create_app():
                                 height=90,
                             )
 
-                            # Draft button - full width below dropzone
+                                                # Draft button - full width below dropzone
                             get_started_btn = gr.Button(
                                 "Draft",
                                 variant="primary",
@@ -2252,7 +2269,7 @@ def create_app():
                             )
 
         # Second tab - Existing Document Builder content
-        with gr.Tab("Draft + Generate", id="document_builder_tab"):
+        with gr.Tab("Update + Generate", id="document_builder_tab"):
             # State to track resources and blocks
             resources_state = gr.State([])
             focused_block_state = gr.State(None)
@@ -2691,7 +2708,7 @@ def create_app():
                         )
 
                         # Hidden HTML for JavaScript execution
-                        js_executor = gr.HTML(visible=False)
+                        gr.HTML(visible=False)
 
                         # Hidden components for content updates
                         update_block_id = gr.Textbox(
@@ -3368,22 +3385,43 @@ def create_app():
         def check_prompt_before_submit(prompt):
             """Check if prompt exists and show error if not."""
             if not prompt or not prompt.strip():
-                # Show error message
-                return gr.update(
-                    value='<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px; font-size: 14px;">Please enter a description of what you\'d like to create.</div>',
-                    visible=True,
+                # Show error message, hide loading, enable button
+                return (
+                    gr.update(
+                        value='<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px; font-size: 14px;">Please enter a description of what you\'d like to create.</div>',
+                        visible=True,
+                    ),
+                    gr.update(visible=False),  # Hide loading
+                    gr.update(interactive=True),  # Enable button
                 )
             else:
-                # Hide error message
-                return gr.update(visible=False)
+                # Hide error message, show loading, disable button
+                return (
+                    gr.update(visible=False),
+                    gr.update(visible=False),  # Hide loading message
+                    gr.update(interactive=True),  # Keep button enabled
+                )
+
+        def handle_start_draft_without_switch(prompt, resources, session_id):
+            """Handle draft generation without switching tabs."""
+            # Call the original function but modify the return to not trigger tab switch
+            result = asyncio.run(handle_start_draft_click(prompt, resources, session_id))
+            # Replace the switch_tab_trigger value (index 10) with an empty update
+            result_list = list(result)
+            result_list[10] = gr.update(visible=False)  # Don't trigger tab switch
+            return tuple(result_list)
+
+        def trigger_tab_switch():
+            """Trigger the tab switch after content is generated."""
+            return gr.update(visible=True, value=f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}")
 
         get_started_btn.click(
             fn=check_prompt_before_submit,
             inputs=[start_prompt_input],
-            outputs=[start_error_message],
+            outputs=[start_error_message, start_loading_message, get_started_btn],
             queue=False,  # Run immediately
         ).success(
-            fn=handle_start_draft_click,
+            fn=handle_start_draft_without_switch,
             inputs=[start_prompt_input, start_resources_state, session_state],
             outputs=[
                 doc_title,
@@ -3399,7 +3437,16 @@ def create_app():
                 switch_tab_trigger,
                 start_error_message,
                 start_prompt_input,
+                start_loading_message,
+                get_started_btn,
             ],
+        ).then(
+            fn=render_blocks, 
+            inputs=[blocks_state, focused_block_state], 
+            outputs=blocks_display,
+        ).then(
+            fn=trigger_tab_switch,
+            outputs=switch_tab_trigger,
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Wrapper for file upload that includes rendering
@@ -3516,7 +3563,7 @@ def create_app():
             if not session_id:
                 session_id = str(uuid.uuid4())
             
-            prompt = "Generate a comprehensive README for my open-source Python library. Include installation instructions, usage examples, API documentation, and contribution guidelines."
+            prompt = "Generate a comprehensive production-ready README for the target codebase. Include key features, installation instructions, usage examples, API documentation, an architecture overview, and contribution guidelines. IMPORTANT to use ONLY the facts available in the referenced documents (code, configs, docs, tests, etc.). Keep prose short, use bullet lists when helpful, and prefer plan language over marketing fluff.  Assumer the audience is a developer seeing the project for the first time."
             
             # Extract resources from the README docpack
             examples_dir = Path(__file__).parent.parent / "examples"
@@ -3538,7 +3585,7 @@ def create_app():
             if not session_id:
                 session_id = str(uuid.uuid4())
                 
-            prompt = "Create a product launch documentation package including: announcement blog post, press release, internal team briefing, and customer FAQ. The product is an AI-powered code review tool."
+            prompt = "Create a comprehensive product launch documentation package for a new B2B SaaS analytics product.  Include the value proposition, implementation details and customer benefits.  There should be a product over section, one on technical architecture, an implementation guide, pricing and packaging, and go-to market strategy.  Other areas to consider include an announcement blog post, press release, internal team briefing, and customer FAQ.  Be sure to use clear, professional language appropriate for both technical and business stakeholders."
             
             # Extract resources from the product launch docpack
             examples_dir = Path(__file__).parent.parent / "examples"
@@ -3556,7 +3603,7 @@ def create_app():
             if not session_id:
                 session_id = str(uuid.uuid4())
                 
-            prompt = "Generate an annual performance review for a software engineer. Include accomplishments, areas for growth, peer feedback summary, and goals for next year. Make it constructive and motivating."
+            prompt = "Generate an annual performance review for an employee. It will be used by both the manager and the employee to discuss the employee's progress.  Include key achievements, areas for growth, training and development and next years goals.  Make sure there is an employee overview as well.  Make it constructive and motivating, but also concise.  Folks are busy."
             
             # Extract resources from the performance review docpack
             examples_dir = Path(__file__).parent.parent / "examples"
@@ -3662,7 +3709,7 @@ def main():
 
     # Configuration for hosting - Azure App Service uses PORT environment variable
     if args.dev:
-        print(f"Running in DEVELOPMENT mode")
+        print("Running in DEVELOPMENT mode")
         
     # Production mode settings
     server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")

@@ -199,8 +199,8 @@
 
 /* Example buttons styling */
 .start-examples-container {
-    margin-bottom: 16px;
-    padding-bottom: 0;
+    padding: 0 12px 0 12px;
+    width: 100%;
 }
 
 .start-examples-buttons {
@@ -213,9 +213,11 @@
     background: #f8f9fa !important;
     border: 1px solid #e5e5e5 !important;
     color: #1a1a1a !important;
-    padding: 8px 16px !important;
-    font-size: 14px !important;
+    padding: 4px 12px !important;
+    font-size: 13px !important;
     transition: all 0.2s ease !important;
+    min-height: 32px !important;
+    height: 32px !important;
 }
 
 .start-example-btn:hover {
@@ -309,7 +311,6 @@
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
-    margin-top: 40px;
     margin-bottom: 40px;
     background: #e4e4e7;
     padding: 60px 20px;
@@ -695,7 +696,7 @@
 
 /* Start tab resources display */
 .resource-drop-label {
-    padding-top: 0px;
+    padding-top: 12px;
     padding-bottom: 0px;
 }
 .resource-drop-label .input-container *{
@@ -718,11 +719,14 @@
     overflow: hidden !important;
 }
 
-.start-resources-display {
-    margin-top: 15px;
+.start-resources-display{
+    margin-top: 0px;
     gap: 8px;
 }
 
+.start-resources-display .html-container{
+    padding-top: 0px;
+}
 .start-resource-item {
     background: #f8f9fa;
     border: 1px solid #e5e5e5;
