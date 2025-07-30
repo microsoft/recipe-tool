@@ -23,7 +23,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def generate_document(outline: Optional[Outline], session_id: Optional[str] = None, dev_mode: bool = False) -> str:
+async def generate_document(
+    outline: Optional[Outline], session_id: Optional[str] = None, dev_mode: bool = False
+) -> str:
     """
     Run the document-generator recipe with the given outline and return the generated Markdown.
     """
