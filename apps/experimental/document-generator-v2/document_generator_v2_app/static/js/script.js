@@ -288,30 +288,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Tab switching helper
 function switchToDraftTab() {
-    console.log('Switching to Draft + Generate tab');
+    console.log('Switching to Update + Generate tab');
 
     // Find all tab buttons
     const tabButtons = document.querySelectorAll('button[role="tab"]');
+    console.log('DEBUG: Found tab buttons:', tabButtons.length);
+    
+    // Log all tab button texts for debugging
+    tabButtons.forEach((button, index) => {
+        console.log(`DEBUG: Tab ${index}: "${button.textContent.trim()}"`);
+    });
 
-    // Find the Draft + Generate tab button and click it
+    // Find the Update + Generate tab button and click it (the second tab)
+    let found = false;
     tabButtons.forEach(button => {
-        if (button.textContent.includes('Draft + Generate')) {
+        if (button.textContent.includes('Update + Generate')) {
+            console.log('DEBUG: Found Update + Generate tab, clicking...');
             button.click();
-            console.log('Clicked Draft + Generate tab');
+            console.log('Clicked Update + Generate tab');
+            found = true;
         }
     });
+    
+    if (!found) {
+        console.log('DEBUG: No Update + Generate tab found');
+    }
 }
 
-// Track last trigger value to prevent repeated switching
-let lastTriggerValue = '';
+// Track processed trigger timestamps to prevent repeated switching
+let processedTriggers = new Set();
 
 // Check for switch signal in a hidden element
 setInterval(() => {
     const switchTrigger = document.getElementById('switch-tab-trigger');
-    if (switchTrigger && switchTrigger.innerHTML && switchTrigger.innerHTML !== lastTriggerValue) {
-        if (switchTrigger.innerHTML.includes('SWITCH_TO_DRAFT_TAB')) {
-            lastTriggerValue = switchTrigger.innerHTML;
-            switchToDraftTab();
+    if (switchTrigger) {
+        const currentContent = switchTrigger.innerHTML;
+        
+        if (currentContent && currentContent.includes('SWITCH_TO_DRAFT_TAB')) {
+            // Extract timestamp from the trigger
+            const match = currentContent.match(/SWITCH_TO_DRAFT_TAB_(\d+)/);
+            if (match) {
+                const timestamp = match[1];
+                
+                // Only process if we haven't seen this timestamp before
+                if (!processedTriggers.has(timestamp)) {
+                    console.log('DEBUG: Found new SWITCH_TO_DRAFT_TAB trigger with timestamp:', timestamp);
+                    processedTriggers.add(timestamp);
+                    switchToDraftTab();
+                    
+                    // Clean up old timestamps (keep only last 10)
+                    if (processedTriggers.size > 10) {
+                        const timestamps = Array.from(processedTriggers).sort();
+                        processedTriggers.delete(timestamps[0]);
+                    }
+                } else {
+                    console.log('DEBUG: Ignoring already processed trigger:', timestamp);
+                }
+            }
         }
     }
 }, 100);
@@ -2741,6 +2774,7 @@ function removeStartResourceByIndex(index, resourceName) {
     }
 }
 
+
 // Call setup on initial load
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOMContentLoaded - Starting initialization');
@@ -2815,49 +2849,3 @@ function setupHowItWorksHover() {
         console.log('How It Works steps not found or incorrect count:', steps.length);
     }
 }
-
-// Tab switching watcher
-let switchTabInterval = null;
-
-// Function to watch for tab switch trigger
-function watchForTabSwitch() {
-    const trigger = document.getElementById('switch-tab-trigger');
-    if (trigger) {
-        const value = trigger.textContent || trigger.innerText;
-        if (value && value.startsWith('SWITCH_TO_DRAFT_TAB_')) {
-            console.log('Tab switch trigger detected:', value);
-            
-            // Clear the trigger immediately
-            trigger.textContent = '';
-            
-            // Find and click the Draft + Generate tab
-            const tabs = document.querySelectorAll('.tab-nav button');
-            tabs.forEach(tab => {
-                if (tab.textContent.includes('Draft + Generate')) {
-                    console.log('Clicking Draft + Generate tab');
-                    tab.click();
-                }
-            });
-        }
-    }
-}
-
-// Start watching for tab switches
-document.addEventListener('DOMContentLoaded', function() {
-    // Clear any existing interval
-    if (switchTabInterval) {
-        clearInterval(switchTabInterval);
-    }
-    
-    // Start new interval
-    switchTabInterval = setInterval(watchForTabSwitch, 100);
-    console.log('Tab switch watcher started');
-});
-
-// Clear interval when navigating away
-window.addEventListener('beforeunload', function() {
-    if (switchTabInterval) {
-        clearInterval(switchTabInterval);
-        switchTabInterval = null;
-    }
-});

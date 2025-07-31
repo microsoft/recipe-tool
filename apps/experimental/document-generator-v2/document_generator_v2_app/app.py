@@ -3400,26 +3400,13 @@ def create_app():
                     gr.update(interactive=True),  # Keep button enabled
                 )
 
-        def handle_start_draft_without_switch(prompt, resources, session_id):
-            """Handle draft generation without switching tabs."""
-            # Call the original function but modify the return to not trigger tab switch
-            result = asyncio.run(handle_start_draft_click(prompt, resources, session_id))
-            # Replace the switch_tab_trigger value (index 10) with an empty update
-            result_list = list(result)
-            result_list[10] = gr.update(visible=False)  # Don't trigger tab switch
-            return tuple(result_list)
-
-        def trigger_tab_switch():
-            """Trigger the tab switch after content is generated."""
-            return gr.update(visible=True, value=f"SWITCH_TO_DRAFT_TAB_{int(time.time() * 1000)}")
-
         get_started_btn.click(
             fn=check_prompt_before_submit,
             inputs=[start_prompt_input],
             outputs=[start_error_message, start_loading_message, get_started_btn],
             queue=False,  # Run immediately
         ).success(
-            fn=handle_start_draft_without_switch,
+            fn=handle_start_draft_click,
             inputs=[start_prompt_input, start_resources_state, session_state],
             outputs=[
                 doc_title,
@@ -3438,13 +3425,6 @@ def create_app():
                 start_loading_message,
                 get_started_btn,
             ],
-        ).then(
-            fn=render_blocks,
-            inputs=[blocks_state, focused_block_state],
-            outputs=blocks_display,
-        ).then(
-            fn=trigger_tab_switch,
-            outputs=switch_tab_trigger,
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Wrapper for file upload that includes rendering
