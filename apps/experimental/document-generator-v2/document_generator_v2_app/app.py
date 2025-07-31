@@ -1540,7 +1540,6 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 visible=True,
             ),  # start_error_message
             gr.update(),  # start_prompt_input - no change
-            gr.update(visible=False),  # start_loading_message - hide
             gr.update(interactive=True),  # get_started_btn
         )
 
@@ -1635,13 +1634,17 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
             # Convert top-level sections
             sections_to_blocks(outline_data.get("sections", []))
 
+            # Ensure the first block is expanded (consistent with import behavior)
+            if blocks and len(blocks) > 0:
+                blocks[0]["collapsed"] = False
+
             # Generate the JSON for the outline
             outline = json_to_outline(outline_data)
             json_str = json.dumps(outline_data, indent=2)
 
             # Return all the values needed to populate the Draft+Generate tab
             # This matches what import_outline returns
-            # Now switch to the draft tab since generation is complete
+            # DO NOT switch to the draft tab yet - that will happen in the next step
             return (
                 title,  # doc_title
                 description,  # doc_description
@@ -1658,7 +1661,6 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 gr.update(
                     lines=4, max_lines=10, interactive=True, elem_classes="start-prompt-input"
                 ),  # start_prompt_input - preserve value but reset display properties
-                gr.update(visible=False),  # start_loading_message - hide
                 gr.update(interactive=True),  # get_started_btn
             )
         else:
@@ -1682,7 +1684,6 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                     visible=True,
                 ),  # start_error_message
                 gr.update(lines=4, max_lines=10),  # start_prompt_input - preserve lines
-                gr.update(visible=False),  # start_loading_message - hide
                 gr.update(interactive=True),  # get_started_btn
             )
 
@@ -1710,7 +1711,6 @@ async def handle_start_draft_click(prompt, resources, session_id=None):
                 visible=True,
             ),  # start_error_message
             gr.update(),  # start_prompt_input
-            gr.update(visible=False),  # start_loading_message - hide
             gr.update(interactive=True),  # get_started_btn
         )
 
@@ -2005,14 +2005,11 @@ def create_app():
                         # Error message component (hidden by default)
                         start_error_message = gr.HTML(value="", visible=False, elem_classes="start-error-message")
 
-                        # Loading indicator (hidden by default)
-                        start_loading_message = gr.HTML(value="", visible=False, elem_classes="start-loading-message")
-
                         # Expandable content within the same card
                         with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
                             # Display uploaded resources (above dropzone and button)
                             with gr.Column(elem_classes="start-resources-display-container"):
-                                # Create a placeholder for the resources display
+                                # Create a placeholder for the resources displayfvz
                                 start_resources_display = gr.HTML(
                                     value='<div class="start-resources-list"></div>',
                                     elem_classes="start-resources-display",
@@ -2148,7 +2145,7 @@ def create_app():
                             )
                             gr.Markdown("### Template Control", elem_classes="start-feature-item-title")
                             gr.Markdown(
-                                "Get started fast, then own the template. Edit sections, adjust prompts, preserve what's perfect. Maintain exactly the structure you need.",
+                                "Get started fast, then own the template. Update sections, adjust prompts, fine-tune your design. Maintain exactly the structure you need.",
                                 elem_classes="start-feature-item-text",
                             )
 
@@ -2167,7 +2164,7 @@ def create_app():
                             )
                             gr.Markdown("### Evergreen Content", elem_classes="start-feature-item-title")
                             gr.Markdown(
-                                "Link to evolving resources - code, docs, notes. Regenerate anytime to pull in the latest context. Perfect for READMEs, API docs, AI assistant guides, or any content that tracks changing information.",
+                                "Link to evolving resources - code, docs, notes. Regenerate anytime to pull in the latest context. Perfect for READMEs, API docs, or any content that tracks changing information.",
                                 elem_classes="start-feature-item-text",
                             )
 
@@ -2313,7 +2310,7 @@ def create_app():
                         # Try Examples button with dropdown container
                         with gr.Column(elem_classes="try-examples-container"):
                             gr.Button(
-                                "Try Examples",
+                                "Template Examples",
                                 elem_id="try-examples-btn-id",
                                 variant="secondary",
                                 size="sm",
@@ -3389,21 +3386,19 @@ def create_app():
                         value='<div style="color: #dc2626; padding: 8px 12px; background: #fee2e2; border-radius: 4px; margin-top: 8px; font-size: 14px;">Please enter a description of what you\'d like to create.</div>',
                         visible=True,
                     ),
-                    gr.update(visible=False),  # Hide loading
                     gr.update(interactive=True),  # Enable button
                 )
             else:
                 # Hide error message, show loading, disable button
                 return (
                     gr.update(visible=False),
-                    gr.update(visible=False),  # Hide loading message
                     gr.update(interactive=True),  # Keep button enabled
                 )
 
         get_started_btn.click(
             fn=check_prompt_before_submit,
             inputs=[start_prompt_input],
-            outputs=[start_error_message, start_loading_message, get_started_btn],
+            outputs=[start_error_message, get_started_btn],
             queue=False,  # Run immediately
         ).success(
             fn=handle_start_draft_click,
@@ -3422,7 +3417,6 @@ def create_app():
                 switch_tab_trigger,
                 start_error_message,
                 start_prompt_input,
-                start_loading_message,
                 get_started_btn,
             ],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)

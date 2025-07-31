@@ -1,4 +1,5 @@
 // Document Builder JavaScript
+console.log('🚀 JavaScript file loaded successfully!');
 
 
 
@@ -134,24 +135,141 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }, 1000);
+    
+    // Setup resource description auto-expand
+    setupResourceDescriptionAutoExpand();
 });
+
+// Setup auto-expand for resource description textareas
+function setupResourceDescriptionAutoExpand() {
+    console.log('🔧 Setting up resource description auto-expand...');
+    
+    // Find all existing resource description textareas
+    const resourceDescTextareas = document.querySelectorAll('.resource-desc-gradio textarea');
+    console.log(`🔧 Found ${resourceDescTextareas.length} resource description textareas`);
+    
+    resourceDescTextareas.forEach(textarea => {
+        setupSingleResourceDescTextarea(textarea);
+    });
+    
+    // Use MutationObserver to catch dynamically added resource descriptions
+    const resourceDescObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Only look for resource desc textareas specifically
+                    const newTextareas = node.querySelectorAll ? 
+                        node.querySelectorAll('.resource-desc-gradio textarea') : 
+                        [];
+                    
+                    newTextareas.forEach(textarea => {
+                        if (!textarea.dataset.autoExpandSetup) {
+                            console.log('Setting up auto-expand for new resource description textarea');
+                            setupSingleResourceDescTextarea(textarea);
+                        }
+                    });
+                    
+                    // Also check if the node itself is a resource desc textarea
+                    if (node.matches && node.matches('.resource-desc-gradio textarea') && !node.dataset.autoExpandSetup) {
+                        console.log('Setting up auto-expand for new resource description textarea (direct match)');
+                        setupSingleResourceDescTextarea(node);
+                    }
+                }
+            });
+        });
+    });
+    
+    // Start observing, but be more specific about what we watch
+    const resourcePanel = document.querySelector('.resources-panel') || document.body;
+    resourceDescObserver.observe(resourcePanel, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// Setup auto-expand for a single resource description textarea
+function setupSingleResourceDescTextarea(textarea) {
+    if (textarea.dataset.autoExpandSetup) {
+        console.log('🔧 Resource description textarea already setup, skipping');
+        return; // Already setup
+    }
+    
+    textarea.dataset.autoExpandSetup = 'true';
+    console.log('🔧 Setting up auto-expand for resource description textarea:', textarea);
+    
+    // Initial sizing
+    autoExpandResourceDescription(textarea);
+    
+    // Add event listeners
+    textarea.addEventListener('input', () => {
+        autoExpandResourceDescription(textarea);
+    });
+    
+    textarea.addEventListener('paste', () => {
+        // Delay to allow paste content to be processed
+        setTimeout(() => {
+            autoExpandResourceDescription(textarea);
+        }, 10);
+    });
+}
 
 // Expandable input section - try multiple approaches
 console.log('Script loaded - setting up expandable section');
 
 // Function to set up the expandable behavior
 function setupExpandableInput() {
+    console.log('=== EXPANDABLE SETUP DEBUG ===');
     console.log('Attempting to set up expandable input...');
 
-    const promptInput = document.querySelector('#start-prompt-input textarea');
+    // Debug: Check for start-prompt-input element
+    const startPromptContainer = document.getElementById('start-prompt-input');
+    console.log('start-prompt-input container:', startPromptContainer);
+    
+    if (startPromptContainer) {
+        const textareas = startPromptContainer.querySelectorAll('textarea');
+        const inputs = startPromptContainer.querySelectorAll('input');
+        console.log('Found textareas in container:', textareas.length, textareas);
+        console.log('Found inputs in container:', inputs.length, inputs);
+    }
+
+    // Try multiple selectors for the prompt input
+    const promptInput1 = document.querySelector('#start-prompt-input textarea');
+    const promptInput2 = document.querySelector('#start-prompt-input input');
+    const promptInput3 = document.querySelector('[id*="start-prompt"] textarea');
+    const promptInput4 = document.querySelector('[id*="start-prompt"] input');
+    
+    console.log('Selector #start-prompt-input textarea:', promptInput1);
+    console.log('Selector #start-prompt-input input:', promptInput2);
+    console.log('Selector [id*="start-prompt"] textarea:', promptInput3);
+    console.log('Selector [id*="start-prompt"] input:', promptInput4);
+    
+    const promptInput = promptInput1 || promptInput2 || promptInput3 || promptInput4;
+    console.log('Final selected promptInput:', promptInput);
+
+    // Debug: Check for expandable section
     const expandableSection = document.getElementById('start-expandable-section');
+    console.log('start-expandable-section:', expandableSection);
+    
+    if (!expandableSection) {
+        const allExpandableElements = document.querySelectorAll('[id*="expandable"]');
+        console.log('All elements with "expandable" in id:', allExpandableElements);
+        const allStartElements = document.querySelectorAll('[id*="start"]');
+        console.log('All elements with "start" in id:', allStartElements);
+    }
 
     if (promptInput && expandableSection) {
-        console.log('Found elements:', promptInput, expandableSection);
+        console.log('✓ Found both elements - setting up event listeners');
+        console.log('promptInput element type:', promptInput.tagName);
+        console.log('expandableSection element type:', expandableSection.tagName);
+        
+        // Debug: Check current height of prompt input
+        const currentHeight = window.getComputedStyle(promptInput).height;
+        const currentScrollHeight = promptInput.scrollHeight;
+        console.log(`📏 Main input current height: ${currentHeight}, scrollHeight: ${currentScrollHeight}px, content length: ${promptInput.value.length}`);
 
         // Expand on focus
         promptInput.addEventListener('focus', () => {
-            console.log('Input focused - expanding');
+            console.log('✓ Input focused - expanding');
             expandableSection.classList.add('expanded');
             // Remove inline styles to let CSS handle the transition
             expandableSection.style.removeProperty('display');
@@ -163,8 +281,9 @@ function setupExpandableInput() {
 
         // Also expand on click
         promptInput.addEventListener('click', () => {
+            console.log('✓ Input clicked - current expanded state:', expandableSection.classList.contains('expanded'));
             if (!expandableSection.classList.contains('expanded')) {
-                console.log('Input clicked - expanding');
+                console.log('✓ Input clicked - expanding');
                 expandableSection.classList.add('expanded');
                 // Remove inline styles to let CSS handle the transition
                 expandableSection.style.removeProperty('display');
@@ -172,6 +291,8 @@ function setupExpandableInput() {
                 // Add class to card for styling
                 const card = document.querySelector('.start-input-card');
                 if (card) card.classList.add('has-expanded');
+            } else {
+                console.log('✓ Input clicked - already expanded');
             }
         });
 
@@ -206,8 +327,18 @@ function setupExpandableInput() {
             const isExampleButton = e.target.closest('.start-example-btn');
             const isRemoveButton = e.target.closest('.remove-resource');
 
+            console.log('✓ Click outside check:', {
+                target: e.target.tagName + (e.target.className ? '.' + e.target.className : ''),
+                isClickInInput,
+                isClickInExpandable,
+                isExampleButton: !!isExampleButton,
+                isRemoveButton: !!isRemoveButton,
+                currentlyExpanded: expandableSection.classList.contains('expanded')
+            });
+
             // Always collapse when clicking outside, unless it's a remove resource button
             if (!isClickInInput && !isClickInExpandable && !isExampleButton && !isRemoveButton) {
+                console.log('✓ Clicking outside - collapsing');
                 expandableSection.classList.remove('expanded');
                 // Remove inline styles to let CSS handle the transition
                 expandableSection.style.removeProperty('display');
@@ -215,14 +346,19 @@ function setupExpandableInput() {
                 // Remove class from card
                 const card = document.querySelector('.start-input-card');
                 if (card) card.classList.remove('has-expanded');
+            } else {
+                console.log('✓ Click inside or on special element - not collapsing');
             }
         });
 
         return true;
+    } else {
+        console.log('✗ Missing elements:');
+        console.log('  promptInput:', !!promptInput);
+        console.log('  expandableSection:', !!expandableSection);
+        console.log('=== END EXPANDABLE SETUP DEBUG ===');
+        return false;
     }
-
-    console.log('Elements not found yet');
-    return false;
 }
 
 // Try to set up expandable input with exponential backoff
@@ -230,16 +366,19 @@ let expandableSetupAttempts = 0;
 const maxExpandableAttempts = 4;
 
 function trySetupExpandableInput() {
+    console.log('🔄 trySetupExpandableInput() called, attempt:', expandableSetupAttempts + 1);
     if (setupExpandableInput()) {
-        console.log('Expandable input setup successful');
+        console.log('✅ Expandable input setup successful');
         return;
     }
     
     expandableSetupAttempts++;
     if (expandableSetupAttempts < maxExpandableAttempts) {
         const delay = 500 * Math.pow(2, expandableSetupAttempts - 1); // 500ms, 1000ms, 2000ms
-        console.log(`Expandable input not ready, retrying in ${delay}ms...`);
+        console.log(`❌ Expandable input not ready, retrying in ${delay}ms... (attempt ${expandableSetupAttempts}/${maxExpandableAttempts})`);
         setTimeout(trySetupExpandableInput, delay);
+    } else {
+        console.log('❌ Expandable input setup failed after all attempts');
     }
 }
 
@@ -348,6 +487,70 @@ setInterval(() => {
         }
     }
 }, 100);
+
+// Re-initialize expandable functionality when returning to Start tab
+document.addEventListener('click', function(e) {
+    // Only show detailed logging for tab clicks to reduce noise
+    if (e.target && e.target.getAttribute('role') === 'tab') {
+        console.log('DEBUG: Tab click detected on element:', e.target);
+        console.log('DEBUG: Element role:', e.target.getAttribute('role'));
+        console.log('DEBUG: Element textContent:', e.target.textContent);
+        console.log('DEBUG: Element classList:', e.target.classList);
+        
+        // Try multiple ways to detect Draft tab click (it's called "Draft" not "Start")
+        const isDraftTab1 = e.target && e.target.getAttribute('role') === 'tab' && e.target.textContent.includes('Draft');
+        const isDraftTab2 = e.target && e.target.textContent && e.target.textContent.trim() === 'Draft';
+        const isDraftTab3 = e.target && e.target.classList && e.target.classList.contains('tab') && e.target.textContent.includes('Draft');
+        const isDraftTab4 = e.target && e.target.closest('button[role="tab"]') && e.target.textContent.includes('Draft');
+        
+        console.log('DEBUG: Draft tab detection methods:');
+        console.log('  Method 1 (role=tab + Draft text):', isDraftTab1);
+        console.log('  Method 2 (text === Draft):', isDraftTab2);  
+        console.log('  Method 3 (class=tab + Draft text):', isDraftTab3);
+        console.log('  Method 4 (closest tab + Draft text):', isDraftTab4);
+        
+        if (isDraftTab1 || isDraftTab2 || isDraftTab3 || isDraftTab4) {
+            console.log('🔄 DEBUG: Draft tab clicked, re-initializing expandable functionality');
+            setTimeout(() => {
+                // Reset the setup attempts counter to allow re-setup
+                expandableSetupAttempts = 0;
+                console.log('🔄 DEBUG: About to call trySetupExpandableInput()');
+                trySetupExpandableInput();
+            }, 100);
+        }
+    }
+});
+
+// Also try using MutationObserver to detect when Start tab becomes visible
+const tabObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-selected') {
+            const target = mutation.target;
+            if (target.textContent && target.textContent.includes('Draft') && target.getAttribute('aria-selected') === 'true') {
+                console.log('DEBUG: Draft tab became active via MutationObserver');
+                setTimeout(() => {
+                    expandableSetupAttempts = 0;
+                    trySetupExpandableInput();
+                }, 100);
+            }
+        }
+    });
+});
+
+// Start observing tab changes
+setTimeout(() => {
+    const tabContainer = document.querySelector('.tab-nav') || document.querySelector('[role="tablist"]');
+    if (tabContainer) {
+        console.log('DEBUG: Found tab container, starting MutationObserver');
+        tabObserver.observe(tabContainer, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['aria-selected']
+        });
+    } else {
+        console.log('DEBUG: No tab container found for MutationObserver');
+    }
+}, 1000);
 
 // Delete block function
 function deleteBlock(blockId) {
@@ -560,6 +763,20 @@ function autoExpandTextarea(textarea) {
         return;
     }
 
+    // Handle resource description textareas specially
+    const isResourceDesc = textarea.closest('.resource-desc-gradio');
+    if (isResourceDesc) {
+        autoExpandResourceDescription(textarea);
+        return;
+    }
+    
+    // Skip the main start prompt input - it should maintain its own sizing
+    const isStartPromptInput = textarea.closest('#start-prompt-input');
+    if (isStartPromptInput) {
+        console.log('🚫 Skipping auto-expand for main start prompt input');
+        return;
+    }
+
     // For other textareas, use height-based method
     textarea.style.height = 'auto';
     const newHeight = textarea.scrollHeight + 2;
@@ -567,6 +784,66 @@ function autoExpandTextarea(textarea) {
     textarea.style.maxHeight = '';
     textarea.style.overflow = 'hidden';
     textarea.classList.remove('scrollable');
+}
+
+// Auto-expand function specifically for resource descriptions
+function autoExpandResourceDescription(textarea) {
+    if (!textarea) return;
+    
+    // Reset height to auto to get accurate scrollHeight
+    const originalHeight = textarea.style.height;
+    textarea.style.height = 'auto';
+    
+    // Calculate the needed height more accurately
+    const scrollHeight = textarea.scrollHeight;
+    const computedStyle = window.getComputedStyle(textarea);
+    const lineHeight = parseFloat(computedStyle.lineHeight) || 15.4; // 11px * 1.4
+    const paddingTop = parseFloat(computedStyle.paddingTop) || 4;
+    const paddingBottom = parseFloat(computedStyle.paddingBottom) || 4;
+    const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
+    const borderBottom = parseFloat(computedStyle.borderBottomWidth) || 0;
+    const totalVerticalPadding = paddingTop + paddingBottom + borderTop + borderBottom;
+    
+    // Calculate number of lines based on content height
+    const contentHeight = scrollHeight - totalVerticalPadding;
+    const lines = Math.max(1, Math.round(contentHeight / lineHeight));
+    
+    // Set minimum of 2 lines, maximum of 8 lines
+    const minLines = 2;
+    const maxLines = 8;
+    const finalLines = Math.max(minLines, Math.min(maxLines, lines));
+    
+    // Calculate final height
+    const finalHeight = (finalLines * lineHeight) + totalVerticalPadding;
+    
+    // Apply the height with !important to override any CSS
+    textarea.style.setProperty('height', finalHeight + 'px', 'important');
+    
+    // Handle scrolling if content exceeds max lines
+    if (lines > maxLines) {
+        textarea.style.setProperty('overflow-y', 'auto', 'important');
+        textarea.classList.add('scrollable');
+    } else {
+        textarea.style.setProperty('overflow-y', 'hidden', 'important');
+        textarea.classList.remove('scrollable');
+    }
+    
+    console.log(`🔧 Resource desc auto-expand - content: "${textarea.value.substring(0, 50)}...", lines: ${lines}, finalLines: ${finalLines}, height: ${finalHeight}px`);
+    
+    // Debug: Check if the height was actually applied
+    setTimeout(() => {
+        const actualHeight = window.getComputedStyle(textarea).height;
+        const actualScrollHeight = textarea.scrollHeight;
+        console.log(`🔧 Height check - set: ${finalHeight}px, actual: ${actualHeight}, scrollHeight: ${actualScrollHeight}px`);
+        
+        // Only override if there's a significant difference (more than 1px)
+        if (Math.abs(parseFloat(actualHeight) - finalHeight) > 1) {
+            console.log('🔧 Significant height override detected, forcing with inline style');
+            textarea.setAttribute('style', `height: ${finalHeight}px !important; overflow-y: ${lines > maxLines ? 'auto' : 'hidden'} !important;`);
+        } else {
+            console.log('🔧 Height applied correctly (within tolerance)');
+        }
+    }, 100);
 }
 
 // Setup auto-expand for all textareas
