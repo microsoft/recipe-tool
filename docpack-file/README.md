@@ -14,16 +14,16 @@ pip install -e .
 
 ```bash
 # Create a docpack from an outline
-docpack create --outline outline.json --output document.docpack
+docpack_file create --outline outline.json --output document.docpack
 
 # Extract a docpack
-docpack extract document.docpack --dir extracted/
+docpack_file extract document.docpack --dir extracted/
 
 # Validate a docpack
-docpack validate document.docpack
+docpack_file validate document.docpack
 
 # List docpack contents
-docpack list document.docpack
+docpack_file list document.docpack
 ```
 
 ### Python API
@@ -47,6 +47,7 @@ outline_data, resource_files = DocpackHandler.extract_package(
 ## Outline Format
 
 The outline JSON should follow the document generator format with:
+
 - `title`: Document title
 - `general_instruction`: Overall instructions for document generation
 - `resources`: Array of resource objects with `key`, `path`, `title`, and `description`

@@ -32,6 +32,13 @@
     {
       "type": "set_context",
       "config": {
+        "key": "model",
+        "value": "{{ model | default: 'openai/gpt-4o' }}"
+      }
+    },
+    {
+      "type": "set_context",
+      "config": {
         "key": "output_root",
         "value": "{{ output_root | default: 'output' }}"
       }

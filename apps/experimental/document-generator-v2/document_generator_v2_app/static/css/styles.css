@@ -1304,7 +1304,7 @@
     border: 0;
 }
 
-.resource-title-gradio input {
+.resource-title-gradio input, .resource-title-gradio textarea {
     background: white !important;
     font-size: 11px !important;
     padding: 2px 4px !important;
@@ -1323,11 +1323,11 @@
     border: 1px solid #e0e0e0 !important;
 }
 
-.resource-title-gradio input:hover {
+.resource-title-gradio input:hover, .resource-title-gradio textarea:hover{
     border-color: #ccc !important;
 }
 
-.resource-title-gradio input:focus {
+.resource-title-gradio input:focus, .resource-title-gradio textarea:focus {
     outline: none !important;
     box-shadow: none !important;
 }
