@@ -2009,7 +2009,7 @@ def create_app():
                         with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
                             # Display uploaded resources (above dropzone and button)
                             with gr.Column(elem_classes="start-resources-display-container"):
-                                # Create a placeholder for the resources displayfvz
+                                # Create a placeholder for the resources display
                                 start_resources_display = gr.HTML(
                                     value='<div class="start-resources-list"></div>',
                                     elem_classes="start-resources-display",
@@ -2028,7 +2028,7 @@ def create_app():
                                             html_content += f"""
                                                 <div class="dropped-resource">
                                                     <span>{resource["name"]}</span>
-                                                    <button class="remove-resource" onclick="event.stopPropagation(); removeStartResourceByIndex({idx}, '{resource["name"]}'); return false;">×</button>
+                                                    <button class="remove-resource" onclick="event.stopPropagation(); removeStartResourceByIndex({idx}, '{resource["name"]}'); return false;">🗑</button>
                                                 </div>
                                             """
                                         html_content += "</div>"
@@ -2039,7 +2039,7 @@ def create_app():
 
                             # Upload area - full width
                             gr.TextArea(
-                                label="Add reference files for context.",
+                                label="Add reference files for AI context. (Text files only: .md, .csv, .py, .json, .txt, etc.)",
                                 elem_classes="resource-drop-label",
                             )
                             # File upload dropzone
@@ -2716,6 +2716,14 @@ def create_app():
                             "Update", visible=True, elem_id="update-trigger", elem_classes="hidden-component"
                         )
 
+                        # Hidden components for resource deletion
+                        delete_resource_path = gr.Textbox(
+                            visible=True, elem_id="delete-resource-path", elem_classes="hidden-component"
+                        )
+                        delete_resource_trigger = gr.Button(
+                            "Delete Resource", visible=True, elem_id="delete-resource-trigger", elem_classes="hidden-component"
+                        )
+
                         # Hidden components for toggle collapse
                         toggle_block_id = gr.Textbox(
                             visible=True, elem_id="toggle-block-id", elem_classes="hidden-component"
@@ -2988,6 +2996,13 @@ def create_app():
             fn=delete_block,
             inputs=[blocks_state, delete_block_id, doc_title, doc_description, resources_state],
             outputs=[blocks_state, outline_state, json_output],
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+
+        # Delete resource handler
+        delete_resource_trigger.click(
+            fn=delete_resource_gradio,
+            inputs=[resources_state, delete_resource_path, doc_title, doc_description, blocks_state],
+            outputs=[resources_state, blocks_state, outline_state, json_output],
         ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
 
         # Update block content handler

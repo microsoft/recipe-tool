@@ -552,6 +552,44 @@ setTimeout(() => {
     }
 }, 1000);
 
+// Note: Resource icons now handled by CSS based on tab structure
+
+// Note: Resource delete buttons now use onclick attribute directly
+
+// Delete resource function
+function deleteResource(resourcePath) {
+    console.log('deleteResource called with resourcePath:', resourcePath);
+    // Set the resource path in the hidden textbox
+    const resourcePathInput = document.getElementById('delete-resource-path');
+    console.log('Delete resource path input element:', resourcePathInput);
+
+    if (resourcePathInput) {
+        // Find the textarea element and set its value
+        const textarea = resourcePathInput.querySelector('textarea') || resourcePathInput.querySelector('input[type="text"]');
+        console.log('Delete resource textarea element:', textarea);
+
+        if (textarea) {
+            textarea.value = resourcePath;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Trigger the hidden delete button
+            const deleteButton = document.getElementById('delete-resource-trigger');
+            console.log('Delete resource trigger button:', deleteButton);
+
+            if (deleteButton) {
+                deleteButton.click();
+                console.log('Clicked delete resource trigger');
+            } else {
+                console.error('Delete resource trigger button not found');
+            }
+        } else {
+            console.error('Delete resource textarea not found');
+        }
+    } else {
+        console.error('Delete resource path input not found');
+    }
+}
+
 // Delete block function
 function deleteBlock(blockId) {
     console.log('deleteBlock called with blockId:', blockId);
