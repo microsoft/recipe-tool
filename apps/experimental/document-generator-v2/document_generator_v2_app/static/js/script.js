@@ -552,6 +552,7 @@ setTimeout(() => {
     }
 }, 1000);
 
+<<<<<<< HEAD
 // Note: Resource icons now handled by CSS based on tab structure
 
 // Note: Resource delete buttons now use onclick attribute directly
@@ -590,6 +591,8 @@ function deleteResource(resourcePath) {
     }
 }
 
+=======
+>>>>>>> main
 // Delete block function
 function deleteBlock(blockId) {
     console.log('deleteBlock called with blockId:', blockId);

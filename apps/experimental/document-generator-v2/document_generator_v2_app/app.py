@@ -2009,7 +2009,7 @@ def create_app():
                         with gr.Column(elem_classes="start-expandable-content", elem_id="start-expandable-section"):
                             # Display uploaded resources (above dropzone and button)
                             with gr.Column(elem_classes="start-resources-display-container"):
-                                # Create a placeholder for the resources display
+                                # Create a placeholder for the resources displayfvz
                                 start_resources_display = gr.HTML(
                                     value='<div class="start-resources-list"></div>',
                                     elem_classes="start-resources-display",
