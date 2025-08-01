@@ -12,7 +12,7 @@ members = [
     "docpack-file",
     "docs-mcp-server",
     "document-generator",
-    "document-generator-v2-app",
+    "document-generator-v1",
     "gradio-components",
     "python-code-tools",
     "recipe-executor",
@@ -499,8 +499,51 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "document-generator"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "apps/document-generator" }
+dependencies = [
+    { name = "docpack-file" },
+    { name = "gradio" },
+    { name = "jsonschema" },
+    { name = "python-dotenv" },
+    { name = "recipe-executor" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "build" },
+    { name = "debugpy" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "docpack-file", editable = "docpack-file" },
+    { name = "gradio", specifier = ">=5.30.0" },
+    { name = "jsonschema", specifier = ">=4.24.0" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
+    { name = "recipe-executor", editable = "recipe-executor" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "build", specifier = ">=1.2.2.post1" },
+    { name = "debugpy", specifier = ">=1.8.14" },
+    { name = "pyright", specifier = ">=1.1.402" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.0.0" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "ruff", specifier = ">=0.12.0" },
+]
+
+[[package]]
+name = "document-generator-v1"
+version = "0.1.0"
+source = { editable = "apps/experimental/document-generator-v1" }
 dependencies = [
     { name = "gradio" },
     { name = "jsonschema" },
@@ -540,49 +583,6 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.0.0" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "ruff", specifier = ">=0.12.0" },
-]
-
-[[package]]
-name = "document-generator-v2-app"
-version = "0.1.0"
-source = { editable = "apps/experimental/document-generator-v2" }
-dependencies = [
-    { name = "docpack-file" },
-    { name = "gradio" },
-    { name = "jsonschema" },
-    { name = "python-dotenv" },
-    { name = "recipe-executor" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "build" },
-    { name = "debugpy" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "docpack-file", editable = "docpack-file" },
-    { name = "gradio", specifier = ">=4.0.0" },
-    { name = "jsonschema", specifier = ">=4.0.0" },
-    { name = "python-dotenv", specifier = ">=0.20.0" },
-    { name = "recipe-executor", editable = "recipe-executor" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "build", specifier = ">=1.2.2.post1" },
-    { name = "debugpy", specifier = ">=1.8.14" },
-    { name = "pyright", specifier = ">=1.1.402" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-asyncio", specifier = ">=0.26.0" },
-    { name = "pytest-cov", specifier = ">=6.1.1" },
-    { name = "ruff", specifier = ">=0.11.10" },
 ]
 
 [[package]]
