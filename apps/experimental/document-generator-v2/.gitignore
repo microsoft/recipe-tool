@@ -41,6 +41,9 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Deployment
+*.zip
+
 # Session data
 /session_data/
 

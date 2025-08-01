@@ -210,22 +210,22 @@
 }
 
 .start-example-btn {
-    background: #f8f9fa !important;
-    border: 1px solid #e5e5e5 !important;
-    color: #1a1a1a !important;
+    background: #e8f5f5 !important;
+    border: 1px solid #b8dfe0 !important;
     padding: 4px 12px !important;
     font-size: 13px !important;
+    font-weight: 500 !important;
     transition: all 0.2s ease !important;
     min-height: 32px !important;
     height: 32px !important;
+    box-shadow: 0 1px 3px rgba(74, 157, 158, 0.15);
 }
 
 .start-example-btn:hover {
-    background: #e8f5f5 !important;
+    background: #b8dfe0 !important;
     border-color: #4a9d9e !important;
-    color: #2d7474 !important;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(74, 157, 158, 0.15);
+    box-shadow: 0 3px 8px rgba(74, 157, 158, 0.2);
 }
 
 /* Start tab bottom row */
