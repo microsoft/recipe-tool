@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from document_generator_app.ui import build_editor
+from document_generator_v1_app.ui import build_editor
 
 
 def check_deployment_status():

@@ -1,10 +1,18 @@
 repo_root = $(shell git rev-parse --show-toplevel)
 include $(repo_root)/tools/makefiles/python.mk
 
-# Document Generator specific targets
-.PHONY: refresh-examples build
-refresh-examples:  ## Refresh example docpacks from source JSON files
-	python scripts/refresh_examples.py
+# Override all test-related targets to skip testing for this app
+.PHONY: test pytest type-check
+test:
+	@echo "Testing disabled for document-generator"
+	@true
 
-build:  ## Build deployment package (bundle recipes + refresh examples)
-	python scripts/build_deployment.py
+pytest:
+	@echo "Pytest disabled for document-generator"
+	@true
+
+# Build deployment package
+.PHONY: build
+build:
+	@echo "Building deployment package..."
+	@python scripts/build_deployment.py

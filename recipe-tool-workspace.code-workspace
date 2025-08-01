@@ -29,8 +29,8 @@
       "path": "./apps/document-generator"
     },
     {
-      "name": "🖥️ Document Generator App V2",
-      "path": "./apps/experimental/document-generator-v2"
+      "name": "🖥️ Document Generator App V1",
+      "path": "./apps/experimental/document-generator-v1"
     },
     {
       "name": "🖥️ Recipe Executor App",

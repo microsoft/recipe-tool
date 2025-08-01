@@ -25,7 +25,7 @@ class SessionManager:
             session_id = str(uuid.uuid4())
 
         if session_id not in self.session_dirs:
-            session_dir = Path(tempfile.gettempdir()) / f"doc-gen-{session_id}"
+            session_dir = Path(tempfile.gettempdir()) / f"doc-gen-v2-{session_id}"
             session_dir.mkdir(exist_ok=True)
 
             # Create subdirectories for organized file management

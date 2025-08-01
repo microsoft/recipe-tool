@@ -1,4 +1,4 @@
-"""Configuration settings for the Document Generator app."""
+"""Configuration settings for the Document Generator V2 app."""
 
 import os
 from typing import NamedTuple, List
@@ -31,16 +31,17 @@ class Settings:
     example_outlines: List[ExampleOutline] = [
         ExampleOutline(
             name="README Generator",
-            path="examples/readme.docpack",
+            path="examples/readme-generation/readme.docpack",
         ),
         ExampleOutline(
             name="Product Launch Documentation",
-            path="examples/launch-documentation.docpack",
+            path="examples/launch-documentation/launch-documentation.docpack",
+        ),
+        ExampleOutline(
+            name="Annual Performance Review",
+            path="examples/scenario-4-annual-performance-review/Annual Employee Performance Review_20250701_133228.docpack",
         ),
     ]
-
-    # Theme settings
-    theme: str = "soft"  # Use "default", "soft", "glass", etc.
 
 
 # Create global settings instance

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Build script for Document Generator V2 deployment.
+Build script for Document Generator deployment.
 
-This script prepares the document generator v2 app for deployment by:
+This script prepares the document generator app for deployment by:
 1. Bundling recipe files from the main recipes directory
-2. Creating a self-contained deployment package
+2. Refreshing example docpacks with latest content
+3. Creating a self-contained deployment package
 
 Usage:
     python scripts/build_deployment.py
@@ -14,9 +15,16 @@ Usage:
 import shutil
 import sys
 from pathlib import Path
+import json
 
 # Add the parent directory to path for importing modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from scripts.refresh_examples import (  # noqa: E402
+    collect_resource_files,
+    convert_paths_for_docpack,
+)
+from document_generator_app.package_handler import DocpackHandler  # noqa: E402
 
 
 def get_repo_root() -> Path:
@@ -38,7 +46,7 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
 
     # Source and destination paths
     recipes_source = repo_root / "recipes" / "document_generator"
-    recipes_dest = app_dir / "document_generator_v2_app" / "recipes"
+    recipes_dest = app_dir / "document_generator_app" / "recipes"
 
     # Clean destination directory
     if recipes_dest.exists():
@@ -54,13 +62,6 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
         print(f"    Copied: {main_recipe.name}")
     else:
         print(f"    Warning: Main recipe not found at {main_recipe}")
-
-    docpack_recipe = recipes_source / "generate_docpack.json"
-    if docpack_recipe.exists():
-        shutil.copy2(docpack_recipe, recipes_dest / "generate_docpack.json")
-        print(f"    Copied: {docpack_recipe.name}")
-    else:
-        print(f"    Warning: Main recipe not found at {docpack_recipe}")
 
     # Copy recipes subdirectory
     recipes_subdir_source = recipes_source / "recipes"
@@ -78,27 +79,80 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
     print(f"    ✓ Recipes bundled to: {recipes_dest}")
 
 
+def refresh_examples(app_dir: Path, repo_root: Path) -> None:
+    """Refresh example docpacks with latest content."""
+    print("📄 Refreshing example docpacks...")
+
+    # Source and destination paths
+    examples_source = repo_root / "recipes" / "document_generator" / "examples"
+    examples_dest = app_dir / "examples"
+
+    # Clean destination directory
+    if examples_dest.exists():
+        shutil.rmtree(examples_dest)
+    examples_dest.mkdir(parents=True, exist_ok=True)
+
+    # Find all example JSON files
+    example_files = list(examples_source.glob("*.json"))
+
+    if not example_files:
+        print(f"    Warning: No example files found in {examples_source}")
+        return
+
+    print(f"    Found {len(example_files)} example files:")
+
+    for json_file in sorted(example_files):
+        print(f"      Processing: {json_file.name}")
+
+        try:
+            # Load the JSON outline
+            with open(json_file, "r", encoding="utf-8") as f:
+                outline_data = json.load(f)
+
+            # Collect referenced resource files (before path conversion)
+            # Resource paths in JSON are relative to repo root, not examples directory
+            resource_files = collect_resource_files(outline_data, repo_root)
+
+            # Convert file paths to simple filenames for docpack format
+            converted_outline = convert_paths_for_docpack(outline_data)
+
+            # Create docpack filename
+            docpack_name = json_file.stem + ".docpack"
+            docpack_path = examples_dest / docpack_name
+
+            # Create the docpack
+            DocpackHandler.create_package(converted_outline, resource_files, docpack_path)
+
+            print(f"        ✓ Created: {docpack_name}")
+            if resource_files:
+                print(f"          Bundled {len(resource_files)} resource files")
+
+        except Exception as e:
+            print(f"        ✗ Error processing {json_file.name}: {e}")
+
+    print(f"    ✓ Examples refreshed in: {examples_dest}")
+
+
 def create_gitignore_entry(app_dir: Path) -> None:
     """Add bundled recipes to .gitignore."""
     gitignore_path = app_dir / ".gitignore"
-    recipes_entry = "document_generator_v2_app/recipes/"
-
-    # Create .gitignore if it doesn't exist
-    if not gitignore_path.exists():
-        gitignore_path.write_text("")
+    recipes_entry = "document_generator_app/recipes/"
 
     # Read existing .gitignore
-    existing_content = gitignore_path.read_text()
+    existing_lines = []
+    if gitignore_path.exists():
+        with open(gitignore_path, "r", encoding="utf-8") as f:
+            existing_lines = [line.rstrip() for line in f.readlines()]
 
     # Add recipes entry if not present
-    if recipes_entry not in existing_content:
-        if existing_content and not existing_content.endswith("\n"):
-            existing_content += "\n"
+    if recipes_entry not in existing_lines:
+        existing_lines.append("")
+        existing_lines.append("# Bundled recipes (generated by build script)")
+        existing_lines.append(recipes_entry)
 
-        existing_content += "\n# Bundled recipes (generated by build script)\n"
-        existing_content += recipes_entry + "\n"
+        with open(gitignore_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(existing_lines) + "\n")
 
-        gitignore_path.write_text(existing_content)
         print("    ✓ Added recipes to .gitignore")
 
 
@@ -109,7 +163,7 @@ def verify_build(app_dir: Path) -> bool:
     errors = []
 
     # Check recipes directory
-    recipes_dir = app_dir / "document_generator_v2_app" / "recipes"
+    recipes_dir = app_dir / "document_generator_app" / "recipes"
     if not recipes_dir.exists():
         errors.append("Recipes directory not found")
     else:
@@ -125,6 +179,15 @@ def verify_build(app_dir: Path) -> bool:
             if len(recipe_files) < 7:  # Expected number of sub-recipes
                 errors.append(f"Expected 7+ recipe files, found {len(recipe_files)}")
 
+    # Check examples directory
+    examples_dir = app_dir / "examples"
+    if not examples_dir.exists():
+        errors.append("Examples directory not found")
+    else:
+        docpack_files = list(examples_dir.glob("*.docpack"))
+        if len(docpack_files) == 0:
+            errors.append("No docpack files found in examples")
+
     if errors:
         print("    ✗ Build verification failed:")
         for error in errors:
@@ -137,7 +200,7 @@ def verify_build(app_dir: Path) -> bool:
 
 def main():
     """Main build script execution."""
-    print("🚀 Building Document Generator V2 deployment package...\n")
+    print("🚀 Building Document Generator deployment package...\n")
 
     try:
         # Get paths
@@ -149,6 +212,10 @@ def main():
 
         # Bundle recipes
         bundle_recipes(app_dir, repo_root)
+        print()
+
+        # Refresh examples
+        refresh_examples(app_dir, repo_root)
         print()
 
         # Update .gitignore
@@ -163,7 +230,7 @@ def main():
             print("✅ Build completed successfully!")
             print(f"📁 Deployment package ready in: {app_dir}")
             print("\nThe app is now self-contained and ready for deployment.")
-            print("All recipe files are bundled within the app directory.")
+            print("All recipe files and examples are bundled within the app directory.")
         else:
             print("❌ Build failed! See errors above.")
             sys.exit(1)
