@@ -35,8 +35,8 @@ async def generate_document(outline: Optional[Outline], session_id: Optional[str
         return ""
 
     # First try bundled recipes (for deployment), then fall back to repo structure (for development)
-    APP_ROOT = Path(__file__).resolve().parents[2]  # document_generator_app parent
-    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_app" / "recipes" / "document_generator_recipe.json"
+    APP_ROOT = Path(__file__).resolve().parents[2]  # document_generator_v1_app parent
+    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v1_app" / "recipes" / "document_generator_recipe.json"
 
     logger.info(f"APP_ROOT: {APP_ROOT}")
     logger.info(f"BUNDLED_RECIPE_PATH: {BUNDLED_RECIPE_PATH}")

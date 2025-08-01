@@ -2,7 +2,7 @@
 """
 Build script for Document Generator V2 deployment.
 
-This script prepares the document generator v2 app for deployment by:
+This script prepares the document generator app for deployment by:
 1. Bundling recipe files from the main recipes directory
 2. Creating a self-contained deployment package
 
@@ -38,7 +38,7 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
 
     # Source and destination paths
     recipes_source = repo_root / "recipes" / "document_generator"
-    recipes_dest = app_dir / "document_generator_v2_app" / "recipes"
+    recipes_dest = app_dir / "document_generator_app" / "recipes"
 
     # Clean destination directory
     if recipes_dest.exists():
@@ -81,7 +81,7 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
 def create_gitignore_entry(app_dir: Path) -> None:
     """Add bundled recipes to .gitignore."""
     gitignore_path = app_dir / ".gitignore"
-    recipes_entry = "document_generator_v2_app/recipes/"
+    recipes_entry = "document_generator_app/recipes/"
 
     # Create .gitignore if it doesn't exist
     if not gitignore_path.exists():
@@ -109,7 +109,7 @@ def verify_build(app_dir: Path) -> bool:
     errors = []
 
     # Check recipes directory
-    recipes_dir = app_dir / "document_generator_v2_app" / "recipes"
+    recipes_dir = app_dir / "document_generator_app" / "recipes"
     if not recipes_dir.exists():
         errors.append("Recipes directory not found")
     else:

@@ -38,8 +38,8 @@ async def generate_document(
         return ""
 
     # First try bundled recipes (for deployment), then fall back to repo structure (for development)
-    APP_ROOT = Path(__file__).resolve().parents[2]  # document_generator_v2_app parent
-    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v2_app" / "recipes" / "document_generator_recipe.json"
+    APP_ROOT = Path(__file__).resolve().parents[2]  # document_generator_app parent
+    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_app" / "recipes" / "document_generator_recipe.json"
 
     logger.info(f"APP_ROOT: {APP_ROOT}")
     logger.info(f"BUNDLED_RECIPE_PATH: {BUNDLED_RECIPE_PATH}")
@@ -163,7 +163,7 @@ async def generate_docpack_from_prompt(
 
     # Setup paths
     APP_ROOT = Path(__file__).resolve().parents[2]
-    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_v2_app" / "recipes" / "generate_docpack.json"
+    BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_app" / "recipes" / "generate_docpack.json"
     DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "antenv" / "bin" / "docpack_file"
 
     logger.info(f"APP_ROOT: {APP_ROOT}")

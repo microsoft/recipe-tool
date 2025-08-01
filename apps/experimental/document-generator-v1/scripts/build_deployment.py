@@ -24,7 +24,7 @@ from scripts.refresh_examples import (  # noqa: E402
     collect_resource_files,
     convert_paths_for_docpack,
 )
-from document_generator_app.package_handler import DocpackHandler  # noqa: E402
+from document_generator_v1_app.package_handler import DocpackHandler  # noqa: E402
 
 
 def get_repo_root() -> Path:
@@ -46,7 +46,7 @@ def bundle_recipes(app_dir: Path, repo_root: Path) -> None:
 
     # Source and destination paths
     recipes_source = repo_root / "recipes" / "document_generator"
-    recipes_dest = app_dir / "document_generator_app" / "recipes"
+    recipes_dest = app_dir / "document_generator_v1_app" / "recipes"
 
     # Clean destination directory
     if recipes_dest.exists():
@@ -136,7 +136,7 @@ def refresh_examples(app_dir: Path, repo_root: Path) -> None:
 def create_gitignore_entry(app_dir: Path) -> None:
     """Add bundled recipes to .gitignore."""
     gitignore_path = app_dir / ".gitignore"
-    recipes_entry = "document_generator_app/recipes/"
+    recipes_entry = "document_generator_v1_app/recipes/"
 
     # Read existing .gitignore
     existing_lines = []
@@ -163,7 +163,7 @@ def verify_build(app_dir: Path) -> bool:
     errors = []
 
     # Check recipes directory
-    recipes_dir = app_dir / "document_generator_app" / "recipes"
+    recipes_dir = app_dir / "document_generator_v1_app" / "recipes"
     if not recipes_dir.exists():
         errors.append("Recipes directory not found")
     else:
