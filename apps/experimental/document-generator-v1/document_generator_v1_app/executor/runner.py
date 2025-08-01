@@ -49,7 +49,7 @@ async def generate_document(outline: Optional[Outline], session_id: Optional[str
         logger.info(f"Using bundled recipes: {RECIPE_PATH}")
     else:
         # Fall back to repo structure (development mode)
-        REPO_ROOT = Path(__file__).resolve().parents[4]
+        REPO_ROOT = Path(__file__).resolve().parents[5]
         RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
         RECIPE_ROOT = RECIPE_PATH.parent
         logger.info(f"Using development recipes: {RECIPE_PATH}")

@@ -26,8 +26,7 @@ The app will open at `http://localhost:8000`
 From the project root, run:
 
 ```bash
-# Build self-contained deployment package
-make build                 # Bundle recipes + refresh examples
+make build                 # Bundle recipes
 
 # Then deploy the entire app directory
 # The app will automatically use bundled recipes

@@ -52,7 +52,7 @@ async def generate_document(
         logger.info(f"Using bundled recipes: {RECIPE_PATH}")
     else:
         # Fall back to repo structure (development mode)
-        REPO_ROOT = Path(__file__).resolve().parents[5]
+        REPO_ROOT = Path(__file__).resolve().parents[4]
         RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "document_generator_recipe.json"
         RECIPE_ROOT = RECIPE_PATH.parent
         logger.info(f"Using repo recipes: {RECIPE_PATH}")
@@ -164,7 +164,7 @@ async def generate_docpack_from_prompt(
     # Setup paths
     APP_ROOT = Path(__file__).resolve().parents[2]
     BUNDLED_RECIPE_PATH = APP_ROOT / "document_generator_app" / "recipes" / "generate_docpack.json"
-    DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "antenv" / "bin" / "docpack_file"
+    DOCPACK_FILE_PACKAGE_PATH = ""  # use default path in non-bundled scenario, set in recipe
 
     logger.info(f"APP_ROOT: {APP_ROOT}")
     logger.info(f"BUNDLED_RECIPE_PATH: {BUNDLED_RECIPE_PATH}")
@@ -174,17 +174,18 @@ async def generate_docpack_from_prompt(
         RECIPE_PATH = BUNDLED_RECIPE_PATH
         RECIPE_ROOT = RECIPE_PATH.parent
         logger.info(f"Using bundled recipes: {RECIPE_PATH}")
-        logger.info(f"DOCPACK_FILE_PACKAGE_PATH: {DOCPACK_FILE_PACKAGE_PATH}")
+        if dev_mode:
+            DOCPACK_FILE_PACKAGE_PATH = Path(__file__).resolve().parents[4] / ".venv/bin/docpack_file" # get to correct root location of recipe.
+        else:
+            DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "antenv" / "bin" / "docpack_file"
     else:
         # Fall back to repo structure
-        REPO_ROOT = Path(__file__).resolve().parents[5]
+        REPO_ROOT = Path(__file__).resolve().parents[4]
         RECIPE_PATH = REPO_ROOT / "recipes" / "document_generator" / "generate_docpack.json"
-        RECIPE_ROOT = RECIPE_PATH.parent.parent
+        RECIPE_ROOT = RECIPE_PATH.parent
         logger.info(f"Using repo recipes: {RECIPE_PATH}")
 
-    if dev_mode:
-        DOCPACK_FILE_PACKAGE_PATH = ""  # use default path in development mode, set in recipe
-        logger.info(f"DOCPACK_FILE_PACKAGE_PATH: {DOCPACK_FILE_PACKAGE_PATH}")
+    logger.info(f"DOCPACK_FILE_PACKAGE_PATH: {DOCPACK_FILE_PACKAGE_PATH}")
 
     # Use session-scoped temp directory
     session_dir = session_manager.get_session_dir(session_id)
