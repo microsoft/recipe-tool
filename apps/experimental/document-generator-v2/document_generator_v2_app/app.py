@@ -540,7 +540,8 @@ def regenerate_outline_from_state(title, description, resources, blocks):
         # Update global state whenever outline is regenerated
         global current_document_state
         current_document_state = {"title": title, "outline_json": json_str, "blocks": blocks}
-        print(f"Regenerated outline from state: {current_document_state}")
+        print(f"DEBUG: regenerate_outline_from_state called with title='{title}'")
+        print(f"DEBUG: Updated global current_document_state: {current_document_state}")
 
         return outline, json_str
     except Exception as e:
@@ -1240,19 +1241,23 @@ def create_docpack_from_current_state():
     print(f"Title: {current_document_state.get('title', 'N/A') if current_document_state else 'No state'}")
     print(f"Has outline_json: {'outline_json' in current_document_state if current_document_state else False}")
     print(f"Number of blocks: {len(current_document_state.get('blocks', [])) if current_document_state else 0}")
+    print(f"Full current_document_state: {current_document_state}")
 
     if not current_document_state:
+        print("ERROR: No current_document_state available for docpack creation")
         return None
 
     try:
         title = current_document_state.get("title", "Document")
         outline_json = current_document_state.get("outline_json", "{}")
+        print(f"DEBUG: Using title '{title}' for docpack filename")
 
         # Create filename from title and timestamp with milliseconds to ensure uniqueness
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         milliseconds = int(time.time() * 1000) % 1000
         safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)[:50]
         docpack_name = f"{safe_title}_{timestamp}_{milliseconds}.docpack"
+        print(f"DEBUG: Generated filename: {docpack_name} (from title: '{title}', timestamp: {timestamp})")
 
         # Create a temporary file for the docpack
         temp_dir = Path(tempfile.gettempdir())
@@ -3434,7 +3439,11 @@ def create_app():
                 start_prompt_input,
                 get_started_btn,
             ],
-        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display)
+        ).then(fn=render_blocks, inputs=[blocks_state, focused_block_state], outputs=blocks_display).then(
+            fn=regenerate_outline_from_state,
+            inputs=[doc_title, doc_description, resources_state, blocks_state],
+            outputs=[outline_state, json_output],
+        )
 
         # Wrapper for file upload that includes rendering
         def handle_start_file_upload_with_render(files, current_resources):
@@ -3686,30 +3695,44 @@ def create_app():
         )
 
         # Hidden inputs for Start tab resource removal
-        with gr.Row(visible=False):
-            start_remove_resource_index = gr.Textbox(elem_id="start-remove-resource-index", visible=False)
-            start_remove_resource_name = gr.Textbox(elem_id="start-remove-resource-name", visible=False)
-            start_remove_resource_btn = gr.Button("Remove", elem_id="start-remove-resource-btn", visible=False)
+        start_remove_resource_index = gr.Textbox(elem_id="start-remove-resource-index", visible=True, elem_classes="hidden-component")
+        start_remove_resource_name = gr.Textbox(elem_id="start-remove-resource-name", visible=True, elem_classes="hidden-component")
+        start_remove_resource_btn = gr.Button("Remove", elem_id="start-remove-resource-btn", visible=True, elem_classes="hidden-component")
 
         # Function to remove resource from Start tab
         def remove_start_resource(resources, index_str, name):
             """Remove a resource from the Start tab by index."""
+            print(f"DEBUG: remove_start_resource called with resources={len(resources) if resources else 0}, index_str='{index_str}', name='{name}'")
+            
             if not resources or not index_str:
+                print("DEBUG: Early return - no resources or no index_str")
                 resources_html = render_start_resources(resources)
                 return resources, resources_html
 
             try:
                 index = int(index_str)
+                print(f"DEBUG: Parsed index={index}, resources length={len(resources)}")
+                
                 if 0 <= index < len(resources):
+                    print(f"DEBUG: Index is valid. Resource at index: {resources[index].get('name', 'unknown')}")
+                    
                     # Verify the name matches as a safety check
                     if resources[index]["name"] == name:
+                        print(f"DEBUG: Name matches, removing resource at index {index}")
                         new_resources = resources.copy()
-                        new_resources.pop(index)
+                        removed_resource = new_resources.pop(index)
+                        print(f"DEBUG: Removed resource: {removed_resource}")
                         resources_html = render_start_resources(new_resources)
+                        print(f"DEBUG: Successfully removed resource, new count: {len(new_resources)}")
                         return new_resources, resources_html
-            except (ValueError, IndexError):
-                pass
+                    else:
+                        print(f"DEBUG: Name mismatch - expected '{name}', got '{resources[index]['name']}'")
+                else:
+                    print(f"DEBUG: Index {index} out of range for {len(resources)} resources")
+            except (ValueError, IndexError) as e:
+                print(f"DEBUG: Exception in remove_start_resource: {e}")
 
+            print("DEBUG: No changes made, returning original resources")
             resources_html = render_start_resources(resources)
             return resources, resources_html
 

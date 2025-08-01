@@ -3047,28 +3047,37 @@ function removeStartResourceByIndex(index, resourceName) {
     // Prevent the card from collapsing
     const expandableSection = document.getElementById('start-expandable-section');
     const wasExpanded = expandableSection && expandableSection.classList.contains('expanded');
+    console.log('DEBUG: expandableSection found:', !!expandableSection, 'wasExpanded:', wasExpanded);
 
     // Find the hidden inputs for start tab resource removal
     const indexInput = document.getElementById('start-remove-resource-index');
     const nameInput = document.getElementById('start-remove-resource-name');
+    console.log('DEBUG: indexInput found:', !!indexInput, 'nameInput found:', !!nameInput);
 
     if (indexInput && nameInput) {
         // Find the actual input elements (Gradio wraps them)
         const indexTextarea = indexInput.querySelector('textarea') || indexInput.querySelector('input[type="text"]');
         const nameTextarea = nameInput.querySelector('textarea') || nameInput.querySelector('input[type="text"]');
+        console.log('DEBUG: indexTextarea found:', !!indexTextarea, 'nameTextarea found:', !!nameTextarea);
 
         if (indexTextarea && nameTextarea) {
             // Set the values
             indexTextarea.value = index.toString();
             nameTextarea.value = resourceName;
+            console.log('DEBUG: Set index value:', indexTextarea.value, 'name value:', nameTextarea.value);
 
             // Dispatch input events to trigger Gradio update
             indexTextarea.dispatchEvent(new Event('input', { bubbles: true }));
             nameTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('DEBUG: Dispatched input events');
 
             // Find and click the remove button
             const removeBtn = document.getElementById('start-remove-resource-btn');
+            console.log('DEBUG: removeBtn found:', !!removeBtn);
+            console.log('DEBUG: removeBtn element:', removeBtn);
+            
             if (removeBtn) {
+                console.log('DEBUG: About to click remove button');
                 removeBtn.click();
                 console.log('Clicked remove button');
                 
@@ -3084,8 +3093,50 @@ function removeStartResourceByIndex(index, resourceName) {
                         }
                     }, 100);
                 }
+            } else {
+                console.error('DEBUG: Remove button not found! Looking for alternatives...');
+                
+                // Try to find button by other methods
+                const allButtons = document.querySelectorAll('button');
+                console.log('DEBUG: Total buttons in DOM:', allButtons.length);
+                
+                let foundButton = null;
+                allButtons.forEach((btn, idx) => {
+                    if (btn.id === 'start-remove-resource-btn') {
+                        console.log('DEBUG: Found button by ID at index:', idx);
+                        foundButton = btn;
+                    }
+                });
+                
+                if (foundButton) {
+                    console.log('DEBUG: Clicking found button');
+                    foundButton.click();
+                    console.log('Clicked remove button (fallback method)');
+                } else {
+                    console.error('DEBUG: Could not find remove button by any method');
+                    
+                    // List all elements with IDs containing 'start-remove'
+                    const startRemoveElements = document.querySelectorAll('[id*="start-remove"]');
+                    console.log('DEBUG: Elements with start-remove in ID:', startRemoveElements.length);
+                    startRemoveElements.forEach((el, idx) => {
+                        console.log(`DEBUG: start-remove element ${idx}: ID=${el.id}, tag=${el.tagName}`);
+                    });
+                }
             }
+        } else {
+            console.error('DEBUG: Could not find input textareas');
+            console.error('DEBUG: indexInput content:', indexInput ? indexInput.innerHTML : 'null');
+            console.error('DEBUG: nameInput content:', nameInput ? nameInput.innerHTML : 'null');
         }
+    } else {
+        console.error('DEBUG: Could not find input containers');
+        
+        // List all elements with IDs containing 'start-remove'
+        const startRemoveElements = document.querySelectorAll('[id*="start-remove"]');
+        console.log('DEBUG: All start-remove elements:', startRemoveElements.length);
+        startRemoveElements.forEach((el, idx) => {
+            console.log(`DEBUG: Element ${idx}: ID=${el.id}, tag=${el.tagName}`);
+        });
     }
 }
 
