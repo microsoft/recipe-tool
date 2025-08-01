@@ -1,6 +1,13 @@
 {
   "steps": [
     {
+      "type": "set_context",
+      "config": {
+        "key": "dev_guide_path",
+        "value": "{{ component.devguide | default: 'ai_context/DEV_GUIDE_FOR_PYTHON.md' }}"
+      }
+    },
+    {
       "type": "conditional",
       "config": {
         "condition": "{{ edit }}",
