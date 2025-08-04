@@ -1514,7 +1514,6 @@ def handle_start_draft_click_wrapper(prompt, resources, session_id=None):
     print(f"DEBUG: session_id: {session_id}")
 
     # Run the async function synchronously
-    import asyncio
 
     return asyncio.run(handle_start_draft_click(prompt, resources, session_id))
 
@@ -2726,7 +2725,10 @@ def create_app():
                             visible=True, elem_id="delete-resource-path", elem_classes="hidden-component"
                         )
                         delete_resource_trigger = gr.Button(
-                            "Delete Resource", visible=True, elem_id="delete-resource-trigger", elem_classes="hidden-component"
+                            "Delete Resource",
+                            visible=True,
+                            elem_id="delete-resource-trigger",
+                            elem_classes="hidden-component",
                         )
 
                         # Hidden components for toggle collapse
@@ -3695,15 +3697,23 @@ def create_app():
         )
 
         # Hidden inputs for Start tab resource removal
-        start_remove_resource_index = gr.Textbox(elem_id="start-remove-resource-index", visible=True, elem_classes="hidden-component")
-        start_remove_resource_name = gr.Textbox(elem_id="start-remove-resource-name", visible=True, elem_classes="hidden-component")
-        start_remove_resource_btn = gr.Button("Remove", elem_id="start-remove-resource-btn", visible=True, elem_classes="hidden-component")
+        start_remove_resource_index = gr.Textbox(
+            elem_id="start-remove-resource-index", visible=True, elem_classes="hidden-component"
+        )
+        start_remove_resource_name = gr.Textbox(
+            elem_id="start-remove-resource-name", visible=True, elem_classes="hidden-component"
+        )
+        start_remove_resource_btn = gr.Button(
+            "Remove", elem_id="start-remove-resource-btn", visible=True, elem_classes="hidden-component"
+        )
 
         # Function to remove resource from Start tab
         def remove_start_resource(resources, index_str, name):
             """Remove a resource from the Start tab by index."""
-            print(f"DEBUG: remove_start_resource called with resources={len(resources) if resources else 0}, index_str='{index_str}', name='{name}'")
-            
+            print(
+                f"DEBUG: remove_start_resource called with resources={len(resources) if resources else 0}, index_str='{index_str}', name='{name}'"
+            )
+
             if not resources or not index_str:
                 print("DEBUG: Early return - no resources or no index_str")
                 resources_html = render_start_resources(resources)
@@ -3712,10 +3722,10 @@ def create_app():
             try:
                 index = int(index_str)
                 print(f"DEBUG: Parsed index={index}, resources length={len(resources)}")
-                
+
                 if 0 <= index < len(resources):
                     print(f"DEBUG: Index is valid. Resource at index: {resources[index].get('name', 'unknown')}")
-                    
+
                     # Verify the name matches as a safety check
                     if resources[index]["name"] == name:
                         print(f"DEBUG: Name matches, removing resource at index {index}")

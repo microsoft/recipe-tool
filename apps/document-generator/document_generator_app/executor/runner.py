@@ -175,7 +175,9 @@ async def generate_docpack_from_prompt(
         RECIPE_ROOT = RECIPE_PATH.parent
         logger.info(f"Using bundled recipes: {RECIPE_PATH}")
         if dev_mode:
-            DOCPACK_FILE_PACKAGE_PATH = Path(__file__).resolve().parents[4] / ".venv/bin/docpack_file" # get to correct root location of recipe.
+            DOCPACK_FILE_PACKAGE_PATH = (
+                Path(__file__).resolve().parents[4] / ".venv/bin/docpack_file"
+            )  # get to correct root location of recipe.
         else:
             DOCPACK_FILE_PACKAGE_PATH = APP_ROOT / "antenv" / "bin" / "docpack_file"
     else:
