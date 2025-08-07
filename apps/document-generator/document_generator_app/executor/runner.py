@@ -291,7 +291,7 @@ async def generate_docpack_from_prompt(
                 "model": settings.model_id,
                 "output_root": str(session_dir),
                 "document_description": prompt,
-                "resources": resources_str,
+                "resources": resource_paths,
                 "docpack_name": docpack_name,
                 "recipe_root": str(RECIPE_ROOT),
                 "docpack_file_package_path": str(DOCPACK_FILE_PACKAGE_PATH),
