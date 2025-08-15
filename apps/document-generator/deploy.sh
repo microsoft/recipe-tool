@@ -58,7 +58,7 @@ echo "Creating deployment package..."
     -x "deploy.sh" \
     -x "uv.lock" \
     -x "pyproject.toml" \
-    -x "examples/experiments/*" \
+    -x "examples/Documentation*/" \
     -x "examples/scenario-[1-3,5]*/*" \
     -x "examples/*/*.json" \
     -x "examples/*/*.txt" \
