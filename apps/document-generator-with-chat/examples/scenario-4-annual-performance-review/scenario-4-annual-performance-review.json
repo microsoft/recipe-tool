@@ -1,0 +1,82 @@
+{
+  "title": "Annual Employee Performance Review",
+  "general_instruction": "This is an annual performance review, to be written for an audience of both the employee and manager.  It combines writings from other parties (manager and peers) and data.  It will be used by the manager and employee to discuss the employee's progress this year.  It will also remain on record as a reference for the employee. Use concise language, expanding where necessary.  Both the employee and manager have busy workloads, so the review should be informative with key points highlighted.  Make it very easy to read.",
+  "resources": [
+    {
+      "key": "resource_1",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/career-path-plans.txt",
+      "title": "career-path-plans.txt",
+      "description": "potential career paths based on the employee's current status and contributions is provided. "
+    },
+    {
+      "key": "resource_2",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/employee-profile.txt",
+      "title": "employee-profile.txt",
+      "description": "Basic work information and experience described.  This includes an overview of projects this year, educational background, and current skills or training."
+    },
+    {
+      "key": "resource_3",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/kpi-metrics.csv",
+      "title": "kpi-metrics.csv",
+      "description": "stats to inform productivity and accomplishments"
+    },
+    {
+      "key": "resource_4",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/manager-feedback.txt",
+      "title": "manager-feedback.txt",
+      "description": "This is feedback written by the employee's manager.  strengths, areas of development, and recommended actions are included."
+    },
+    {
+      "key": "resource_5",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/peer-feedback.txt",
+      "title": "peer-feedback.txt",
+      "description": "quoted feedback from peers on the employee.  general summarization of all the feedback is also included."
+    },
+    {
+      "key": "resource_6",
+      "path": "/tmp/doc-gen-v2-2ce29a51-d5b2-4ee3-bec1-705d59a18fdc/files/project-summary.txt",
+      "title": "project-summary.txt",
+      "description": "descriptions of the projects led be the employee.  Specifics include impact and achievements ."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Overview",
+      "prompt": "Provide a short summary of the employee's role, tenure, and responsibilities.",
+      "sections": [],
+      "refs": ["resource_2"]
+    },
+    {
+      "title": "Key Achievements",
+      "prompt": "Summarize the top 3\u20135 accomplishments with context and impact.  ",
+      "sections": [
+        {
+          "title": "Areas for Growth",
+          "prompt": "Highlight 2\u20133 areas where the employee can improve or grow professionally.  ",
+          "sections": [],
+          "refs": ["resource_4", "resource_5"]
+        },
+        {
+          "title": "Training and Development",
+          "prompt": "Recommend relevant training, courses, or learning opportunities based on their goals.",
+          "sections": [],
+          "refs": ["resource_1"]
+        }
+      ],
+      "refs": ["resource_3", "resource_6"]
+    },
+    {
+      "title": "Next Year Goals",
+      "prompt": "Propose 3\u20135 measurable goals for the employee to work toward, based on all the material provided. Consider what has been brought up in the prior sections for relevance of goals.",
+      "sections": [],
+      "refs": [
+        "resource_1",
+        "resource_3",
+        "resource_2",
+        "resource_4",
+        "resource_5",
+        "resource_6"
+      ]
+    }
+  ]
+}

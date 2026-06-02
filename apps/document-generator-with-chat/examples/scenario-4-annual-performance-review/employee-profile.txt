@@ -1,0 +1,43 @@
+Employee Profile - Sarah Chen
+
+Basic Information:
+- Name: Sarah Chen
+- Employee ID: EMP-2019-0156
+- Position: Senior Software Engineer
+- Department: Engineering - Frontend Team
+- Manager: David Rodriguez (Engineering Manager)
+- Start Date: March 15, 2019
+- Review Period: January 1, 2024 - December 31, 2024
+- Tenure: 5 years, 9 months
+
+Role & Responsibilities:
+- Lead frontend development for core product features
+- Mentor junior developers and code review responsibilities
+- Collaborate with design team on UI/UX implementation
+- Participate in architecture decisions for frontend systems
+- Contribute to engineering best practices and standards
+
+Current Tech Stack:
+- Primary: React, TypeScript, Node.js
+- Tools: Webpack, Jest, Cypress, Figma
+- Cloud: AWS, Docker, Kubernetes
+- Database: PostgreSQL, Redis
+
+Team Structure:
+- Reports to: David Rodriguez
+- Direct Reports: 2 junior frontend developers
+- Cross-functional collaboration: Design, Product, QA teams
+- Team size: 12 engineers in frontend division
+
+Key Projects This Year:
+1. OAuth authentication system overhaul
+2. Real-time notifications platform
+3. Mobile-responsive dashboard redesign
+4. Performance optimization initiative
+5. Junior developer mentorship program
+
+Professional Background:
+- Bachelor's in Computer Science - UC Berkeley (2017)
+- Previous role: Frontend Developer at TechStartup Inc (2017-2019)
+- Specializations: React ecosystem, performance optimization, accessibility
+- Certifications: AWS Solutions Architect Associate (2023)

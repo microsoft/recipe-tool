@@ -1,0 +1,16 @@
+account_id,company_name,current_arr,renewal_date,renewal_probability,new_arr,growth_rate,contract_length,csm,notes
+ACC-1001,GlobalTech Corp,450000,2024-12-15,90%,495000,10%,24 months,Sarah Kim,Expanding to 3 new departments
+ACC-1003,HealthSystem Ltd,320000,2024-12-22,95%,365000,14%,36 months,Mike Torres,Adding compliance module
+ACC-1007,ConsultingPro LLC,98000,2024-12-10,85%,108000,10%,12 months,Elena Rodriguez,Considering multi-year
+ACC-1016,DigitalTrans LLC,73000,2024-12-28,75%,73000,0%,12 months,Elena Rodriguez,Budget concerns raised
+ACC-1025,ProcessFlow Inc,156000,2025-01-15,92%,175000,12%,24 months,Sarah Kim,Strong advocacy from users
+ACC-1032,OptimizePro,89000,2025-01-20,88%,95000,7%,12 months,Mike Torres,Requesting custom features
+ACC-1041,StreamlineOps,67000,2025-01-30,80%,72000,7%,12 months,Elena Rodriguez,New leadership evaluating
+ACC-1048,EfficiencyMax,125000,2025-02-05,93%,145000,16%,24 months,Sarah Kim,Expanding user base
+ACC-1055,WorkSmart Ltd,78000,2025-02-12,70%,78000,0%,12 months,Mike Torres,Competitor evaluation ongoing
+ACC-1062,AutoFlow Systems,134000,2025-02-18,95%,155000,16%,36 months,Elena Rodriguez,Executive sponsor champion
+ACC-1069,TaskMaster Co,92000,2025-02-25,85%,98000,7%,12 months,Sarah Kim,Positive ROI demonstrated
+ACC-1076,FlowState Inc,145000,2025-03-05,89%,165000,14%,24 months,Mike Torres,Integration requirements met
+ACC-1083,OptiWork LLC,56000,2025-03-12,65%,56000,0%,12 months,Elena Rodriguez,Usage declined recently
+ACC-1090,ProcessPro,187000,2025-03-18,94%,215000,15%,24 months,Sarah Kim,Strong business case built
+ACC-1097,FlowGenius,98000,2025-03-25,82%,105000,7%,12 months,Mike Torres,Waiting on budget approval

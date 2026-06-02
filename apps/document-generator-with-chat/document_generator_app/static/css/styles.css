@@ -1,0 +1,2909 @@
+/* Document Builder Custom Styles */
+
+/* Color Palette */
+:root {
+    --primary-teal: #4a9d9e;
+    --primary-teal-dark: #2d7474;
+    --primary-teal-light: #e8f5f5;
+    --secondary-tangerine: #ff9966;
+    --secondary-tangerine-dark: #d47239;
+    --secondary-tangerine-light: #fff7f0;
+    --gradient-primary: linear-gradient(135deg, #4a9d9e 0%, #ff9966 100%);
+    --gradient-reverse: linear-gradient(135deg, #ff9966 0%, #4a9d9e 100%);
+    --gradient-subtle: linear-gradient(135deg, #f0f9f9 0%, #fff7f0 100%);
+}
+
+/* Ensure tab content is visible when active */
+.gradio-container .tab-nav + div > div[id^="component-"]:not([style*="display: none"]) {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Remove all focus outlines from specific inputs */
+.doc-title-box input,
+.doc-title-box textarea,
+.doc-description-box input,
+.doc-description-box textarea,
+.start-prompt-input input,
+.start-prompt-input textarea {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+}
+
+.doc-title-box input:focus,
+.doc-title-box textarea:focus,
+.doc-description-box input:focus,
+.doc-description-box textarea:focus,
+.start-prompt-input input:focus,
+.start-prompt-input textarea:focus {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+}
+
+/* Override Gradio's focus styles */
+.doc-title-box .wrap:has(textarea:focus),
+.doc-description-box .wrap:has(textarea:focus),
+.start-prompt-input .wrap:has(textarea:focus) {
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Start Tab Styles */
+.start-tab-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Welcome message styles */
+.start-welcome-title {
+    text-align: center;
+    padding-top: 20px;
+}
+
+.start-welcome-title h1 {
+    font-size: 72px !important;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.start-welcome-subtitle {
+    text-align: center;
+    color: #666;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.start-welcome-subtitle .prose {
+    font-size: 16px;
+}
+/* Get Started button */
+.start-get-started-btn {
+    background: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Draft button specific styling */
+.start-draft-btn {
+    margin-top: 20px !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+    width: calc(100% - 24px) !important;
+}
+
+.start-get-started-btn:hover {
+    background: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 157, 158, 0.3) !important;
+}
+
+/* Spacer for future content */
+.start-content-spacer {
+    min-height: 20px;
+}
+
+/* Introduction section */
+.start-intro-section {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+}
+
+.start-intro-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+}
+
+.start-intro-content h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    margin-top: 0;
+}
+
+.start-intro-content ul {
+    margin-left: 20px;
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.start-intro-content ul li {
+    margin-bottom: 8px;
+    list-style-type: disc;
+}
+
+.start-intro-content p {
+    margin-top: 24px;
+    color: #555;
+}
+
+/* Hide components but keep them in DOM */
+.hidden-component {
+    display: none !important;
+}
+
+/* Hide the parent div.form container when it contains a hidden-component */
+.form:has(.hidden-component) {
+    display: none !important;
+}
+
+/* Start tab input card container */
+.start-input-card-container {
+    max-width: 800px;
+    margin: 30px auto 90px;
+}
+
+/* Start tab input card - single expanding card */
+.start-input-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+    transition: all 0.4s ease;
+    gap: 0px;
+}
+
+.start-input-card .form {
+    border: 1px solid white;
+}
+
+.start-input-card.has-expanded {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Example buttons styling */
+.start-examples-container {
+    padding: 0 12px 0 12px;
+    width: 100%;
+}
+
+.start-examples-buttons {
+    gap: 12px;
+    display: flex !important;
+    flex-wrap: wrap;
+}
+
+.start-example-btn {
+    background: #e8f5f5 !important;
+    border: 1px solid #b8dfe0 !important;
+    padding: 4px 12px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    min-height: 32px !important;
+    height: 32px !important;
+    box-shadow: 0 1px 3px rgba(74, 157, 158, 0.15);
+}
+
+.start-example-btn:hover {
+    background: #b8dfe0 !important;
+    border-color: #4a9d9e !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(74, 157, 158, 0.2);
+}
+
+/* Start tab bottom row */
+.start-bottom-row {
+    gap: 20px;
+    align-items: stretch;
+}
+
+/* Expandable content - initially hidden */
+.start-expandable-content {
+    gap: 0px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.start-expandable-content.expanded {
+    max-height: 500px; /* Adjust based on your content */
+    opacity: 1;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+/* Resources display container */
+.start-resources-display-container {
+    min-height: 0;
+}
+
+/* Resources list */
+.start-resources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    min-height: 0;
+    margin-bottom: 12px;
+}
+
+/* Override any Gradio row styling for resources */
+.start-resources-list.row {
+    flex-direction: row !important;
+}
+
+.start-resources-list .wrap {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Adjust input card when expanded */
+.start-input-card:has(+ .start-expandable-content.expanded) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+
+/* Start tab upload area - left side */
+.start-upload-area {
+    padding: 0;
+    background: transparent;
+    gap: 0;
+}
+
+/* Start tab button column - right side */
+.start-button-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Start tab feature card */
+.start-feature-card {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 40px;
+    background: #e4e4e7;
+    padding: 60px 20px;
+}
+
+/* Inner container to maintain max-width for content */
+.start-feature-card > * {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.start-feature-title {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.start-feature-title h3 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.start-feature-description {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Features grid */
+.start-features-grid {
+    gap: 24px;
+    margin-top: 32px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+}
+
+.start-features-grid > div {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+}
+
+.start-feature-item {
+    text-align: center;
+    padding: 28px 24px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    transition: all 0.2s ease;
+}
+
+.start-feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #4a9d9e;
+}
+
+/* Ensure feature images and text don't show pointer/text cursor */
+.start-feature-image,
+.start-feature-image img,
+.start-feature-image button,
+.start-feature-item-title,
+.start-feature-item-title *,
+.start-feature-item-text,
+.start-feature-item-text * {
+    cursor: default !important;
+}
+
+.start-feature-item-title h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+}
+
+.start-feature-use-case {
+    background: #e8f5f5;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #555;
+    display: inline-block;
+}
+
+.start-feature-use-case strong {
+    font-weight: 600;
+    color: #2d7474;
+}
+
+.start-feature-item-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #666;
+}
+
+/* Benefits section */
+.start-benefits-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e9ecef;
+}
+
+.start-benefits-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #555;
+    background: #f8f9fa;
+    padding: 20px 24px;
+    border-radius: 8px;
+    border-left: 4px solid #4a9d9e;
+}
+
+.start-benefits-text strong {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+/* Process section */
+.start-process-section {
+    max-width: 1000px;
+    margin: 40px auto;
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+}
+
+.start-process-title {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.start-process-title h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.start-process-subtitle {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+}
+
+/* Process container */
+.start-process-container {
+    gap: 40px;
+    margin-top: 32px;
+    align-items: stretch;
+}
+
+/* Vertical steps layout */
+.start-process-steps-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.start-process-step-vertical {
+    padding: 24px;
+    margin-bottom: 16px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    transition: all 0.2s ease;
+    cursor: default;
+    opacity: 0.7;
+}
+
+.start-process-step-vertical:hover,
+.start-process-step-vertical.active {
+    opacity: 1;
+    border-color: #4a9d9e;
+    box-shadow: 0 4px 12px rgba(74, 157, 158, 0.15);
+    background: #fafffe;
+}
+
+.start-step-number-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.start-step-number-vertical {
+    width: 40px;
+    height: 40px;
+    background: #e8f5f5;
+    color: #4a9d9e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.start-process-step-vertical:hover .start-step-number-vertical,
+.start-process-step-vertical.active .start-step-number-vertical {
+    background: #ff9966;
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 153, 102, 0.3);
+    transform: scale(1.05);
+}
+
+.start-step-content {
+    padding-left: 16px;
+}
+
+.start-step-title h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+}
+
+.start-step-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #666;
+}
+
+/* Process visual */
+.start-process-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    padding: 32px;
+    min-height: 400px;
+}
+
+.process-visual-placeholder {
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+.visual-content svg {
+    width: 100%;
+    height: auto;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.visual-caption {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Section header */
+.start-section-header {
+    max-width: 800px;
+    margin: 30px auto 40px;
+    text-align: center;
+}
+
+.start-section-title h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+}
+
+.start-section-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.start-prompt-input {
+    width: 100%;
+    border: 0px;
+}
+
+.start-prompt-input textarea {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 120px !important;  /* Ensure minimum height for 4 lines */
+    resize: vertical;
+}
+
+.start-prompt-input textarea:focus {
+    border-color: #ddd !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Start tab resources title */
+.start-resources-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+.start-resources-title h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.start-resources-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+}
+
+/* Start tab file upload dropzone - matching tab 2 style */
+.start-file-upload-dropzone {
+    width: calc(100% - 24px) !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    border: 1px dashed #4a9d9e !important;
+    border-radius: 8px !important;
+    background-color: #f8fafa !important;
+    transition: all 0.3s ease !important;
+    margin: 0 12px 12px 12px !important;
+}
+
+.start-file-upload-dropzone:hover {
+    border-color: #3a8d8e !important;
+    background-color: #f0f9f9 !important;
+}
+
+.start-file-upload-dropzone.dragging,
+.start-file-upload-dropzone.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+}
+
+.start-file-upload-dropzone > div {
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.start-file-upload-dropzone label {
+    font-size: 11px !important;
+    color: #666 !important;
+}
+
+.start-file-upload-dropzone .wrap {
+    font-size: 12px !important;
+    padding-top: 5px;
+}
+
+.start-file-upload-dropzone .wrap .or {
+    font-size: 11px !important;
+    margin: 0 3px !important;
+}
+
+.start-file-upload-dropzone .feather-upload {
+    width: 90%;
+    height: 90%;
+}
+
+.start-file-upload-dropzone .icon-wrap {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 0;
+}
+
+.start-file-upload-dropzone .file-preview {
+    display: none !important;
+}
+
+.start-file-upload-dropzone input[type="file"] {
+    opacity: 0 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+}
+
+/* Start tab resources display */
+.resource-drop-label {
+    padding-top: 12px;
+    padding-bottom: 0px;
+}
+.resource-drop-label .input-container *{
+    height: 0px;
+}
+
+/* Hide the textbox but keep the label */
+.resource-drop-label textarea,
+.resource-drop-label input[type="text"] {
+    display: none !important;
+}
+
+/* Also hide the container wrapper if it has padding/margin */
+.resource-drop-label .wrap,
+.resource-drop-label .input-container {
+    min-height: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.start-resources-display{
+    margin-top: 0px;
+    gap: 8px;
+}
+
+.start-resources-display .html-container{
+    padding-top: 0px;
+}
+.start-resource-item {
+    background: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 12px;
+    transition: all 0.2s ease;
+}
+
+.start-resource-item:hover {
+    border-color: #d0d0d0;
+    background: #f5f6f7;
+}
+
+.start-resource-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.start-resource-name {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.start-resource-size {
+    font-size: 12px;
+    color: #666;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.start-resource-remove-btn {
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    color: #666 !important;
+}
+
+.start-resource-remove-btn:hover {
+    background: #f8f9fa !important;
+    border-color: #999 !important;
+    color: #333 !important;
+}
+
+
+/* Debug Panel Accordion Styles */
+.debug-panel {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    margin-top: 10px;
+}
+
+/* Hide debug panel content initially */
+.debug-panel-content {
+    display: none;
+}
+
+.debug-panel-header {
+    padding: 0;
+    margin: 0;
+}
+
+.debug-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    transition: background-color 0.2s;
+}
+
+.debug-panel-title:hover {
+    background: #e9ecef;
+}
+
+.debug-collapse-icon {
+    margin-left: 8px;
+    font-size: 16px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.debug-panel-title:hover .debug-collapse-icon {
+    color: #333;
+}
+
+.debug-panel-content {
+    border-top: 1px solid #ddd;
+    padding: 0 !important;
+}
+
+.debug-panel-content > div {
+    margin: 0 !important;
+}
+
+.json-debug-output {
+    border-radius: 0 0 8px 8px !important;
+    margin: 0 !important;
+}
+
+/* Main gradio container */
+.gradio-container {
+    background-color: #f5f5f5 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+.gradio-container .fillable {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.doc-title-box, .doc-description-box {
+    background: white !important;
+}
+
+.app-header-col {
+    gap: 7px !important;
+    max-width: 450px;
+}
+
+
+/* Builder buttons */
+.save-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+}
+.import-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+}
+.new-builder-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #333333 !important;
+}
+.new-builder-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+}
+
+/* Header buttons row - base styling */
+.header-buttons-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+/* Ensure all direct children of header-buttons-row are vertically aligned */
+.header-buttons-row > * {
+    align-self: center !important;
+    vertical-align: middle !important;
+}
+
+/* At larger screens, Template Examples button should align right in its container */
+.try-examples-container .try-examples-btn {
+    margin-left: auto !important;
+    display: block !important;
+}
+
+/* Button spacer should shrink when buttons wrap */
+.button-spacer {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+/* Responsive button container adjustments */
+@media (max-width: 1280px) {
+    /* Hide spacer at smaller screens to allow proper wrapping */
+    .button-spacer {
+        display: none !important;
+    }
+    
+    /* Ensure button row maintains right alignment when wrapping */
+    .header-buttons-row {
+        justify-content: flex-end !important;
+    }
+    
+    /* When buttons wrap, we need each row to align right
+       Target all children except the hidden spacer */
+    .header-buttons-row > *:not(.button-spacer) {
+        flex: 0 0 auto !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Continue hiding spacer */
+    .button-spacer {
+        display: none !important;
+    }
+    
+    /* Maintain right alignment for wrapped buttons */
+    .header-buttons-row {
+        justify-content: flex-end !important;
+    }
+}
+
+@media (max-width: 900px) {
+    /* Hide spacer */
+    .button-spacer {
+        display: none !important;
+    }
+    
+    /* Stack buttons vertically, all right-aligned */
+    .header-buttons-row {
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 8px !important;
+    }
+    
+    /* Reset container styles to prevent centering */
+    .try-examples-container {
+        width: auto !important;
+        display: block !important;
+        margin: 0 !important;
+    }
+    
+    /* Keep Template Examples button right-aligned within its container */
+    .try-examples-container .try-examples-btn {
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        display: block !important;
+    }
+    
+    /* Reset all button margins for clean vertical stack */
+    .new-builder-btn,
+    .import-builder-btn,
+    .save-builder-btn {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 120px !important;
+    }
+    
+    /* Ensure all direct children align to the end */
+    .header-buttons-row > * {
+        align-self: flex-end !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* Try Examples button - citrus orange tertiary color */
+.try-examples-btn {
+    position: relative !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ff9f40 !important;
+    border: 1px solid #ff9f40 !important;
+    color: white !important;
+}
+.try-examples-btn:hover {
+    background-color: #ff8f20 !important;
+    border-color: #ff8f20 !important;
+}
+
+/* Try Examples dropdown container */
+.try-examples-container {
+    position: relative !important;
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+}
+
+/* Remove default Gradio column padding/margins from try-examples-container */
+.try-examples-container.svelte-1gfkn6j,
+.try-examples-container > .wrap,
+.try-examples-container .form {
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    min-height: auto !important;
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
+/* Examples dropdown styling */
+.examples-dropdown {
+    position: absolute !important;
+    top: 30px !important;
+    right: 0 !important;
+    margin-top: 4px !important;
+    min-width: 250px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1000 !important;
+    display: none !important;
+    padding: 8px !important;
+    padding-left: 6px !important;
+}
+
+/* Show dropdown on hover */
+.try-examples-container:hover .examples-dropdown {
+    display: block !important;
+}
+
+/* Create invisible bridge to maintain hover state */
+.examples-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: transparent;
+}
+
+/* Individual example items */
+.examples-dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.examples-dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.examples-dropdown-item:hover {
+    background-color: #fff5eb;
+    transform: translateX(4px);
+}
+
+/* Example title */
+.example-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+/* Example description */
+.example-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Active/selected state */
+.examples-dropdown-item:active {
+    background-color: #ffe5cc;
+}
+
+
+/* Download dropdown styles - moved to generate section for absolute positioning */
+
+/* Remove default Gradio column padding/margins from download-container */
+.download-container.svelte-1gfkn6j,
+.download-container > .wrap,
+.download-container .form {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    gap: 0 !important;
+    justify-content: flex-end !important;
+    display: flex !important;
+}
+
+/* Ensure the download button itself is right-aligned */
+.download-container .download-btn {
+    margin-left: auto !important;
+}
+
+/* Hide dropdown by default */
+.download-dropdown {
+    position: absolute !important;
+    top: 30px !important;
+    right: 0 !important;
+    margin-top: 4px !important;
+    min-width: 200px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1000 !important;
+    display: none !important;
+    padding: 8px !important;
+    opacity: 0;
+    transition: opacity 0.2s ease !important;
+}
+
+/* Show dropdown on hover only when button is interactive */
+.download-container:hover .download-dropdown {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Hide dropdown when button is disabled */
+.download-container:has(.download-btn:disabled) .download-dropdown {
+    display: none !important;
+    pointer-events: none;
+}
+
+/* Create invisible bridge to maintain hover state */
+.download-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: transparent;
+}
+
+/* Individual download items */
+.download-dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.download-dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.download-dropdown-item:hover {
+    background-color: #f3f4f6;
+    transform: translateX(2px);
+}
+
+/* Download title */
+.download-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+/* Download description */
+.download-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.3;
+}
+
+/* Active state */
+.download-dropdown-item:active {
+    background-color: #e5e7eb;
+}
+
+/* Generate column - make it relative for absolute positioning */
+.generate-col {
+    width: 100% !important;
+    position: relative !important;
+    min-height: 40px !important; /* Ensure minimum height for buttons */
+}
+
+/* Generate button row - container for positioned elements */
+.generate-btn-row {
+    position: relative !important;
+
+    width: 100% !important;
+    height: 30px !important;
+    pointer-events: none !important; /* Allow clicks to pass through container */
+}
+
+/* Ensure child elements can receive clicks */
+.generate-btn-row > * {
+    pointer-events: auto !important;
+}
+
+/* Position Generate button absolutely */
+.generate-btn {
+    position: absolute !important;
+    right: 128px !important; /* Move further left to avoid overlap */
+    top: 0 !important;
+    z-index: 200 !important; /* Higher than download container */
+    pointer-events: auto !important; /* Ensure button is clickable */
+}
+
+/* Download container - also absolute positioned */
+.download-container {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    z-index: 150 !important; /* Lower than generate button */
+    pointer-events: auto !important; /* Ensure container is interactive */
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    max-width: 140px !important; /* Limit width to prevent overlap */
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+}
+
+/* Header section */
+.header-section {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+}
+.header-section .form {
+    border: 1px solid #ffffff;
+}
+.header-section textarea {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+}
+.header-section textarea:focus,
+.header-section textarea:active,
+.header-section textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.doc-title-box textarea {
+    font-weight: bold !important;
+    font-size: 14px !important;
+}
+.doc-title-box textarea:focus,
+.doc-title-box textarea:active,
+.doc-title-box textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.doc-description-box {
+    position: relative;
+}
+
+.doc-description-box textarea {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    resize: none !important; /* Disable manual resize since we auto-expand */
+    overflow-y: hidden !important; /* Hide scrollbar */
+    max-height: none !important; /* No max height */
+    transition: none; /* Remove transition for row-based sizing */
+}
+
+
+.doc-description-box textarea:focus,
+.doc-description-box textarea:active,
+.doc-description-box textarea:hover {
+    border: 1px solid #e0e0e0 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Collapsed textarea state */
+.doc-description-box.collapsed textarea {
+    overflow: hidden !important;
+    cursor: text !important;
+}
+
+/* Description expand/collapse button */
+.desc-expand-btn {
+    position: absolute;
+    top: 0px;
+    right: 3px;
+    width: 14px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 20px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.desc-expand-btn:hover {
+    color: #666;
+}
+
+.desc-expand-btn:focus {
+    outline: none;
+}
+
+/* Rotate chevron for document description to match content blocks */
+.doc-description-box:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+}
+
+.doc-description-box.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    top: -2px;
+    /* Add your custom positioning here */
+}
+
+/* Remove chevron adjustment - it should stay in fixed position */
+
+
+/* Download button */
+.download-generated-doc {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Save status message */
+.save-status-message {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.save-status-message p {
+    margin: 0;
+    color: #4CAF50;
+}
+
+/* Debug Panel */
+.debug-panel {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.debug-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.json-debug-output {
+    font-size: 12px;
+    max-height: 400px;
+}
+
+/* Resources */
+.resources-col {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    margin-right: 5px !important;
+    gap: 10px !important;
+}
+
+/* Reduce gap between resource items */
+.resources-display-area > div {
+    gap: 4px !important;
+}
+
+/* File upload dropzone styling */
+.file-upload-dropzone {
+    width: 100% !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    border: 1px dashed #4a9d9e !important;
+    border-radius: 8px !important;
+    background-color: #f8fafa !important;
+    transition: all 0.3s ease !important;
+}
+
+.file-upload-dropzone:hover {
+    border-color: #3a8d8e !important;
+    background-color: #f0f9f9 !important;
+}
+
+/* When dragging files over - match AI content block drag-over effect */
+.file-upload-dropzone.dragging,
+.file-upload-dropzone.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+}
+
+/* Style the file input container */
+.file-upload-dropzone > div {
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Style the label text */
+.file-upload-dropzone label {
+    font-size: 11px !important;
+    color: #666 !important;
+}
+
+/* Make the upload text smaller */
+.file-upload-dropzone .wrap {
+    font-size: 12px !important;
+    padding-top: 5px;
+}
+
+.file-upload-dropzone .wrap .or {
+    font-size: 11px !important;
+    margin: 0 3px !important;
+}
+
+.file-upload-dropzone .feather-upload {
+    width: 90%;
+    height: 90%;
+}
+.file-upload-dropzone .icon-wrap {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 0;
+}
+/* Style the file input button area */
+.file-upload-dropzone .file-preview {
+    display: none !important;
+}
+
+.file-upload-dropzone input[type="file"] {
+    opacity: 0 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+}
+
+.resources-display-area .html-container {
+    padding: 0px !important;
+}
+
+.resources-display-area {
+    gap: 5px !important;
+}
+
+.resource-item,
+.resource-item-gradio {
+    padding: 6px;
+    margin-bottom: 4px;
+    background-color: #f5f5f5 !important; /* Light gray background */
+    border: 1px solid;
+    border-color: #4a9d9e !important; /* Keep teal-green border */
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.resource-content {
+    width: 100%;
+}
+.resource-item.dragging,
+.resource-item-gradio.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+/* Resource header for title and controls */
+.resource-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+}
+
+/* Resource title input field */
+.resource-title-input {
+    flex: 1;
+    background: white;
+    border: 1px solid #e0e0e0;
+    font-size: 11px;
+    padding: 2px 4px;
+    margin: 0;
+    outline: none;
+    cursor: text;
+    user-select: text;
+    font-family: inherit;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+.resource-title-input:hover {
+    border-color: #ccc;
+}
+
+.resource-title-input:focus {
+    border-color: #e0e0e0; /* Keep same border color as default */
+    /* No padding change to prevent size shift */
+}
+
+/* Gradio resource title styling */
+.resource-info-col.form {
+    border: 0;
+    background: #f5f5f5 !important;
+}
+
+/* Ensure the info column itself has the right background */
+.resource-info-col {
+    background: #f5f5f5 !important;
+}
+
+
+/* Remove the extra filename alignment rules */
+
+.resource-title-gradio {
+    padding: 0;
+    padding-right: 26px;
+    border: 0;
+    background: transparent;
+}
+
+.resource-title-gradio.show-textbox-border {
+    border: 0;
+}
+
+.resource-title-gradio input, .resource-title-gradio textarea {
+    background: white !important;
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+    margin: 0 !important;
+    outline: none !important;
+    cursor: text;
+    user-select: text;
+    font-family: inherit !important;
+    border-radius: 2px !important;
+    font-weight: bold !important;
+    width: 100% !important;
+    min-height: unset !important;
+    height: 24px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+/* Force textarea to behave like single-line input */
+.resource-title-gradio textarea {
+    overflow: hidden !important;
+    resize: none !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    rows: 1 !important;
+    line-height: 20px !important;
+    max-height: 24px !important;
+}
+
+.resource-title-gradio input:hover, .resource-title-gradio textarea:hover{
+    border-color: #ccc !important;
+}
+
+.resource-title-gradio input:focus, .resource-title-gradio textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.resource-desc-gradio {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    position: relative;
+}
+
+.resource-desc-gradio textarea {
+    width: 100% !important;
+    padding: 4px 16px 4px 6px !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 3px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    font-family: inherit !important;
+    resize: none !important;
+    overflow-y: hidden !important;
+    background: white !important;
+    transition: border-color 0.2s ease !important;
+    cursor: text;
+    user-select: text;
+    margin-top: 4px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    height: auto !important; /* Let rows attribute control height */
+    min-height: auto !important; /* Don't constrain minimum height */
+    max-height: none !important; /* Let rows handle the sizing */
+}
+
+.resource-desc-gradio textarea:hover {
+    border-color: #ccc !important;
+}
+
+.resource-desc-gradio textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+
+}
+
+.resource-desc-gradio textarea::placeholder {
+    color: #999 !important;
+    font-style: italic !important
+}
+
+/* Show scrollbar only when content exceeds max-height */
+.resource-desc-gradio textarea.scrollable {
+    overflow-y: auto !important;
+    scrollbar-width: auto !important; /* Firefox - normal width */
+    -ms-overflow-style: auto !important; /* IE */
+    padding: 4px 0px 4px 6px !important;
+    max-height: none !important; /* Let rows handle sizing */
+}
+
+/* Ensure webkit scrollbar is visible for resource description */
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar {
+    width: 16px !important;
+    display: block !important;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-right: 5px;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-thumb {
+    background: #999999;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 8px;
+    cursor: default !important;
+}
+
+.resource-desc-gradio textarea.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a;
+    cursor: default !important;
+    border: 3px solid transparent !important;
+    background-clip: content-box !important;
+}
+
+/* Collapsed state for resource description */
+.resource-desc-gradio.collapsed textarea {
+    overflow: hidden !important;
+    height: auto !important; /* Let rows attribute control height */
+    max-height: none !important; /* Remove max-height constraint */
+    cursor: text !important;
+}
+
+/* Description expand button in resource description */
+.resource-desc-gradio .desc-expand-btn {
+    position: absolute;
+    top: 0px;
+    right: 3px;
+    width: 14px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 20px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.resource-desc-gradio .desc-expand-btn:hover {
+    color: #666;
+}
+
+.resource-desc-gradio .desc-expand-btn:focus {
+    outline: none;
+}
+
+/* Rotate chevron for expanded state to match doc description */
+.resource-desc-gradio:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+    top: 4px;
+    right: 2px;
+}
+
+.resource-desc-gradio.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    top: 2px; /* Match doc description positioning */
+    right: 2px;
+}*/
+
+
+/* Resource filename styling */
+.resource-filename {
+    font-size: 9px !important;
+    color: #666 !important;
+    margin: 4px -6px -6px -6px !important; /* Extend to edges of container */
+    padding: 4px 6px !important;
+    font-family: monospace !important;
+    line-height: 1.2 !important;
+    background-color: #f5f5f5 !important; /* Same as resource-item background */
+}
+
+/* Target any child elements inside resource-filename */
+.resource-filename * {
+    font-size: inherit !important;
+}
+
+/* If Gradio wraps the text in a p or span */
+.block.resource-filename div {
+    font-size: 9px !important;
+    margin: 0 !important;
+    margin-left: 4px;
+    margin-top: 4px;
+    padding: 0 !important;
+    text-align: left !important;
+    color: #666 !important;
+    font-family: monospace !important;
+}
+
+/* Gradio resource upload zone */
+.resource-upload-gradio {
+    margin-top: 4px !important;
+    min-height: 32px !important;
+    border: 1px dashed #4a9d9e !important;
+    border-radius: 4px !important;
+    background-color: #f8fafa !important;
+    transition: all 0.3s ease !important;
+}
+
+.resource-upload-gradio:hover {
+    border-color: #3a8d8e !important;
+    background-color: #f0f9f9 !important;
+}
+
+.resource-upload-gradio.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+}
+
+/* Style the Gradio file upload component inside resource */
+.resource-upload-gradio .wrap {
+    min-height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    color: #666 !important;
+    padding: 4px !important;
+}
+
+.resource-upload-gradio .icon-wrap {
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 4px !important;
+}
+
+/* Hide file preview in resource upload */
+.resource-upload-gradio .file-preview {
+    display: none !important;
+}
+
+/* Delete button for resources in panel */
+.resource-delete {
+    cursor: pointer;
+    padding: 0 4px;
+    font-weight: bold;
+    color: #999;
+    font-size: 16px; /* Bigger trash can icon */
+    transition: color 0.2s ease;
+    opacity: 0;
+    flex-shrink: 0;
+}
+
+.resource-item:hover .resource-delete,
+.resource-item-gradio:hover .resource-delete {
+    opacity: 1;
+}
+
+.resource-delete:hover {
+    color: #ff5252;
+}
+
+/* Gradio resource delete button styling */
+.resource-delete-btn {
+    position: absolute !important;
+    top: 1px !important;
+    right: 1px !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    padding: 0 !important;
+    background-color: #f5f5f5 !important;
+    border: 1px solid #d0d0d0 !important;
+    border-radius: 3px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    transition: opacity 0.2s ease, background-color 0.2s ease !important;
+    opacity: 1 !important;
+    z-index: 10 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Override Gradio button styles for delete button */
+.resource-item-gradio .resource-delete-btn.svelte-1pjfiar,
+.resource-item-gradio .resource-delete-btn {
+    box-shadow: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+}
+
+.resource-delete-btn:hover {
+    background-color: #ff6b6b !important;
+    border-color: #ff5252 !important;
+    color: white !important;
+}
+
+/* Ensure the button's parent column doesn't interfere */
+.resource-item-gradio > .form > .wrap > .wrap > div:last-child {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Make the resource group relative positioned for absolute button */
+.resource-item-gradio {
+    position: relative !important;
+    background: #f5f5f5 !important;
+    overflow: visible !important; /* Allow button to extend outside */
+}
+
+/* Ensure all Gradio wrapper elements have the right background */
+.resource-item-gradio > div,
+.resource-item-gradio > .form,
+.resource-item-gradio > .form > .wrap,
+.resource-item-gradio > .form > .wrap > .wrap {
+    background: #f5f5f5 !important;
+}
+
+/* Adjust the resource row to not interfere with absolute button */
+.resource-row-gradio {
+    background: #f5f5f5 !important;
+}
+
+/* Target any form elements inside resource items */
+.resource-item-gradio .form {
+    background: #f5f5f5 !important;
+}
+
+/* Resource description container */
+.resource-description-container {
+    position: relative;
+    margin-top: 4px;
+}
+
+/* Resource panel description textarea */
+.resource-panel-description {
+    width: 100%;
+    min-height: 32px; /* About 2 lines */
+    max-height: 180px; /* About 10 lines with 11px font and 1.4 line height */
+    padding: 4px 18px 4px 6px; /* Extra padding on right for button */
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1.4 !important; /* Match document description */
+    font-family: inherit;
+    resize: none;
+    overflow-y: hidden; /* Hide scrollbar by default */
+    background: white;
+    transition: height 0.1s ease;
+    cursor: text;
+    user-select: text;
+}
+
+/* Show scrollbar only when content exceeds max-height */
+.resource-panel-description.scrollable {
+    overflow-y: auto !important;
+    scrollbar-width: auto !important; /* Firefox - normal width */
+    -ms-overflow-style: auto !important; /* IE */
+    padding-right: 4px;
+}
+
+/* Ensure webkit scrollbar is visible for resource description */
+.resource-panel-description.scrollable::-webkit-scrollbar {
+    width: 16px !important; /* Slightly narrower than doc description */
+    display: block !important;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 3px solid transparent; /* Less padding than doc description */
+    background-clip: content-box;
+    border-radius: 8px;
+    margin-top: 15px; /* Leave space for chevron */
+    margin-right: 3px;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-thumb {
+    background: #999999;
+    border: 3px solid transparent; /* Less padding than doc description */
+    background-clip: content-box;
+    border-radius: 8px;
+    cursor: default !important;
+}
+
+.resource-panel-description.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a;
+    cursor: default !important;
+    border:3px solid transparent !important;
+    background-clip: content-box !important;
+}
+
+/* Remove scrollbar buttons (arrows) */
+.resource-panel-description.scrollable::-webkit-scrollbar-button {
+    display: none;
+}
+
+.resource-panel-description:focus {
+    outline: none;
+    border-color: #e0e0e0; /* Keep same border color as default */
+}
+
+.resource-panel-description::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+/* Collapsed state for resource description */
+.resource-description-container.collapsed .resource-panel-description {
+    overflow: hidden !important;
+    max-height: 32px !important; /* Exactly 2 lines */
+}
+
+/* Description expand button in resource panel */
+.resource-description-container .desc-expand-btn {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    width: 14px;
+    height: 16px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 16px;
+    color: #999;
+    display: none; /* Hidden by default */
+    z-index: 10;
+}
+
+.resource-description-container .desc-expand-btn:hover {
+    color: #666;
+}
+
+.resource-description-container .desc-expand-btn:focus {
+    outline: none;
+}
+
+/* Rotate chevron for expanded state to match content blocks */
+.resource-description-container:not(.collapsed) .desc-expand-btn {
+    transform: rotate(180deg);
+}
+
+.resource-description-container.collapsed .desc-expand-btn {
+    transform: rotate(0deg);
+    /* Add your custom positioning here */
+    top: -1px;
+}
+
+
+
+/* Drag and drop styles */
+.block-resources.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+}
+
+/* Dropped resource styles */
+.dropped-resource {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin: 2px;
+    background-color: #4a9d9e;
+    border: 1px solid #4a9d9e;
+    border-radius: 4px;
+    font-size: 12px;
+    color: white;
+    cursor: default;
+}
+
+/* Remove hover effect on the dropped resource itself */
+.dropped-resource:hover {
+    background-color: #4a9d9e; /* Keep same as default */
+    border-color: #4a9d9e; /* Keep same as default */
+}
+
+/* Style for the remove button */
+.dropped-resource .remove-resource {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 4px;
+    background-color: white;
+    border: 1px solid #ddd; /* Light gray border to make white button visible */
+    border-radius: 3px;
+    color: #333;
+    font-size: 16px;
+    font-weight: normal;
+    font-style: normal;
+    cursor: pointer;
+}
+
+/* Hover effect on X button - matches delete button behavior */
+.dropped-resource .remove-resource:hover {
+    background-color: #ff6b6b;
+    border-color: #ff5252;
+    color: white;
+    cursor: pointer;
+}
+
+
+/* Load resource button */
+.load-resource-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.load-resource-btn:hover {
+    opacity: 1;
+}
+
+/* Resource container for AI blocks with descriptions */
+.dropped-resource-container {
+    margin-bottom: 8px;
+    padding: 4px;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    text-align: left;
+}
+
+.dropped-resource-container .dropped-resource {
+    display: inline-block;
+    width: auto;
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+.resource-description {
+    width: 100%;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 11px;
+    font-style: italic;
+    background-color: white;
+    transition: border-color 0.2s ease;
+}
+
+.resource-description:focus {
+    outline: none;
+    border-color: #4a9d9e;
+}
+
+.resource-description::placeholder {
+    color: #999;
+}
+
+
+
+/* Resource upload zone styles */
+.resource-upload-zone {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px dashed #4a9d9e;
+    border-radius: 8px;
+    background-color: #f8fafa;
+    text-align: center;
+    position: relative;
+    min-height: 32px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.resource-upload-zone:hover {
+    border-color: #3a8d8e;
+    background-color: #f0f9f9;
+}
+
+.resource-upload-zone.drag-over {
+    border-color: #4a9d9e;
+    background-color: #e8f5f5;
+    border-width: 1px;
+}
+
+.resource-upload-zone .upload-text {
+    font-size: 11px;
+    color: #666;
+    pointer-events: none;
+}
+
+.resource-upload-zone .resource-file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.resource-upload-zone.upload-success {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.resource-upload-zone.upload-success .upload-text {
+    color: #155724;
+    font-weight: bold;
+}
+
+
+/* Workspace */
+.workspace-col {
+    width: 100% !important;
+    min-width: 500px !important;
+    max-width: 100% !important;
+    margin-left: 5px !important;
+    margin-right: 5px !important;
+    gap: 8px !important;
+}
+.workspace-display {
+    height: 680px !important;
+    color: #bbbbc2 !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 8px !important;
+    overflow-y: auto; /* Show scrollbar only when needed */
+    overflow-x: hidden;
+}
+
+/* Remove the rules that hide all scrollbars inside workspace - we want to show them when needed */
+
+/* Workspace - Content block add buttons */
+.add-section-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+.add-section-btn:hover {
+    background-color: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+}
+
+/* Workspace collapse/expand all buttons - match New button style */
+.workspace-collapse-btn {
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    border-radius: 4px !important;
+    font-size: 16px !important;
+    line-height: 30px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: #333333 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.workspace-collapse-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+    color: #333333 !important;
+}
+
+.square-btn-row {
+    gap: 8px !important;
+}
+
+/* Single workspace collapse/expand toggle button styling */
+.workspace-collapse-btn {
+    font-weight: 100 !important;
+    font-size: 28px !important;  /* Make icon larger */
+    position: relative !important;
+    line-height: 0px !important;
+    transform: rotate(90deg) !important;  /* Default: pointing down */
+    transition: none !important;  /* Disable animation */
+    padding-left: 1px !important;  /* Shift icon right within button */
+    padding-top: 0px !important;
+    padding-right: 0px !important;
+    padding-bottom: 7px !important;
+}
+
+/* When in collapse mode (sections expanded), pointing up */
+.workspace-collapse-btn.collapse-mode {
+    transform: rotate(-90deg) !important;  /* Pointing up */
+    transition: none !important;  /* Disable animation */
+    padding-left: 0px !important;  /* Shift icon right within button */
+    padding-top: 0px !important;
+    line-height: 0px !important;
+    padding-right: 2px !important;
+    padding-bottom: 7px !important;
+    font-size: 28px !important;  /* Keep same size */
+}   
+
+/* Secondary workspace button - white with grey border */
+.secondary-workspace-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    color: #666666 !important;
+    font-weight: bold !important;
+}
+.secondary-workspace-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #b0b0b0 !important;
+    color: #555555 !important;
+}
+
+/* Workspace - Content block styling */
+.blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.blocks-container .html-container {
+    padding: 40px !important;
+    font-style: italic !important;
+}
+
+.content-block {
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    position: relative;
+    transition: box-shadow 0.2s ease, margin-left 0.2s ease, width 0.2s ease, background-color 0.2s ease;
+}
+
+.content-block:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Indentation levels - using margin for visual indent but keeping arrows fixed */
+.content-block[data-indent="0"] {
+    margin-left: 0;
+    width: 100%;
+}
+.content-block[data-indent="1"] {
+    margin-left: 30px;
+    width: calc(100% - 30px);
+}
+.content-block[data-indent="2"] {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+}
+.content-block[data-indent="3"] {
+    margin-left: 90px;
+    width: calc(100% - 90px);
+}
+.content-block[data-indent="4"] {
+    margin-left: 120px;
+    width: calc(100% - 120px);
+}
+.content-block[data-indent="5"] {
+    margin-left: 150px;
+    width: calc(100% - 150px);
+}
+
+/* Indent controls */
+.indent-controls {
+    position: absolute;
+    top: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 2px;
+}
+
+/* Adjust indent control position based on indent level to keep them fixed */
+.content-block[data-indent="0"] .indent-controls { left: -35px; padding-right: 35px;}
+.content-block[data-indent="1"] .indent-controls { left: -65px; padding-right: 65px;}
+.content-block[data-indent="2"] .indent-controls { left: -95px; padding-right: 95px;}
+.content-block[data-indent="3"] .indent-controls { left: -125px; padding-right: 125px;}
+.content-block[data-indent="4"] .indent-controls { left: -155px; padding-right: 155px;}
+.content-block[data-indent="5"] .indent-controls { left: -185px; padding-right: 185px;}
+
+.content-block:hover .indent-controls,
+.content-block:focus-within .indent-controls {
+    opacity: 1;
+}
+
+.indent-btn {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.indent-btn:hover {
+    background-color: #e0e0e0;
+    outline: none;
+}
+
+.indent-btn:focus {
+    outline: none;
+}
+
+.indent-btn.outdent {
+    color: #666;
+}
+
+.indent-btn.indent {
+    color: #666;
+}
+
+/* Placeholder to maintain spacing when button is hidden */
+.indent-btn-placeholder {
+    width: 20px;
+    height: 20px;
+}
+
+.ai-block {
+    border-left: 3px solid #4a9d9e !important;
+}
+.ai-block textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    resize: none; /* Disable manual resize since we auto-expand */
+    background: white;
+    outline: none;
+    overflow-y: hidden; /* Hide vertical scrollbars */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
+}
+.ai-block .block-resources {
+    min-height: 40px;
+    border: 1px dashed #4a9d9e;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+    cursor: default;
+}
+
+.text-block {
+    border-left: 3px solid #b8b8b8 !important;
+}
+.text-block textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: none; /* Remove height limit */
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    resize: none; /* Keep manual resize disabled */
+    background: white;
+    outline: none;
+    overflow-y: auto; /* Show scrollbars when needed */
+    overflow-x: hidden; /* Hide horizontal scrollbars */
+    transition: height 0.1s ease;
+    box-sizing: border-box;
+}
+.text-block .block-resources {
+    min-height: 40px;
+    border: 1px dashed #d0d0d0;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    background-color: #f8f8f8;
+    cursor: default;
+}
+
+/* Heading input styles for AI and Text blocks - inline version */
+.block-heading-inline {
+    flex: 1;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 4px 8px;
+    margin: 0 24px 0 0;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.block-heading-inline:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.block-heading-inline::placeholder {
+    color: #bbbbc2;
+    font-weight: normal;
+}
+
+/* Update block header to use flexbox for proper alignment */
+.block-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 36px;
+    position: relative;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 6px;
+    right: -30px; /* Move outside the block into the margin */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.add-btn {
+    position: absolute;
+    top: 30px;  /* 10px (delete button top) + 20px (delete button height) + 5px gap */
+    right: -30px; /* Same as delete button - outside the block */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.content-block:hover .delete-btn,
+.content-block:hover .add-btn,
+.content-block:focus-within .delete-btn,
+.content-block:focus-within .add-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background-color: #ff6b6b;
+    border-color: #ff5252;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+/* Block tabs styling */
+.block-tabs {
+    display: inline-flex;
+    margin-bottom: 1px; /* Overlap with textarea border */
+    position: relative;
+    top: 1px;
+}
+
+.block-tab {
+    width: 42px;
+    height: 24px;
+    padding: 3px 10px;
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s ease;
+    margin-right: -1px; /* Overlap borders */
+}
+
+
+.block-tab.active:first-child {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-bottom: 1px solid white;
+    color: #4a9d9e;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.block-tab:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #e0e0e0;
+    color: #4a9d9e;
+}
+
+.block-tab:hover:not(.active) {
+    background-color: #eeeeee;
+    color: #333;
+}
+
+/* Keep teal color for AI tab on hover */
+.block-tab:first-child:hover:not(.active) {
+    color: #4a9d9e;
+}
+
+
+.block-tab.active:last-child {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-bottom: 1px solid white;
+    color: #666;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.block-tab:last-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+.block-tab:last-child:hover:not(.active) {
+    background-color: #eeeeee;
+    color: #333;
+}
+
+/* Update textarea styling to connect with tabs */
+.ai-block .block-tabs + textarea,
+.text-block .block-tabs + textarea {
+    margin-top: -1px;
+}
+
+/* Remove top-left border radius for AI and Text block textareas to align with tabs */
+.ai-block .block-tabs + textarea,
+.text-block .block-tabs + textarea {
+    border-top-left-radius: 0;
+}
+
+/* Empty blocks message */
+.empty-blocks-message {
+    color: #bbbbc2;
+    text-align: left;
+
+}
+
+/* Collapsible blocks */
+.collapse-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2e2e2e;
+}
+
+.content-block:hover .collapse-btn,
+.content-block:focus-within .collapse-btn {
+    opacity: 1;
+}
+
+.collapse-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+    color: #333;
+}
+
+.collapse-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    position: relative;
+    top: 1px;  /* Fine-tune vertical position */
+}
+
+.collapsed .collapse-icon {
+    transform: rotate(0deg);  /* Point down when collapsed */
+    top: -1px;
+    font-weight: 400;
+}
+
+.content-block:not(.collapsed) .collapse-icon {
+    transform: rotate(180deg);  /* Point up when expanded */
+}
+
+.content-block.collapsed {
+    min-height: auto;
+}
+
+.content-block.collapsed .block-content {
+    display: none;
+}
+
+.block-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.block-content.show {
+    max-height: none; /* Remove height limit to allow full content */
+    opacity: 1;
+    padding-top: 10px;
+}
+
+.block-content textarea::placeholder {
+    color: #bbbbc2;
+}
+
+/* Generate Document */
+.generate-col {
+    width: 100% !important;
+    min-width: 500px !important;  /* Match workspace panel minimum */
+    max-width: 100% !important;
+    margin-left: 5px !important;
+    gap: 8px !important;
+}
+.generate-display {
+    height: 680px !important;
+    background-color: white !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    border-radius: 8px !important;
+    overflow-y: auto; /* Show scrollbar only when needed */
+    overflow-x: hidden;
+    padding: 40px !important;
+    font-size: 14px !important;
+    color: #bbbbc2 !important;
+}
+
+/* Specific targeting for generated content */
+.generated-content em {
+    color: #bbbbc2;  /* --neutral-400: #bbbbc2 used for placeholders in gradio */
+}
+
+/* Hide scrollbar for HTML content (loading state) but keep for Markdown */
+.generate-display .gradio-html,
+.generate-display .gradio-html *,
+.generated-content {
+    overflow: hidden !important;
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+}
+
+.generate-display .gradio-html::-webkit-scrollbar,
+.generate-display .gradio-html *::-webkit-scrollbar,
+.generated-content::-webkit-scrollbar {
+    display: none !important;  /* Chrome, Safari and Opera */
+}
+
+/* Generate Document - buttons*/
+.generate-btn-row {
+    gap: 8px !important;
+}
+
+.generate-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+    background-color: #4a9d9e !important;
+    border: 1px solid #4a9d9e !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.generate-btn:hover {
+    background-color: #3a8d8e !important;
+    border-color: #3a8d8e !important;
+}
+
+.download-btn {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 30px !important;
+
+}
+
+/* Footer styling - change text color */
+footer button,
+footer a {
+    color: #27272a !important;
+}
+
+/* Gradio resource item drag and drop styles */
+.resource-item-gradio {
+    cursor: grab !important;
+    transition: all 0.2s ease;
+}
+
+.resource-item-gradio:hover {
+    background: #f0f0f0;
+    cursor: grab !important;
+}
+
+.resource-item-gradio:active {
+    cursor: grabbing !important;
+}
+
+.resource-item-gradio.dragging {
+    opacity: 0.5;
+    cursor: grabbing !important;
+    background: #e0e0e0;
+}
+
+/* Global cursor while dragging */
+body.dragging-resource,
+body.dragging-resource * {
+    cursor: grabbing !important;
+}
+
+/* Ensure all elements show grabbing cursor during drag, except drop zones */
+body.dragging-resource *:not(.no-drop):not(.block-resources) {
+    cursor: grabbing !important;
+}
+
+/* Drag and drop styles - matching HTML version */
+.block-resources.drag-over {
+    border-color: #4a9d9e !important;
+    background-color: #e8f5f5 !important;
+    border-width: 1px !important;
+    cursor: copy !important;
+}
+
+/* Show copy cursor on drop zones when hovering during drag */
+body.dragging-resource .block-resources:hover {
+    cursor: copy !important;
+}
+
+/* Show copy cursor when actively dragging over */
+body.dragging-resource .block-resources.drag-over {
+    cursor: copy !important;
+}
+
+/* Show not-allowed cursor when dragging over invalid drop targets */
+textarea.no-drop,
+input.no-drop,
+.resource-upload-gradio.no-drop,
+.no-drop {
+    cursor: not-allowed !important;
+}
+
+/* Also style file upload zones to show they're not valid drop targets */
+.resource-upload-gradio.no-drop {
+    opacity: 0.6;
+}
+
+/* Start tab error message styling */
+.start-error-message {
+    margin-top: 8px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.file-upload-warning .html-container {
+    padding: 0px;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
