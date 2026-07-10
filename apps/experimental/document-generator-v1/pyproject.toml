@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "gradio>=5.30.0",
+    "gradio>=6.15.0",
     "jsonschema>=4.24.0",
     "pydantic>=2.11.7",
     "python-dotenv>=1.1.1",
