@@ -2081,7 +2081,7 @@ wheels = [
 
 [[package]]
 name = "python-liquid"
-version = "2.0.2"
+version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "babel" },
@@ -2089,9 +2089,9 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "pytz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/29/45ea9b5b22394aaea4d981960531c1de8cc46b9f4f85ddef3ff180740a8d/python_liquid-2.0.2.tar.gz", hash = "sha256:3b10c3716829778284e545afa968252bc51bc67ad8d13b3d93975d3affa92e2e", size = 91642, upload-time = "2025-05-21T07:38:16.108Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/05/38a825b18c6a08d4b42b9b8a4ec0fb08babe2e815ab47d866af09b8bfd63/python_liquid-2.2.1.tar.gz", hash = "sha256:a800c3aa47f7614893f3dc3381ec07587ef04d5e076a8e4b266a81cdbe512c8c", size = 95136, upload-time = "2026-06-16T16:07:59.429Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/64/4e7d316c3ebaaae8a5f6fdbfa5067285f66bceed66ef002b21ac3033049d/python_liquid-2.0.2-py3-none-any.whl", hash = "sha256:599ac3f0fcfc77c914447a0c53f87a55b537ffe5d0169f2fffdc8216577161c0", size = 136282, upload-time = "2025-05-21T07:38:14.856Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/18/ee9c53e015ad4b2be471107714ce4db562090fee7b1fd4cb1f299e2b0e78/python_liquid-2.2.1-py3-none-any.whl", hash = "sha256:35da55dc42c47ebc86086b18838d1921135f48940599b7537f9a55645974e49c", size = 140932, upload-time = "2026-06-16T16:07:58.18Z" },
 ]
 
 [[package]]
@@ -2214,7 +2214,7 @@ requires-dist = [
     { name = "pydantic-ai-slim", extras = ["anthropic", "openai", "mcp"], specifier = ">=0.3.1,<0.6.0" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
-    { name = "python-liquid", specifier = ">=2.0.1" },
+    { name = "python-liquid", specifier = ">=2.2.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
