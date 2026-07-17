@@ -6,7 +6,7 @@ authors = [{ name = "MADE:Explorations Team" }]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["mcp>=1.9.1", "python-dotenv>=1.1.0", "recipe-tool"]
+dependencies = ["mcp>=1.28.1", "python-dotenv>=1.1.0", "recipe-tool"]
 
 [project.scripts]
 # Main entry point
